@@ -1258,5 +1258,7 @@
   <data name="Shop_Detail_Total" xml:space="preserve"><value>Total: {0} coins for {1}</value></data>
   <data name="Shop_Detail_After" xml:space="preserve"><value>Coins after: {0}</value></data>
   <data name="Market_Confirm_Text" xml:space="preserve"><value>List {1} of {0} for {2} coins?</value></data>
+  <data name="Market_BuyConfirm_Title" xml:space="preserve"><value>Confirm purchase</value></data>
+  <data name="Market_BuyConfirm_Text" xml:space="preserve"><value>Buy {1} of {0} for {2} coins?</value></data>
   <data name="Tooltip_RunEnergySave" xml:space="preserve"><value>Running uses {0}% less energy</value></data>
 </root>

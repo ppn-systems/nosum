@@ -1258,5 +1258,7 @@
   <data name="Shop_Detail_Total" xml:space="preserve"><value>Tổng: {0} xu cho {1} món</value></data>
   <data name="Shop_Detail_After" xml:space="preserve"><value>Số dư sau khi mua: {0} xu</value></data>
   <data name="Market_Confirm_Text" xml:space="preserve"><value>Đăng bán {1} {0} với giá {2} xu?</value></data>
+  <data name="Market_BuyConfirm_Title" xml:space="preserve"><value>Xác nhận mua</value></data>
+  <data name="Market_BuyConfirm_Text" xml:space="preserve"><value>Mua {1} {0} với giá {2} xu?</value></data>
   <data name="Tooltip_RunEnergySave" xml:space="preserve"><value>Chạy tốn ít sức lực hơn: {0}%</value></data>
 </root>

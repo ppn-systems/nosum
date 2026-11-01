@@ -133,6 +133,62 @@ public sealed class MarketSortViewModelTests
         vm.StatusIsGood.Should().BeFalse();
     }
 
+    [Fact]
+    public void Buy_SmallPurchase_IsSentAtOnce()
+    {
+        using CultureScope scope = new("en", "en-US");
+        Guid listing = Guid.NewGuid();
+        ListingsPage page = new() { Total = 1 };
+        page.Rows.Add(new ListingRow { ListingId = listing, ItemId = ItemCatalog.Parsnip, Quantity = 5, Price = MarketViewModel.LargePurchase - 1, SellerNickname = "Mai" });
+        (MarketViewModel vm, FakeGameSocket socket) = Create(page);
+        vm.Open();
+
+        vm.Buy(listing);
+
+        socket.Requests.OfType<BuyListing>().Should().ContainSingle().Which.ListingId.Should().Be(listing);
+        vm.PendingPurchase.Should().BeNull();
+    }
+
+    [Fact]
+    public void Buy_LargePurchase_WaitsForTheBuyersConfirm()
+    {
+        using CultureScope scope = new("en", "en-US");
+        Guid listing = Guid.NewGuid();
+        ListingsPage page = new() { Total = 1 };
+        page.Rows.Add(new ListingRow { ListingId = listing, ItemId = ItemCatalog.Parsnip, Quantity = 5, Price = MarketViewModel.LargePurchase, SellerNickname = "Mai" });
+        (MarketViewModel vm, FakeGameSocket socket) = Create(page);
+        vm.Open();
+
+        vm.Buy(listing);
+
+        socket.Requests.OfType<BuyListing>().Should().BeEmpty("nothing is bought until the buyer confirms");
+        vm.PendingPurchase.Should().NotBeNull();
+        vm.PendingPurchase!.ListingId.Should().Be(listing);
+        vm.PendingPurchase.Question.Should().Be("Buy 5 of Parsnip for 1,000 coins?");
+
+        vm.ConfirmPurchase();
+
+        socket.Requests.OfType<BuyListing>().Should().ContainSingle().Which.ListingId.Should().Be(listing);
+        vm.PendingPurchase.Should().BeNull();
+    }
+
+    [Fact]
+    public void Buy_LargePurchaseCancelled_BuysNothing()
+    {
+        using CultureScope scope = new("en", "en-US");
+        Guid listing = Guid.NewGuid();
+        ListingsPage page = new() { Total = 1 };
+        page.Rows.Add(new ListingRow { ListingId = listing, ItemId = ItemCatalog.Parsnip, Quantity = 5, Price = 2_500, SellerNickname = "Mai" });
+        (MarketViewModel vm, FakeGameSocket socket) = Create(page);
+        vm.Open();
+        vm.Buy(listing);
+
+        vm.CancelPurchase();
+
+        vm.PendingPurchase.Should().BeNull();
+        socket.Requests.OfType<BuyListing>().Should().BeEmpty();
+    }
+
     private static (MarketViewModel Vm, FakeGameSocket Socket) Create(ListingsPage page, int parsnips = 0, MarketStatus listingResult = MarketStatus.Ok)
     {
         FakeGameSocket socket = new();
