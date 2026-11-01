@@ -49,6 +49,7 @@ public sealed class ConnectionPoolTests : IClassFixture<PostgresFixture>
 
         int after = await this.SettledOpenConnectionsAsync();
         after.Should().BeLessThanOrEqualTo(baseline, "a connect and disconnect cycle reuses a pooled connection and opens no new one");
+        after.Should().BeLessThanOrEqualTo(NosumDatabase.MaxPoolSize, "the pool never goes past its cap");
     }
 
     private static Task RunBurstAsync(PostgresFixture database)
@@ -60,9 +61,7 @@ public sealed class ConnectionPoolTests : IClassFixture<PostgresFixture>
         _ = await context.Database.ExecuteSqlRawAsync("SELECT pg_sleep(0.2)");
     }
 
-    // Client backends of this database, not counting the connection that asks. That connection is unpooled, so it is not a pool connection.
-    // The count is read until it stops moving: a pooled connection can still be finishing its reset when the first read happens, and a read
-    // taken in that moment reports one connection more or less than the pool holds. A real leak keeps the count rising, so it still shows.
+    // Reads the open count until it stops moving: a pooled connection can still be finishing its reset when the first read happens.
     private async Task<int> SettledOpenConnectionsAsync()
     {
         int previous = -1;
@@ -77,14 +76,18 @@ public sealed class ConnectionPoolTests : IClassFixture<PostgresFixture>
         return current;
     }
 
+    // Client backends opened by this fixture's connections (its application name), not counting the connection that asks. Other test classes
+    // use their own databases and application names, so their pools are not in this count; the asking connection is excluded by its pid.
     private async Task<int> OpenConnectionsAsync()
     {
         NpgsqlConnectionStringBuilder builder = new(this._database.ConnectionString) { Pooling = false };
         await using NpgsqlConnection counter = new(builder.ConnectionString);
         await counter.OpenAsync();
         await using NpgsqlCommand command = new(
-            "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND backend_type = 'client backend'", counter);
+            "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND backend_type = 'client backend' " +
+            "AND application_name = @app AND pid <> pg_backend_pid()", counter);
+        _ = command.Parameters.AddWithValue("app", this._database.ApplicationName);
         long total = (long)(await command.ExecuteScalarAsync())!;
-        return (int)total - 1;
+        return (int)total;
     }
 }
