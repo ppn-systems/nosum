@@ -384,6 +384,11 @@ internal static class ClientWiring
         DeviceGuardViewModel device = services.GetRequiredService<DeviceGuardViewModel>();
         BrowserDevice.WatchWidth(devicePolicy.MinimumWidth, _ => device.UpdateWidth(BrowserDevice.ViewportWidth()));
 
+        // A phone or touch screen collapses the HUD menu column; the game menu then lists the column panels as tiles (docs/design/ui-standard.md section 6).
+        ToolbarViewModel toolbar = services.GetRequiredService<ToolbarViewModel>();
+        toolbar.ColumnCollapsed = BrowserDevice.MenuColumnCollapsed();
+        BrowserDevice.WatchMenuColumn(collapsed => toolbar.ColumnCollapsed = collapsed);
+
         // Closing or reloading the tab asks first while the player is in the game (page-guard.js).
         keeper.Authenticated += () => BrowserDevice.SetUnloadGuard(true);
         keeper.SessionEnded += _ => BrowserDevice.SetUnloadGuard(false);

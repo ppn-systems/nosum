@@ -168,6 +168,22 @@
     align-items: center;
 }
 
+/* A toast lives three seconds (GameMessagesViewModel.MessageDuration): it holds, then fades over the last fifth. Only opacity moves, so the line
+   never shifts the hotbar while it fades. */
+.hud-bottom-center ::deep .game-message {
+    animation: game-message-life 3s linear both;
+}
+
+@keyframes game-message-life {
+    0%, 80% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
 /* Bottom-left: the chat line. Fixed above the hotbar strip so it never moves or overlaps the hotbar row and stays under the menu. */
 .hud-bottom-left {
     position: fixed;

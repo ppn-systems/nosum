@@ -80,6 +80,9 @@ public enum PanelKind
 
     /// <summary>The backpack: the next size and its price, from the tailor's dialog box (docs/adr/ADR-081); not a menu tab.</summary>
     Backpack = 22,
+
+    /// <summary>The Today card: the season and day, today's and tomorrow's weather, and the crops in season; opened from the calendar bar (backlog item 7); not a menu tab.</summary>
+    Today = 23,
 }
 
 /// <summary>One toolbar button.</summary>
@@ -94,6 +97,7 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
 {
     private readonly SettingsViewModel? _settings;
     private PanelKind _active;
+    private bool _columnCollapsed;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="text">UI text.</param>
@@ -192,7 +196,24 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
         }
     }
 
-    /// <summary>Gets the tiles of the game menu: every panel of <see cref="Items"/> that is not in the menu column, nor a merchant's (Mail and Settings sit in the HUD's top row).</summary>
+    /// <summary>Gets or sets whether the HUD's menu column is collapsed into its Menu button: a phone or a touch screen (docs/design/ui-standard.md
+    /// section 6). Then the game menu gives a tile for every column panel too, because nothing else opens them there. The browser decides it
+    /// (<c>page-guard.js</c>, the same query as <c>GameHud.razor.css</c>), and it changes when the window crosses the width.</summary>
+    public bool ColumnCollapsed
+    {
+        get => _columnCollapsed;
+        set
+        {
+            if (_columnCollapsed != value)
+            {
+                _columnCollapsed = value;
+                this.Raise();
+            }
+        }
+    }
+
+    /// <summary>Gets the tiles of the game menu, left to right. On a desktop: every panel of <see cref="Items"/> that is not in the menu column, nor a
+    /// merchant's (Mail and Settings sit in the HUD's top row). When <see cref="ColumnCollapsed"/> is set, the column panels are tiles too.</summary>
     public IReadOnlyList<ToolbarItem> MenuItems
     {
         get
@@ -200,7 +221,8 @@ public sealed class ToolbarViewModel : PanelViewModel, IDisposable
             List<ToolbarItem> tiles = [];
             foreach (ToolbarItem item in this.Items)
             {
-                if (!ColumnKinds.Contains(item.Kind) && !NpcKinds.Contains(item.Kind) && item.Kind is not (PanelKind.Mail or PanelKind.Settings))
+                bool inColumn = !_columnCollapsed && ColumnKinds.Contains(item.Kind);
+                if (!inColumn && !NpcKinds.Contains(item.Kind) && item.Kind is not (PanelKind.Mail or PanelKind.Settings))
                 {
                     tiles.Add(item);
                 }
