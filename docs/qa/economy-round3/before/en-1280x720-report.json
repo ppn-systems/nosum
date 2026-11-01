@@ -1,0 +1,31 @@
+{
+  "lang": "en",
+  "base": "http://localhost:5811",
+  "captured": [
+    "1280x720/en-seller-sell-empty.png",
+    "1280x720/en-seller-sell-picked.png",
+    "1280x720/en-seller-listed.png",
+    "1280x720/en-buyer-browse.png",
+    "1280x720/en-buyer-browse-sorted.png",
+    "1280x720/en-buyer-sell-picked.png",
+    "1280x720/en-buyer-sell-priced.png"
+  ],
+  "skipped": [],
+  "errors": [],
+  "measures": [
+    {
+      "viewport": "1280x720",
+      "clientHeight": 525,
+      "scrollHeight": 697,
+      "listings": 8,
+      "kids": [
+        "DIV.game-row:42",
+        "DIV.game-row:49",
+        "DIV.game-row:42",
+        "DIV.listing-list:474",
+        "DIV.game-row:42"
+      ],
+      "filter": null
+    }
+  ]
+}

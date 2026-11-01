@@ -37,6 +37,9 @@ public sealed class CraftingChannel
     /// <summary>Raised with the server's answer to a craft request. May run on any thread.</summary>
     public event Action<CraftStatus>? Completed;
 
+    /// <summary>Raised when the server crafted the recipe: the recipe id and how many times it was crafted.</summary>
+    public event Action<int, int>? Crafted;
+
     /// <summary>Gets whether the recipe book was read at least once.</summary>
     public bool IsLoaded
     {
@@ -99,6 +102,10 @@ public sealed class CraftingChannel
             request.Value.Times = (byte)times;
             CraftResult result = await _socket.RequestAsync<CraftResult>(request.Value).ConfigureAwait(false);
             this.Completed?.Invoke(result.Status);
+            if (result.Status == CraftStatus.Ok)
+            {
+                this.Crafted?.Invoke(recipeId, times);
+            }
         }
         catch (Exception)
         {

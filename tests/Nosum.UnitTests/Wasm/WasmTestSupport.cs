@@ -61,7 +61,7 @@ internal static class WasmTestSupport
         return channel;
     }
 
-    private sealed class FixedIcons : IItemIconSource
+    internal sealed class FixedIcons : IItemIconSource
     {
         public bool TryGet(int itemId, out ItemIcon icon)
         {

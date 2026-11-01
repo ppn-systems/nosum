@@ -63,3 +63,20 @@ missing is a re-read when the game day changes while the player stays inside, an
 - [ADR-035](ADR-035-database-round-trip-budget.md) (the database budget rows).
 - [ADR-088](ADR-088-wide-use-count-and-the-wet-soil-refusal.md) (the last protocol bump, version 29, unchanged here).
 - `docs/design/critique-animals-pets.md` (findings 3, 4, 6 and 8).
+
+## Amendments
+
+### 2026-11-02 - the browser check found three gaps (round three)
+
+The browser check at 1280 x 720 and 390 x 844 (`docs/qa/animals-pets-round3/`, `tests/browser/animals-pets-capture.cjs`) found that the day cue, the
+forage and the daily petting did not work as D1 and D2 describe. Each is fixed here; the wire is unchanged (protocol 29).
+
+- **D1 amendment - the day is read on the server's clock.** `AnimalsDecorator` read the game day from the local clock, so a server clock that moved
+  on (a QA `advanceClock`) never changed the day in the room: the room was not read again, and the sparkle appeared only after the farmer left and
+  came back. The day is now read from `CalendarChannel.ServerNowMs()` (the calendar's estimate of the server clock, docs/adr/ADR-018). A real
+  rollover and a clock jump both reload the room in place.
+- **D2 amendment - the forage lands on the grass.** `PetService` discarded the result of the inventory add, so a full bag lost the forage. A refused
+  add now drops the item at the farmer's feet as a ground item caused by the farmer (`IGroundItems.DropAsync`, docs/adr/ADR-021 D5); the petting still
+  counts. `PetWireTests.PetPet_WithAFullBag_LeavesTheForageOnTheGrassBesideThePlayer` checks it over a real session.
+- **D2 amendment - the pet is read when its panel opens.** The pet was read once at sign-in, so a petting on an earlier game day kept the Pet button
+  off until the next sign-in. Opening the Pet panel reads the pet again (`Home.Show`), so each game day's petting is open.
