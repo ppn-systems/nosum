@@ -190,8 +190,9 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
             await Task.Delay(25, host.Timeout);
         }
 
+        // The record goes first (MapPresence.LeaveAsync); the leave handler then saves the place. Wait for that save, not for the record.
         IPlayerStateService states = InstanceManager.Instance.GetExistingInstance<IPlayerStateService>()!;
-        PlayerStateRow? saved = await states.LoadAsync(accountId, host.Timeout);
+        PlayerStateRow? saved = await WaitForSavedPlaceAsync(states, accountId, host.Timeout);
         saved.Should().NotBeNull();
         saved!.Value.MapName.Should().BeOneOf(GameMaps.Farm, GameMaps.FarmHouse);
 
@@ -337,6 +338,21 @@ public sealed class MapChangeTests : IClassFixture<PostgresFixture>
 
     // Feet y on the farmhouse door tile (64, 15), straight above the spawn tile (64, 16).
     private const float DoorFeetY = (15 * 16) + 15;
+
+    // Polls the saved place until the leave handler's write has landed: the state cache is updated only after that write commits.
+    private static async Task<PlayerStateRow?> WaitForSavedPlaceAsync(IPlayerStateService states, Guid accountId, CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            PlayerStateRow? saved = await states.LoadAsync(accountId, cancellationToken);
+            if (saved is not null)
+            {
+                return saved;
+            }
+
+            await Task.Delay(25, cancellationToken);
+        }
+    }
 
     private static ushort GetFreePort()
     {
