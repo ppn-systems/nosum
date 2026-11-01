@@ -219,6 +219,30 @@ public sealed partial class CombatChannel : IDisposable
         }
     }
 
+    /// <summary>Gets the tile of a living monster on the current map, for the tester's teleport next to one (docs/adr/ADR-079).</summary>
+    /// <param name="tileX">The monster's tile column.</param>
+    /// <param name="tileY">The monster's tile row.</param>
+    /// <returns><see langword="true"/> when a living monster is known.</returns>
+    public bool TryGetLivingMonsterTile(out int tileX, out int tileY)
+    {
+        lock (_gate)
+        {
+            foreach (MonsterClientRow row in _monsters)
+            {
+                if (row.Hp > 0)
+                {
+                    tileX = row.X;
+                    tileY = row.Y;
+                    return true;
+                }
+            }
+        }
+
+        tileX = 0;
+        tileY = 0;
+        return false;
+    }
+
     /// <summary>Finds the nearest live monster within <paramref name="maxRange"/> tiles of <c>(tileX, tileY)</c>.</summary>
     /// <param name="tileX">Player tile X.</param>
     /// <param name="tileY">Player tile Y.</param>

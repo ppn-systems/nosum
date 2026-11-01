@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
+using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Dev;
 using Nosum.Wasm.ViewModels.Fishing;
 
@@ -20,14 +21,17 @@ internal static partial class DevTools
 {
     private static DevChannel? s_channel;
     private static FishingViewModel? s_fishing;
+    private static CombatChannel? s_combat;
 
     /// <summary>Connects the tools to the server channel and the fishing banner.</summary>
     /// <param name="channel">The dev channel.</param>
     /// <param name="fishing">The fishing banner, whose waiting line the bite tool makes bite.</param>
-    public static void Use(DevChannel channel, FishingViewModel fishing)
+    /// <param name="combat">The combat channel, whose monsters the teleport next to a monster reads.</param>
+    public static void Use(DevChannel channel, FishingViewModel fishing, CombatChannel combat)
     {
         s_channel = channel;
         s_fishing = fishing;
+        s_combat = combat;
     }
 
     /// <summary>Asks a Development server for items and/or coins.</summary>
@@ -57,6 +61,22 @@ internal static partial class DevTools
     /// <param name="seasons">Season starts to pass, 1 to 4.</param>
     [JSExport]
     internal static void Season(int seasons) => s_channel?.Season(seasons);
+
+    /// <summary>Passes season starts until the calendar reads Spring: the start of a QA run (docs/adr/ADR-079 D3). Zero passes on the server.</summary>
+    [JSExport]
+    internal static void ToSpring() => s_channel?.Season(0);
+
+    /// <summary>Moves the player onto the tile of a living monster of the current map; the server places the player next to it. Call it after the
+    /// map has loaded its monsters (the Woods, the Forest, the Mountain or the Backwoods), for the combat keys.</summary>
+    /// <param name="mapId">The map id the player is on, for example <c>woods</c>.</param>
+    [JSExport]
+    internal static void TeleportToMonster(string mapId)
+    {
+        if (s_channel is not null && s_combat is not null && s_combat.TryGetLivingMonsterTile(out int x, out int y))
+        {
+            s_channel.Teleport(mapId, x, y);
+        }
+    }
 
     /// <summary>Shows a level-up banner for a skill without changing it.</summary>
     /// <param name="skill">A <c>SkillKind</c> value: 1 farming, 2 foraging, 3 mining, 4 combat, 5 fishing.</param>

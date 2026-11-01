@@ -29,8 +29,8 @@ The Menu window on 390×844 (vi, `vi/390x844/12-Menu.png`): 10 tiles, 329 px tal
 
 ## Open items
 
-- **Inventory on a phone, top-left tabs.** In `vi/390x844/05-Túi-đồ-I.png` the equipment side tabs sit partly under the "Giữ thanh vật
-  phẩm" row. The layout audit does not flag it. It was not reachable on a phone before this change, so it is not a regression here.
+- **Inventory on a phone, top-left tabs.** Resolved in `docs/qa/phone-inventory/`: the worn-item column spilled up over the Sort button and
+  the hotbar lock on 390×844. The header now stacks and the column starts at its row's top edge (phone only).
 
 ## Reproduce
 

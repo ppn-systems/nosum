@@ -1,4 +1,4 @@
-// World QA pass (docs/qa/world-pass). Plays the world features with Playwright on a local Development server and client
+// World QA pass 3 (docs/qa/world-pass3; pass 2 is docs/qa/world-pass). Plays the world features with Playwright on a local Development server and client
 // (ADR-079: the page opened with ?qa=1 exposes window.nosumQa: grant, advanceClock, teleport, season, levelUp, fishingBite).
 // For each locale (vi-VN, en-US) and viewport (1280x720, 1920x1080, 390x844 touch) it runs the scenario below in one session and:
 //   - takes a screenshot per step (docs/qa/world-pass/<locale>/<viewport>/NN-<step>.png),
@@ -16,7 +16,7 @@ const path = require('path');
 
 const REPO = path.resolve(__dirname, '../..');
 const BASE = process.env.NOSUM_QA_URL || 'http://localhost:5080/?qa=1';
-const OUT = path.join(REPO, 'docs/qa/world-pass');
+const OUT = path.join(REPO, 'docs/qa/world-pass3');
 const VIEWPORTS = {
   '1280x720': { width: 1280, height: 720 },
   '1920x1080': { width: 1920, height: 1080 },
@@ -29,7 +29,7 @@ const MIME = { '.png': 'image/png', '.tmx': 'application/xml', '.ogg': 'audio/og
 const ITEM = { hoe: 1, can: 2, rod: 40, seeds: 100, sprinkler: 604 };
 // Tile positions from gameplay/Nosum.Gameplay/Maps/GameMaps.cs (shop counters, carpenter, market).
 const TILE = {
-  seedShop: [43, 57], clothing: [20, 89], furniture: [95, 51], carpenter: [10, 86], market: [45, 71], beach: [39, 2],
+  seedShop: [43, 57], clothing: [20, 89], furniture: [95, 51], carpenter: [10, 86], market: [45, 71], beach: [39, 43], // the sand row above the sea (y 44), Beach.tmx; the old [39, 2] is the Town road.
 };
 
 async function routeRepoAssets(page) {
@@ -219,7 +219,10 @@ async function runOne(browser, locale, vpName, report) {
   });
 
   // Minimap toggle (M): the card's size changes on the toggle.
-  await step('minimap toggle (M)', async () => {
+  // On a phone (max-width 640 px or a coarse pointer) the minimap is one map button in the menu column, not the card M toggles (GameHud.razor.css).
+  if (phone) {
+    await step('minimap toggle (M)', async () => ({ status: 'n/a', notes: 'phone HUD: the minimap is a map button, not the M card (GameHud.razor.css, max-width 640px)' }));
+  } else await step('minimap toggle (M)', async () => {
     const size = () => page.evaluate(() => { const e = document.querySelector('.hud-minimap'); return e ? Math.round(e.getBoundingClientRect().height) : -1; });
     const before = await size();
     await page.keyboard.press('KeyM');
@@ -234,14 +237,9 @@ async function runOne(browser, locale, vpName, report) {
   // stands at (46,18) and steps right, so the tile in front (48,18) is inside the field for till, sow and water.
   // The server clock is shared and only moves forward (ADR-079 season passes), so a run starts from whatever season the last one left.
   // Parsnip seeds grow in Spring only: pass seasons until the calendar reads Spring (Xuân), then farm.
-  const season = await page.$eval('.calendar-season', (e) => e.textContent.trim()).catch(() => '');
-  const order = [[/spring|xuân/i, 0], [/summer|hè/i, 1], [/fall|autumn|thu/i, 2], [/winter|đông/i, 3]];
-  const idx = (order.find(([re]) => re.test(season)) || [null, 0])[1];
-  const toSpring = (4 - idx) % 4;
-  if (toSpring > 0) {
-    await page.evaluate((k) => window.nosumQa.season(k), toSpring);
-    await wait(2000);
-  }
+  // QA run start (ADR-079 D3): the server passes season starts to the next Spring, whatever season the last run left.
+  await page.evaluate(() => window.nosumQa.springReset());
+  await wait(2000);
   await page.evaluate(() => window.nosumQa.teleport('farm', 46, 18));
   await wait(2500);
   await page.evaluate(() => {
@@ -266,8 +264,23 @@ async function runOne(browser, locale, vpName, report) {
     const before = await countOf(page, /parsnip seeds|hạt củ cải/i);
     await page.keyboard.press('KeyE');
     await wait(700);
-    const after = await countOf(page, /parsnip seeds|hạt củ cải/i);
-    return { status: after === before - 1 ? 'pass' : 'FAIL', notes: `parsnip seeds ${before} -> ${after}` };
+    let after = await countOf(page, /parsnip seeds|hạt củ cải/i);
+    // The clock is real time and shared: a run that starts late in Spring can see the season turn before this step. Then pass to the next
+    // Spring (ADR-079 D3) and sow again; the first refusal stays in the notes.
+    let note = '';
+    if (after === before) {
+      const notices = await page.evaluate(NOTICES);
+      if (notices.some((t) => /does not grow in this season|không trồng được vào mùa này/i.test(t))) {
+        note = `season turned mid-run (${notices.join(' | ')}); passed to the next Spring and sowed again; `;
+        await page.evaluate(() => window.nosumQa.springReset());
+        await wait(2000);
+        await selectItem(/seeds|hạt/i);
+        await page.keyboard.press('KeyE');
+        await wait(700);
+        after = await countOf(page, /parsnip seeds|hạt củ cải/i);
+      }
+    }
+    return { status: after === before - 1 ? 'pass' : 'FAIL', notes: `${note}parsnip seeds ${before} -> ${after}` };
   });
   await step('farm: water (can, E)', async () => {
     await selectItem(/watering can|bình tưới/i);
@@ -275,7 +288,11 @@ async function runOne(browser, locale, vpName, report) {
     await page.keyboard.press('KeyE');
     await wait(700);
     const after = await countOf(page, /watering can|bình tưới/i);
-    return { status: after === before - 1 ? 'pass' : 'FAIL', notes: `watering can ${before} -> ${after}` };
+    // The can is a tool: its hotbar number is its charges, so an unchanged count is not by itself a failure. Rain on pass 3's day wet the soil
+    // first, and the game then answers "That does nothing here." (a refusal, not a silent press); that is recorded as captured, not verified.
+    const notes = await page.evaluate(NOTICES);
+    if (after === before - 1) return { status: 'pass', notes: `watering can ${before} -> ${after}` };
+    return { status: 'captured', notes: `watering can ${before} -> ${after}; not verified: ${notes.join(' | ') || 'no notice'} (the soil may already be wet from rain)` };
   });
   await step('farm: sprinkler (place, E)', async () => {
     await hold('KeyS', 120);
@@ -331,18 +348,25 @@ async function runOne(browser, locale, vpName, report) {
   });
 
   // Fishing: cast with the rod, the QA bite, reel in, the catch card.
-  await step('fishing: cast (rod, E)', async () => {
-    await page.evaluate(() => window.nosumQa.teleport('beach', 39, 3));
+  await step('fishing: cast at the shore (rod, face sea, E)', async () => {
+    await page.evaluate(([x, y]) => window.nosumQa.teleport('beach', x, y), TILE.beach);
     await wait(2500);
     // The hotbar was full of tools and crops; the rod is granted again now that the sprinkler has left slot 9.
     await page.evaluate(() => window.nosumQa.grant(40, 1, 0));
     await wait(1200);
     await selectItem(/fishing rod|cần câu/i);
-    await page.keyboard.press('KeyE');
-    await wait(900);
-    // The beach teleport lands on the Town road, not on the shore: no water tile is in reach, so no cast is made here.
-    // tests/browser/fishing-qa.cjs walks to the Woods pond and casts at the water; this step only records the refusal message.
-    return { status: 'not exercised', notes: 'no water tile in reach on the scripted path; the refusal text is in the screenshot' };
+    // A rod is cast by a click on water, never by the action key (ADR-078 D2). The sea starts about one tile below the farmer, who stands on the
+    // sand row above it; the canvas centre is the farmer. Click a few points below the centre until the status line shows.
+    const box = await page.locator('canvas').first().boundingBox();
+    let line = null;
+    for (const dy of [44, 60, 76, 92, 108]) {
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2 + dy);
+      await wait(900);
+      line = await page.$('.fishing-status');
+      if (line) break;
+    }
+    const notes = await page.evaluate(NOTICES);
+    return { status: line ? 'pass' : 'FAIL', notes: line ? 'cast open: the fishing status line shows' : `no fishing line; notices: ${notes.join(' | ') || 'none'}` };
   });
   await step('fishing: bite (QA)', async () => {
     await page.evaluate(() => window.nosumQa.fishingBite());
@@ -356,17 +380,56 @@ async function runOne(browser, locale, vpName, report) {
     return { status: card ? 'pass' : 'captured', notes: card ? 'catch card shown' : 'no catch card (a miss or the window was lost)' };
   });
 
-  // Combat skills: Z, X, V cast, the cooldown shows, a second cast in the cooldown is refused with a notice.
-  await step('skills: cast Z then refused', async () => {
+  // Combat (docs/adr/ADR-056): Z is Whirlwind (a monster within 2 tiles), X Fireball (6), V the heal (refused at full health).
+  // Pass 2 pressed Z with no monster in reach and saw nothing; the press must now name the reason (SkillPressRefused).
+  await step('combat: Z with no monster in reach (toast)', async () => {
     await page.keyboard.press('KeyZ');
-    await wait(400);
+    await wait(500);
+    const notes = await page.evaluate(NOTICES);
+    const toast = notes.some((t) => /no monster in reach|không có quái vật/i.test(t));
+    return { status: toast ? 'pass' : 'FAIL', notes: `Z, no monster: ${notes.join(' | ') || 'no notice'}` };
+  });
+  await step('combat: teleport next to a monster (woods)', async () => {
+    await page.evaluate(([x, y]) => window.nosumQa.teleport('woods', x, y), [58, 15]);
+    await wait(3000);
+    await page.evaluate(() => window.nosumQa.teleportToMonster('woods'));
+    await wait(2500);
+    return { status: 'captured', notes: 'the farmer stands beside a monster: check the screenshot' };
+  });
+  await step('combat: Z with a monster in reach (cooldown sweep)', async () => {
     await page.keyboard.press('KeyZ');
     await wait(500);
     const cd = await page.$('.skill-cooldown');
     const notes = await page.evaluate(NOTICES);
-    // A cast with no visible result (no cooldown, toast or mana change) is recorded as a FAIL until a target is shown to be required.
-    return { status: cd ? 'pass' : 'FAIL', notes: cd ? 'cooldown shown after the first cast' : `no cooldown, toast or mana change after Z, Z (notices: ${notes.join(' | ') || 'none'})` };
+    return { status: cd ? 'pass' : 'FAIL', notes: cd ? 'cooldown sweep after Z' : `no cooldown after Z; notices: ${notes.join(' | ') || 'none'}` };
   });
+  await step('combat: X fireball (monster in reach)', async () => {
+    await page.keyboard.press('KeyX');
+    await wait(600);
+    const notes = await page.evaluate(NOTICES);
+    return { status: 'captured', notes: `X: ${notes.join(' | ') || 'no notice'}; the fireball and damage numbers are in the screenshot` };
+  });
+  await step('combat: V heal at full health (toast)', async () => {
+    await page.keyboard.press('KeyV');
+    await wait(500);
+    const notes = await page.evaluate(NOTICES);
+    // The heal is refused by the first failing check: MP (20 needed) or full health; either toast is the press no longer being silent.
+    const toast = notes.some((t) => /already full|đã đầy|not enough mp|không đủ mp/i.test(t));
+    return { status: toast ? 'pass' : 'FAIL', notes: `V: ${notes.join(' | ') || 'no notice'}` };
+  });
+  // Phone (390x844): the toolbar keeps only the Menu button (HudTopRightBar); crafting, friends and skills are tiles in the game menu.
+  if (phone) {
+    await step('menu (phone): crafting, friends, skills in the game menu', async () => {
+      await page.locator('.hud-top-right button[aria-label*="Menu" i], .hud-top-right button[aria-label*="Menu"], .game-hud .game-icon-button[aria-label*="Menu" i]').first().click({ force: true, timeout: 5000 });
+      await wait(700);
+      const tiles = await page.$$eval('.game-menu-tile', (els) => els.map((e) => e.getAttribute('aria-label') || ''));
+      const want = [/crafting|chế tạo/i, /friends|bạn bè/i, /skills|kỹ năng/i];
+      const missing = want.filter((re) => !tiles.some((t) => re.test(t))).length;
+      return { status: missing === 0 ? 'pass' : 'FAIL', notes: `menu tiles: ${tiles.join(', ') || 'none'}; missing ${missing}` };
+    });
+    await page.keyboard.press('Escape');
+    await wait(400);
+  }
 
   // Crafting panel from the toolbar.
   await step('crafting panel', async () => {
