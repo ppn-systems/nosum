@@ -23,7 +23,7 @@ public sealed partial class UseItemResult : PacketBase<UseItemResult>, IPacketSt
 
     /// <summary>
     /// How many tiles the use worked: one for a single-tile use that worked, and for a wide use (<see cref="C2S.UseItemArea"/>) the tiles of the line
-    /// that worked, each of which was charged its own energy (docs/adr/ADR-080). Zero on a refusal.
+    /// that worked, each of which was charged its own energy (docs/adr/ADR-088). Zero on a refusal.
     /// </summary>
     [SerializeOrder(2)] public byte Worked { get; set; }
 }

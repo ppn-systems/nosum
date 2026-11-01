@@ -2,7 +2,7 @@
 
 Captures of the farming loop on `master` (before) and on `claude/rebuild-farming` (after), made with
 `tests/browser/farm-loop-play.cjs` and `tests/browser/farm-device-block-capture.cjs` against a Development server and a tester client
-(`-p:NosumDevTools=true`). Critique and backlog: `docs/design/critique-farming.md`. Decision: `docs/adr/ADR-080-wide-use-count-and-the-wet-soil-refusal.md`.
+(`-p:NosumDevTools=true`). Critique and backlog: `docs/design/critique-farming.md`. Decision: `docs/adr/ADR-088-wide-use-count-and-the-wet-soil-refusal.md`.
 
 ## What the runs show, and what they do not
 

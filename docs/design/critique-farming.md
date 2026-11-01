@@ -2,7 +2,7 @@
 
 Review of the farming loop on `master` (035d354), played in a browser against a Development server and a tester client
 (`-p:NosumDevTools=true`). The questions are the ones `docs/design/research-hud-and-loops.md` asks of a loop: what the player sees, how many
-inputs a result costs, and whether a refusal says why. Captures: `docs/qa/rebuild-farming/README.md`. Decision: `docs/adr/ADR-080-*.md`.
+inputs a result costs, and whether a refusal says why. Captures: `docs/qa/rebuild-farming/README.md`. Decision: `docs/adr/ADR-088-*.md`.
 
 ## Scope
 
@@ -16,7 +16,7 @@ inputs a result costs, and whether a refusal says why. Captures: `docs/qa/rebuil
 
 1. **Watering wet soil is told it "does nothing here".** The soil was watered earlier that day, or it rained. The reason is the soil, and the
    text points at the item. The rain runs show it on days 1 to 3: `1280x720-vi/08-day1-watered.png` toast "Dùng vật phẩm này ở đây không có
-   tác dụng."; `1280x720-en/05-water-day0.png` "That does nothing here." Fixed: `AlreadyWet` (ADR-080 D3), now "Đất đã đủ nước hôm nay." /
+   tác dụng."; `1280x720-en/05-water-day0.png` "That does nothing here." Fixed: `AlreadyWet` (ADR-088 D3), now "Đất đã đủ nước hôm nay." /
    "The soil is already wet today." (`after/1280x720-en/08-day1-watered.png`).
 2. **Success is silent.** Till, sow and water work with no text. The only line above the hotbar is for refusals (`GameMessagesViewModel`
    returns text for non-Ok statuses only). The player learns a step worked from the tile changing and the quest card ticking
@@ -30,7 +30,7 @@ inputs a result costs, and whether a refusal says why. Captures: `docs/qa/rebuil
    `HasCrop` by design: `FarmWireTests` pins it ("a young crop cannot be harvested; a second seed cannot be planted on it"). The wording is the
    problem, and it needs the days left, which the client does not compute. Not reproduced in the scripted run; backlog.
 6. **A wide swing gives one answer for the whole line.** Before: one status, no count, no energy label (`before/1280x720-vi/11-wide-hoe.png`).
-   Fixed for the count and the energy (ADR-080 D1, D2). The reticle still previews one tile.
+   Fixed for the count and the energy (ADR-088 D1, D2). The reticle still previews one tile.
 7. **The top-right HUD is two columns of unlabelled icons (about 14).** Frames `01-facing-down.png` and `after/1280x720-en/09-grown-full.png`.
    The UI standard asks for one column and at most eight buttons (`docs/design/ui-standard.md` section 7, item 3). Not a farming rule, but a new player
    meets it before the first till.
@@ -43,10 +43,10 @@ inputs a result costs, and whether a refusal says why. Captures: `docs/qa/rebuil
 ## Rules that disagree between client and server
 
 - **Energy for a wide use.** Before: the client predicted no energy for any line longer than one (`_queuedCost = tiles == 1 ? cost : 0`), while
-  the server charged every tile that worked. Fixed: the label is the cost of one tile times the worked count (ADR-080 D2).
+  the server charged every tile that worked. Fixed: the label is the cost of one tile times the worked count (ADR-088 D2).
 - **Wet soil is decided in three places.** `FarmService` refuses a can on wet soil (`IsWet`). `PlayerActions.TargetWorks` repeats the same check
   for the reticle (`PlayerActions.cs`, the `ToolKind.WateringCan` arm). `FarmRules.Water` returns `Ok` on wet soil and never refuses, so the pure
-  rule module the tests read does not encode the refusal. Fixed for the reply (ADR-080 D3). Open: move the check into `FarmRules` and let the
+  rule module the tests read does not encode the refusal. Fixed for the reply (ADR-088 D3). Open: move the check into `FarmRules` and let the
   client call it.
 - **Area use is a hoe or a can only.** `ToolRules.ValidateArea` admits those two; the client's `IsFarmTool` admits seeds, hoe and can. The scythe
   works one tile, so harvesting along a line is not possible.
@@ -74,7 +74,7 @@ water part to one swing per line, but the harvest still needs one press per tile
 - `tests/browser/farm-feel-capture.cjs` calls `window.nosumQa.teleport`, which does not exist in master's source. The tester build exposes only
   `DevTools.Grant` and `DevTools.AdvanceClock` (`wasm/Nosum.Wasm/Game/DevTools.cs`), so that script fails before its first capture. Update or retire it.
 
-## Changes in this pass (ADR-080, protocol 22)
+## Changes in this pass (ADR-088, protocol 29)
 
 | Finding | Change | Where |
 |:--|:--|:--|

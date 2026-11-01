@@ -59,7 +59,7 @@ public sealed partial class FarmService
             return result;
         }
 
-        // Every tile that worked is charged its own energy (docs/adr/ADR-026 D1), so the count is what the client shows as the energy spent (docs/adr/ADR-080).
+        // Every tile that worked is charged its own energy (docs/adr/ADR-026 D1), so the count is what the client shows as the energy spent (docs/adr/ADR-088).
         int worked = result.Status == FarmStatus.Ok && result.Action != FarmAction.Descended ? 1 : 0;
         FarmUseOutcome best = result;
         for (int i = 1; i < length; i++)

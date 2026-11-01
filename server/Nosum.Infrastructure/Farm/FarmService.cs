@@ -157,7 +157,7 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
     {
         FarmUseOutcome outcome = await this.UseCoreAsync(connection, hotbarSlot, tileX, tileY, tail: false, cancellationToken).ConfigureAwait(false);
 
-        // One tile worked; a ladder is used but charges nothing, so it is not counted as a worked tile (docs/adr/ADR-080).
+        // One tile worked; a ladder is used but charges nothing, so it is not counted as a worked tile (docs/adr/ADR-088).
         return outcome.Status == FarmStatus.Ok && outcome.Action != FarmAction.Descended ? outcome with { Worked = 1 } : outcome;
     }
 

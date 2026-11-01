@@ -220,15 +220,18 @@ public sealed class FarmChannelTests
 
         channel.UseArea(2, 61, 17, 3);
 
-        // The client charges the energy of each tile that worked (docs/adr/ADR-080), so the count must reach the subscribers.
+        // The client charges the energy of each tile that worked (docs/adr/ADR-088), so the count must reach the subscribers.
         worked.Should().Be(2);
+    }
+
+    [Fact]
     public void Use_WhenTheReplyIsLost_ReportsConflictSoThePressIsNotSilent()
     {
         FakeGameSocket socket = new();
         socket.ReplyWith<UseItemResult>(_ => throw new System.TimeoutException("no reply"));
         using FarmChannel channel = new(socket);
         FarmStatus? status = null;
-        channel.UseCompleted += (s, _) => status = s;
+        channel.UseCompleted += (s, _, _) => status = s;
 
         channel.Use(7, 61, 17);
 
@@ -242,7 +245,7 @@ public sealed class FarmChannelTests
         socket.ReplyWith<UseItemResult>(_ => throw new System.TimeoutException("no reply"));
         using FarmChannel channel = new(socket);
         FarmStatus? status = null;
-        channel.UseCompleted += (s, _) => status = s;
+        channel.UseCompleted += (s, _, _) => status = s;
 
         channel.UseArea(7, 61, 17, 3);
 

@@ -209,7 +209,7 @@ public sealed partial class FarmWireTests
             return await _session.RequestAsync<UseItemResult>(request, ct: ct);
         }
 
-        // A wide use of a hoe or watering can on a line of tiles (docs/adr/ADR-026 D1); the reply counts the tiles that worked (docs/adr/ADR-080).
+        // A wide use of a hoe or watering can on a line of tiles (docs/adr/ADR-026 D1); the reply counts the tiles that worked (docs/adr/ADR-088).
         public async Task<UseItemResult> UseAreaAsync(int slot, int x, int y, int tiles, CancellationToken ct)
         {
             await Task.Delay(s_useCooldown, ct);

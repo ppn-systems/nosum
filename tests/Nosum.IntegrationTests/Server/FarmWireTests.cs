@@ -120,7 +120,7 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
             (await farmer.GetFarmAsync(timeout.Token)).Tiles.Should().BeEmpty();
 
             // A copper hoe works a line of three. The reply counts the tiles that worked, and the farm holds exactly those tiles:
-            // each of them was charged its own energy (docs/adr/ADR-080), so the count is what the client shows as the energy spent.
+            // each of them was charged its own energy (docs/adr/ADR-088), so the count is what the client shows as the energy spent.
             await MineWireTests.GrantAsync(farmer.AccountId, ItemCatalog.CopperHoe, 1, 0);
             InventorySlotRow copper = (await farmer.GetInventoryAsync(timeout.Token)).Slots.Single(s => s.ItemId == ItemCatalog.CopperHoe);
             UseItemResult wide = await farmer.UseAreaAsync(copper.Slot, x, y, 3, timeout.Token);
