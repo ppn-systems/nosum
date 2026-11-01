@@ -136,6 +136,39 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task WideUse_TheBasicScytheWorksALineOfThree_ALineOfFiveIsRefused()
+    {
+        await ResetFarmAsync();
+        FakeTimeProvider clock = new(s_start);
+        ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
+        await using NetworkApplication app = Program.BuildApplication(port, clock);
+        using CancellationTokenSource timeout = new(s_timeout);
+        await app.ActivateAsync(timeout.Token);
+        try
+        {
+            await using FarmClient farmer = await FarmClient.ConnectAsync(port, timeout.Token);
+            JoinMapResult join = await farmer.JoinAsync(timeout.Token);
+            (int x, int y) = TileInReachOf(join);
+            InventorySlotRow scythe = (await farmer.GetInventoryAsync(timeout.Token)).Slots.Single(s => s.ItemId == ItemCatalog.Scythe);
+
+            // The basic scythe admits a line of three (docs/adr/ADR-089 D1). Nothing is tilled here, so nothing is worked, but the line is not refused.
+            UseItemResult line = await farmer.UseAreaAsync(scythe.Slot, x, y, 3, timeout.Token);
+            line.Status.Should().Be(FarmStatus.NothingToDo);
+            line.Worked.Should().Be(0);
+
+            // Five is past the basic scythe's line.
+            UseItemResult tooWide = await farmer.UseAreaAsync(scythe.Slot, x, y, 5, timeout.Token);
+            tooWide.Should().BeEquivalentTo(new { Status = FarmStatus.InvalidArea, Worked = (byte)0 });
+        }
+        finally
+        {
+            await app.DeactivateAsync(CancellationToken.None);
+        }
+    }
+
+    [Fact]
     public async Task Farming_TillPlantWaterWaitHarvest_DropsTheCropBesideTheHarvesterWhoTakesIt()
     {
         await ResetFarmAsync();

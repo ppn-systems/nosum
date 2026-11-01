@@ -241,15 +241,15 @@ internal sealed partial class PlayerActions
             return;
         }
 
-        // The wide use: a hoe or a watering can of a higher tier works a line of tiles with one swing. The server checks the length against the tool in the slot.
+        // The wide use: a hoe, a watering can or a scythe works a line of tiles with one swing (docs/adr/ADR-089 D1). The server checks the length against the tool in the slot.
         if ((edges & InputEdges.Rotate) != 0 && mapAllowsTools && nowSeconds >= _nextUseSeconds)
         {
             int wideSlot = _inventory.SelectedSlot;
             int wideItemId = _inventory.SlotAt(wideSlot).ItemId;
-            if (ItemCatalog.TryGet(wideItemId, out ItemDefinition? tool) && tool.Tool is ToolKind.Hoe or ToolKind.WateringCan && ToolRules.AreaLength(tool.Tier) > 1)
+            if (ItemCatalog.TryGet(wideItemId, out ItemDefinition? tool) && ToolRules.LineLength(tool.Tool, tool.Tier) > 1)
             {
                 this.BeginSwing(tool.Tool, wideItemId, nowSeconds);
-                this.QueueUse(wideSlot, this.TargetX, this.TargetY, ToolRules.AreaLength(tool.Tier), tool.Tool, tileSize);
+                this.QueueUse(wideSlot, this.TargetX, this.TargetY, ToolRules.LineLength(tool.Tool, tool.Tier), tool.Tool, tileSize);
             }
         }
 

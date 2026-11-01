@@ -389,9 +389,11 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         bool hasItem = held.ItemId != 0 && ItemCatalog.TryGet(held.ItemId, out _);
         _ = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? item);
 
-        // A mature crop is harvested whatever is held (bare hands included), except on the trailing tiles of a wide tool swing.
+        // A mature crop is harvested whatever is held (bare hands included), except on the trailing tiles of a wide tool swing (see below).
         bool withered = current is { HasCrop: true } standing && FarmRules.IsWithered(standing, nowMs, _calendar, outdoors, sprinklerSinceMs);
-        if (!tail && current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs, _calendar, outdoors, sprinklerSinceMs))
+        // A trailing tile of a line is not harvested, except by the scythe, which harvests along its line (docs/adr/ADR-089 D1).
+        bool harvestsHere = !tail || (item is { Kind: ItemKind.Tool } && ToolRules.HarvestsAlongALine(item.Tool));
+        if (harvestsHere && current is { HasCrop: true } crop && !withered && FarmRules.IsMature(crop, nowMs, _calendar, outdoors, sprinklerSinceMs))
         {
             FarmVerdict harvest = FarmRules.Harvest(current, nowMs, _calendar, out FarmTile bare, out CropDefinition? harvested, outdoors, sprinklerSinceMs);
             if (harvest != FarmVerdict.Ok)
