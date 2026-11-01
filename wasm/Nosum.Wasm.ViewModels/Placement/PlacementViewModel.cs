@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using Microsoft.Extensions.Localization;
+using Nosum.Contracts.Placeable;
 using Nosum.Gameplay.Items;
 using Nosum.Wasm.ViewModels.Resources;
 
@@ -26,6 +27,9 @@ public enum PlacementRequests
 
     /// <summary>Puts a carried piece back where it was (the panel's close button and Escape); nothing when no piece is carried.</summary>
     Cancel = 8,
+
+    /// <summary>Place the held piece (or set down the carried one) on the ghost, as the action key does; the touch "Place" button asks for it.</summary>
+    Place = 16,
 }
 
 /// <summary>
@@ -40,6 +44,9 @@ public sealed class PlacementViewModel : IObservableViewModel
     private int _requests;
     private bool _active;
     private int _carryingItemId;
+    private bool _ghostShown;
+    private PlaceStatus _ghostStatus = PlaceStatus.Ok;
+    private bool _confirmingBuild;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="catalogue">Item names.</param>
@@ -86,6 +93,40 @@ public sealed class PlacementViewModel : IObservableViewModel
             ? string.Format(System.Globalization.CultureInfo.CurrentCulture, _text["Placement_Carrying"].Value, _catalogue["Item_" + item.Key + "_Name"].Value)
             : null;
 
+    /// <summary>Gets whether the ghost of the held or carried piece is shown on the map.</summary>
+    public bool GhostShown => _ghostShown;
+
+    /// <summary>Gets the reason the ghost cannot be placed where it is, or <see cref="PlaceStatus.Ok"/> when it can (or no ghost is shown).</summary>
+    public PlaceStatus GhostStatus => _ghostStatus;
+
+    /// <summary>Gets whether the next place press will build a farm building (docs/adr/ADR-028): it needs a second press to confirm.</summary>
+    public bool ConfirmingBuild => _confirmingBuild;
+
+    /// <summary>
+    /// Gets the one line the panel shows under the key strip: the confirmation for a building, else the reason the ghost is invalid, else nothing.
+    /// Every line is a resource string, so it follows the language.
+    /// </summary>
+    public string? NoticeText
+    {
+        get
+        {
+            if (!_ghostShown)
+            {
+                return null;
+            }
+
+            if (_confirmingBuild)
+            {
+                return _text["Placement_ConfirmBuild"].Value;
+            }
+
+            return _ghostStatus == PlaceStatus.Ok ? null : _text["Place_Status_" + _ghostStatus].Value;
+        }
+    }
+
+    /// <summary>Gets whether <see cref="NoticeText"/> is a warning (the ghost is invalid) rather than a confirmation request.</summary>
+    public bool NoticeIsError => !_confirmingBuild && _ghostStatus != PlaceStatus.Ok;
+
     /// <summary>Asks the game to do something, as a key press would. May be called from any thread.</summary>
     /// <param name="request">What to do.</param>
     public void Request(PlacementRequests request) => _ = Interlocked.Or(ref _requests, (int)request);
@@ -123,6 +164,29 @@ public sealed class PlacementViewModel : IObservableViewModel
             _active = active;
             this.Changed?.Invoke();
         }
+    }
+
+    /// <summary>Reports the ghost each frame: whether it is shown, why it cannot be placed, and whether a building press is waiting for confirmation.</summary>
+    /// <param name="shown">Whether the ghost is drawn.</param>
+    /// <param name="status">Why the ghost is invalid, or <see cref="PlaceStatus.Ok"/>.</param>
+    /// <param name="confirmingBuild">Whether the next place press builds (a second press is pending).</param>
+    public void SetGhost(bool shown, PlaceStatus status, bool confirmingBuild)
+    {
+        if (!shown)
+        {
+            status = PlaceStatus.Ok;
+            confirmingBuild = false;
+        }
+
+        if (_ghostShown == shown && _ghostStatus == status && _confirmingBuild == confirmingBuild)
+        {
+            return;
+        }
+
+        _ghostShown = shown;
+        _ghostStatus = status;
+        _confirmingBuild = confirmingBuild;
+        this.Changed?.Invoke();
     }
 
     /// <summary>Reports the piece being carried to a new spot, or none.</summary>

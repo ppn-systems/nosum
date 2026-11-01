@@ -1,0 +1,6 @@
+PASS | hint names the clicks while idle | Nhấn để nhấc · chuột phải để tách nửa · Shift+nhấn để chuyển nhanh
+PASS | right click picks up part of the stack and the hint says so | Đang nhấc 4: nhấn ô đích để đặt, nhấn lại để bỏ xuống
+PASS | split leaves the rest on the source slot | before 8, after 4
+PASS | split puts the part in the empty bag slot | bag slot shows 4
+PASS | shift click moves the hotbar stack into the bag | empty before=false after=true
+PASS | no page errors

@@ -159,6 +159,23 @@ public sealed class InventoryServiceTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task MoveAsync_PartOfAStackToAnEmptySlot_SplitsItAndPersists()
+    {
+        // The page's right click sends half of a stack: the server keeps the rest on the source and stores the part in the empty slot.
+        Guid player = await CreatePlayerAsync();
+        InventoryView before = await _inventory.GetAsync(player);
+        InventorySlotView seeds = before.Slots.Single(s => s.Slot == 2);
+        int part = seeds.Quantity / 2;
+
+        InventoryChange change = await _inventory.MoveAsync(player, 2, 20, part);
+
+        change.Status.Should().Be(InventoryStatus.Ok);
+        InventoryView view = await new InventoryService(_units, _clock).GetAsync(player);
+        view.Slots.Should().Contain(new InventorySlotView(2, seeds.ItemId, seeds.Quantity - part));
+        view.Slots.Should().Contain(new InventorySlotView(20, seeds.ItemId, part));
+    }
+
+    [Fact]
     public async Task MoveAsync_OntoAnotherItem_SwapsTheStacks()
     {
         Guid player = await CreatePlayerAsync();

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Extensions.Localization;
 using Nosum.Gameplay.Combat;
+using Nosum.Gameplay.Energy;
 using Nosum.Gameplay.Items;
 using Nosum.Wasm.ViewModels.Resources;
 
@@ -49,6 +50,16 @@ public static class ItemTooltip
         if (item.Tool == ToolKind.WateringCan)
         {
             lines.Add(Line(text, "Tooltip_WaterCapacity", ToolRules.WateringCanCapacity(item.Tier)));
+        }
+
+        if (item.Tool is ToolKind.Hoe or ToolKind.WateringCan)
+        {
+            lines.Add(Line(text, "Tooltip_Area", ToolRules.AreaLength(item.Tier)));
+        }
+
+        if (EnergyRules.BaseCost(item.Tool) > 0)
+        {
+            lines.Add(Line(text, "Tooltip_ToolEnergy", EnergyRules.Cost(item.Tool, 0, item.Tier)));
         }
 
         lines.AddRange(Effects(item, text));

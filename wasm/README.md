@@ -20,7 +20,7 @@ Skills: [`blazor-ui`](../.claude/skills/blazor-ui/SKILL.md),
 
 Account UI: `Components/Account/AccountForm.razor` shows two sign-in buttons, Google and Microsoft, and a guest
 start; a guest links one of the two identities to become a registered player. There are no password or e-mail fields
-(docs/adr/ADR-069). The buttons are bound to `AccountFormViewModel` (`Nosum.Wasm.ViewModels/Account`); the ID token comes from
+(docs/adr/ADR-069). The buttons are bound to `AccountFormViewModel` (`Nosum.Wasm.ViewModels/Account`), which is a singleton: the start screen signs the guest in and the game menu's Profile and Settings read the same session (a transient instance left the menu without a session, so the account section never showed); the ID token comes from
 `wwwroot/external-sign-in.js` (Google Identity Services, MSAL popup through `wwwroot/msal-redirect.html`), and the two
 client ids are read from `ExternalSignIn` in `wwwroot/appsettings.json`. Its text is in
 `Nosum.Wasm.ViewModels/Resources/Language.resx` (Vietnamese) and `Language.en.resx`. `Pages/Home.razor`
@@ -87,7 +87,7 @@ Chat, friends and mail ([ADR-029](../docs/adr/ADR-029-chat-friends-mail.md)): `C
 (`ViewModels/{Chat,Friends,Mail}`) localize them (status enums and mail codes by `.resx` key; player text stays a plain string). `Controls/Chat/ChatLine` is the chat at the bottom-left of the HUD (`GameHud` `BottomLeft`): closed it shows the last 3 lines
 that have not faded (8 s); `Enter` opens the input box (when no menu, dialog or form field has the keyboard), `Enter` sends and closes it, `Esc` closes it, `Tab` cycles Local, Map, Co-op; `/w nick text`, `/l` `/m` `/c`, `/block`, `/unblock`, `/report nick`.
 `wwwroot/chat-input.js` does the key handling (per key press, not per frame): it stops `Esc` so closing the box does not open the menu, and a focused field already keeps WASD and the hotkeys from the game (`renderer.js` `isTyping`). Friends and Mail are menu tabs
-(`FriendsPanel` with the block list, `MailPanel`, no hotkey); the gear shows `MailViewModel.Unread`, which is read once after sign-in and then follows the `MailUnread` push.
+(`FriendsPanel` with the block list, `MailPanel`, no hotkey; "collect all" sends one collect after another, each one waiting for the last reply); the gear shows `MailViewModel.Unread`, which is read once after sign-in and then follows the `MailUnread` push.
 
 Furniture ([ADR-015](../docs/adr/ADR-015-private-instances-and-placeables.md)): `PlaceableChannel` (in `Nosum.Wasm.Socket/Placeable`) mirrors the pieces of the player's current place (loaded with the farm after every join or map change)
 and sends place, move and pick-up requests. `Game/PlacedObjectsDecorator` draws them (and the ghost of the piece being placed) as `WorldSpriteBatch` sprites; `MapScene` adds their footprints to the grid the farmer

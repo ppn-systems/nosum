@@ -77,7 +77,7 @@ Economy and market (data and rules, each with a test):
 - **Hay 30 → 10** (ADR-081 amendment). A fed season is now positive for every animal: chicken +140, duck +280, cow +476, goat +616, sheep +440, pig +700.
   Tests: `EconomyBalanceTests.HayRation_*`.
 - **Market browse order** (ADR-013 amendment A6). Newest (the default), lowest and highest unit price. A stack of five at 300 is 60 each and is compared with a
-  stack of one at 30. Wire: `BrowseListings.SortBy`, protocol 29. Tests: `MarketSortPacketTests`, `SocialServiceTests.Browse_SortsByUnitPrice_*`,
+  stack of one at 30. Wire: `BrowseListings.SortBy`, protocol 30. Tests: `MarketSortPacketTests`, `SocialServiceTests.Browse_SortsByUnitPrice_*`,
   `MarketSortViewModelTests`.
 - **Unit prices and the bin's price at the listing** (A7). Listings of more than one unit show the price per unit. The sell form shows what the shipping bin pays
   for the picked stack, so a seller has a reference before typing a price.

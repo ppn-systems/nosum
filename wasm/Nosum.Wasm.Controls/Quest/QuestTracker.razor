@@ -21,6 +21,10 @@
             </div>
             @if (_open)
             {
+                @if (Vm.Tip.Length > 0)
+                {
+                    <p class="quest-tip">@Vm.Tip</p>
+                }
                 <ul class="objectives">
                     @foreach (ObjectiveLine line in Vm.Objectives)
                     {
