@@ -3,8 +3,12 @@
 using System;
 using Nosum.Core;
 using Nosum.Contracts.Farm;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Energy;
+using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
+using Nosum.Contracts.Market;
+using Nosum.Wasm.Socket.Market;
 using Nosum.Gameplay.Skills;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.ViewModels.Audio;
@@ -134,6 +138,60 @@ internal sealed partial class PlayerActions
         _queuedCost = tiles == 1 ? EnergyCostOf(tool) : 0;
         _queuedFloatX = (tileX * tileSize) + (tileSize / 2);
         _queuedFloatY = (tileY * tileSize) + (tileSize / 2);
+        this.PressJuice(slot, tileX, tileY, tool, tileSize);
+    }
+
+    // The flecks of the action start when it is pressed, so they show within a frame; they are predicted from the held item and the tile (a harvest
+    // only when the crop there is ripe). The server's answer still decides the outcome.
+    private void PressJuice(int slot, int tileX, int tileY, ToolKind tool, int tileSize)
+    {
+        long nowMs = (long)(_swingStartSeconds * 1000);
+        if (tool == ToolKind.Hoe)
+        {
+            this.Juice.Press(FarmJuiceKind.Till, tileX, tileY, tileSize, nowMs);
+        }
+        else if (tool == ToolKind.WateringCan)
+        {
+            this.Juice.Press(FarmJuiceKind.Water, tileX, tileY, tileSize, nowMs);
+        }
+        else if (tool == ToolKind.Scythe && this.RipeAt(tileX, tileY))
+        {
+            this.Juice.Press(FarmJuiceKind.Harvest, tileX, tileY, tileSize, nowMs);
+        }
+        else if (ItemCatalog.TryGet(_inventory.SlotAt(slot).ItemId, out ItemDefinition? held) && held.Kind == ItemKind.Seed)
+        {
+            this.Juice.Press(FarmJuiceKind.Plant, tileX, tileY, tileSize, nowMs);
+        }
+    }
+
+    // Whether the tile holds a crop that is ripe now, by the same rule as the farm draws it (FarmRules.IsMature). Sprinklers are not counted here,
+    // which can only hide a pop, never show one that is not due.
+    private bool RipeAt(int tileX, int tileY)
+    {
+        GameCalendar? rules = this.Rules();
+        if (rules is null)
+        {
+            return false;
+        }
+
+        using (_farm.Read())
+        {
+            if (!_farm.TryGetTile(tileX, tileY, out FarmTileInfo info) || info.CropId == 0 || info.Withered)
+            {
+                return false;
+            }
+
+            return FarmRules.IsMature(new FarmTile(info.CropId, info.PlantedAtMs, info.GrowthDays, info.WateredDay, info.TendedDay), _farm.ServerNowMs(), rules, _outdoors);
+        }
+    }
+
+    // The bin's answer: a sale that paid makes the coins pop over the bin the farmer shipped to (the server decides the price and the payment).
+    private void OnMarketCompleted(MarketAction action, MarketStatus status, long earned)
+    {
+        if (action == MarketAction.Ship && status == MarketStatus.Ok && earned > 0)
+        {
+            this.Juice.Press(FarmJuiceKind.Coins, _shipTileX, _shipTileY, _tileSizePx, (long)(_nowSeconds * 1000));
+        }
     }
 
     // At the hit frame the use goes to the server and the hit sounds; the energy label waits for the server's answer.

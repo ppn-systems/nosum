@@ -107,6 +107,9 @@ function isActivating(e) {
 // frame: there is no call into .NET per touch event.
 let touchHeld = 0;
 let touchRun = false;   // the touch run toggle (data-touch-run): latched on until tapped again, like a run key
+// Hold-to-repeat (backlog 5): the use button (touch) or the use key is down. Sent as the USE_HELD bit of the pointer word, not in the keys word.
+let touchUse = 0, usePointer = -1, useKeyHeld = 0;
+const USE_HELD = 2;   // Nosum.Wasm.Game.GameLoop.UseHeldFlag; bit 1 of the pointer word is the mouse button (drag-to-sow)
 let stickPointer = -1;
 const STICK_DEAD = 0.3;
 const LONG_PRESS_MS = 500;
@@ -157,7 +160,9 @@ function installTouch() {
         const button = t.closest("[data-touch-edge]");
         if (button) {
             e.preventDefault();
-            edges |= Number(button.getAttribute("data-touch-edge")) || 0;
+            const bits = Number(button.getAttribute("data-touch-edge")) || 0;
+            edges |= bits;
+            if (bits & 1) { touchUse = 1; usePointer = e.pointerId; }
             button.classList.add("down");
         }
     });
@@ -174,6 +179,7 @@ function installTouch() {
     const end = e => {
         if (e.pointerId === stickPointer) { releaseStick(); }
         if (press && e.pointerId === press.id) { clearTimeout(press.timer); press = null; }
+        if (e.pointerId === usePointer) { usePointer = -1; touchUse = 0; }
         document.querySelectorAll("[data-touch-edge].down").forEach(b => b.classList.remove("down"));
     };
     document.addEventListener("pointerup", end);
@@ -257,10 +263,13 @@ export async function start(canvasId, assemblyName, exportPath) {
         const b = KEY_BITS[e.code];
         if (b) { keys |= b; e.preventDefault(); return; }
         const edge = EDGE_BITS[e.code];
-        if (edge) { if (!e.repeat) { edges |= edge; } e.preventDefault(); }
+        if (edge) { if (!e.repeat) { edges |= edge; } if (edge & 1) { useKeyHeld = 1; } e.preventDefault(); }
     });
-    window.addEventListener("keyup", e => { const b = KEY_BITS[e.code]; if (b) { keys &= ~b; } });
-    window.addEventListener("blur", () => { keys = 0; releaseStick(); });
+    window.addEventListener("keyup", e => {
+        const b = KEY_BITS[e.code]; if (b) { keys &= ~b; }
+        if ((EDGE_BITS[e.code] || 0) & 1) { useKeyHeld = 0; }
+    });
+    window.addEventListener("blur", () => { keys = 0; touchUse = 0; useKeyHeld = 0; releaseStick(); });
     installTouch();
 
     const runtime = await globalThis.getDotnetRuntime(0);
@@ -272,7 +281,8 @@ export async function start(canvasId, assemblyName, exportPath) {
         if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
         const pressed = edges;
         edges = 0;
-        frame(time, (keys | touchHeld | (touchRun ? 16 : 0)) | (pressed << 5), w, h, mouseX, mouseY, mouseHeld);
+        const useHeld = (touchUse | useKeyHeld) ? USE_HELD : 0;
+        frame(time, (keys | touchHeld | (touchRun ? 16 : 0)) | (pressed << 5), w, h, mouseX, mouseY, mouseHeld | useHeld);
         requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);

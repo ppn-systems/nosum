@@ -124,7 +124,9 @@ internal sealed partial class PlayerActions
 
         if (IsShippingBin(this.TargetX, this.TargetY) && ShippingPrices.TryGet(held.ItemId, out _))
         {
-            // Facing the bin with a crop in hand: sell the stack (the server checks the distance and prices it).
+            // Facing the bin with a crop in hand: sell the stack (the server checks the distance and prices it). The coins pop over this tile when it pays.
+            _shipTileX = this.TargetX;
+            _shipTileY = this.TargetY;
             _market.Ship(selected, held.ItemId, 0);
         }
         else if (CombatRules.WeaponDamage(held.ItemId) > 0)

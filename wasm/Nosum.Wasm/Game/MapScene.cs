@@ -95,6 +95,7 @@ internal sealed partial class MapScene
     private int _dragX;
     private int _dragY;
     private bool _dragHeld;
+    private bool _useHeld;
 
     /// <summary>Initializes the scene.</summary>
     /// <param name="loader">Loads the maps the server sends the player to.</param>
@@ -191,6 +192,13 @@ internal sealed partial class MapScene
     }
 
     /// <summary>
+    /// Tells the scene whether the use button or the use key is held down (hold-to-repeat, docs/adr/ADR-074): the held tool then swings again each time
+    /// the previous swing and its recovery are over. Called from the frame, before <see cref="Frame"/>.
+    /// </summary>
+    /// <param name="held">Whether the use button or the use key is down while the world takes input.</param>
+    public void SetUseHeld(bool held) => _useHeld = held;
+
+    /// <summary>
     /// Advances the simulation and encodes the frame.
     /// </summary>
     /// <param name="frameSeconds">Wall time since the previous frame.</param>
@@ -285,6 +293,7 @@ internal sealed partial class MapScene
         InputEdges toolEdges = _placement is { CarryingId: not 0 } ? liveEdges & ~(InputEdges.Rotate | InputEdges.Action) : liveEdges;
         BuildingDefinition? interior = content.Spec.IsInterior && BuildingCatalog.TryGet(content.Spec.InteriorOf, out BuildingDefinition? building) ? building : null;
         _actions?.SetOutdoors(!content.Spec.Indoors);
+        _actions?.SetUseHeld(_useHeld && _phase != Phase.FadingOut);
         _actions?.Update(toolEdges, _farmer.X, _farmer.Y, _farmer.Facing, map.TileWidth, content.Spec.Farmable || !placeableMap, _clockSeconds, shopId, placeableMap ? _compositeGrid.PlacedSet : null, elevatorNear, interior, grid);
         if (_actions is not null)
         {
@@ -398,6 +407,7 @@ internal sealed partial class MapScene
             this.AddRemoteFarmers();
         }
 
+        _actions?.Juice.AddTo(_world, timeMs);
         _world.Flush(_commands, _camera, deferLabels: true);
         for (int i = 0; i < decorators.Length; i++)
         {

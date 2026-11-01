@@ -59,4 +59,13 @@ public static class ToolPacing
     /// <param name="maxEnergy">Maximum energy.</param>
     /// <returns><see langword="true"/> when swings are slower and a sweat bubble shows.</returns>
     public static bool IsExhausted(int energy, int maxEnergy) => maxEnergy > 0 && energy * 100 <= maxEnergy * ExhaustedEnergyPercent;
+
+    /// <summary>
+    /// Gets whether holding the use button keeps swinging a tool of this kind (docs/adr/ADR-074, backlog item 5): each swing ends and the next one
+    /// starts when the swing and its recovery are over, so a held button repeats at the tool's own rate. Food, placeables, potions and the rod are not
+    /// repeated, so a held key never eats, places or casts again and again.
+    /// </summary>
+    /// <param name="tool">The tool in hand.</param>
+    /// <returns><see langword="true"/> for the farm and mining tools.</returns>
+    public static bool RepeatsWhileHeld(ToolKind tool) => tool is ToolKind.Hoe or ToolKind.WateringCan or ToolKind.Axe or ToolKind.Pickaxe or ToolKind.Scythe;
 }

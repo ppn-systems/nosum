@@ -50,6 +50,7 @@ ENTRIES = {
     'sprites/animals/chicken.png': ('8 Animals', ['oga_tiny-creatures'], 'Chicken, 16 x 16 frames: Tiny Creatures chicken (column 0, row 15), flipped for the right row, lifted 1 px on walk frames 1 and 3; rows down, right, up (`animals.py`)'),
     'sprites/hearts.png': ('8 Animals', [NOSUM], 'Affection hearts, 8 x 8 each: filled (cell 0, 0) and empty (cell 8, 0), drawn in the Kenney palette (`hearts.py`)'),
     'sprites/drop.png': ('4 Crops and soil', [NOSUM], 'Water drop, 8 x 8: the thirsty marker above a tile that needs water, drawn in the UI blues (`drop.py`)'),
+    'sprites/ready.png': ('4 Crops and soil', [NOSUM], 'Gold sparkle, 8 x 8: the ready marker above a ripe crop, drawn in the UI golds (`ready.py`)'),
     'sprites/ambient.png': ('12 Ambient wildlife', ['dawnlike', NOSUM],
                               'Six 16 x 16 cells: bird (perched, flying), frog (sitting, hopping), squirrel (standing, running) and butterfly (wings open, closed) cut from DawnLike Avian0, Reptile0, Rodent0 and Pest0 (cells in `ambient.SHEET_CELLS`); two fireflies (lit, dim) drawn here (`ambient.py`, ADR-071)'),
     'sprites/animals/goat.png': ('8 Animals', ['oga_tiny-creatures'], 'Goat, 16 x 16 frames: Tiny Creatures goat (column 2, row 15), flipped for the right row, lifted 1 px on walk frames 1 and 3; rows down, right, up (`animals.py`)'),
