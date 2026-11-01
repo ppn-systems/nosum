@@ -147,7 +147,7 @@ internal static partial class GameLoop
     /// <summary>Raised with a resource key when a skill press is refused on the client, so the player is told why (docs/adr/ADR-056 D5).</summary>
     public static event Action<string>? SkillPressRefused;
 
-    /// <summary>Raised when the action key harvests a ripe crop with another item in hand (docs/adr/ADR-094 backlog item 3); the message line says so.</summary>
+    /// <summary>Raised when the action key harvests a ripe crop with another item in hand (docs/adr/ADR-097 backlog item 3); the message line says so.</summary>
     public static event Action? ActionKeyHarvested;
 
     /// <summary>Raised when the crop under the mouse changes: the zero-based growth stage and the stage count, or (-1, 0) for none (backlog item 4).</summary>

@@ -1,0 +1,43 @@
+{
+  "mode": "stepaway",
+  "size": "390x844",
+  "locale": "vi-VN",
+  "attempts": [
+    {
+      "attempt": 1,
+      "key": "ArrowUp",
+      "control": {
+        "landing1": {
+          "hpBefore": 92,
+          "hpAfter": 84
+        },
+        "landing2": {
+          "hpBefore": 84,
+          "hpAfter": 76,
+          "gapMsFromLanding1": 1494
+        }
+      },
+      "pressOffsetMsFromLanding2": 1155,
+      "hpBeforeStep": 76,
+      "hpEnd": 76,
+      "allDropsRelToLanding2": [
+        {
+          "atRelMs": -1494,
+          "from": 92,
+          "to": 84
+        },
+        {
+          "atRelMs": 0,
+          "from": 84,
+          "to": 76
+        }
+      ],
+      "hitsFromPlus1000": 0,
+      "success": true
+    }
+  ],
+  "voidAttempts": 0,
+  "successfulAttempts": 1,
+  "attemptsUsed": 1,
+  "errors": []
+}
