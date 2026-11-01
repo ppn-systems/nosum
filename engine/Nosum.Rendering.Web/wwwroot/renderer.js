@@ -6,7 +6,7 @@
 // decode and draw synchronously, never keep the view.
 
 import { audioCommand } from "./audio.js";
-import { fitLabel, hudRect, stackLabel } from "./label-fit.js";
+import { hudRect, placeLabel } from "./label-fit.js";
 // The sound commands (-7 sound, -8 music, -9 ambient loop; docs/adr/ADR-039) go to audio.js; these are the module's exports .NET calls.
 export { loadAudio, setAudioLevels, setUiClickSound } from "./audio.js";
 
@@ -14,7 +14,7 @@ const textures = [];          // texture id -> ImageBitmap
 const placed = new Int32Array(256); // rectangles of the labels drawn this frame (x, y, w, h), to stack names that overlap
 let placedCount = 0;
 // A world label stays on screen and off the HUD and the touch controls (docs/design/ui-standard.md sections 2 and 4; label-fit.js, docs/adr/ADR-095).
-// The HUD rectangles (left, top, right, bottom, canvas pixels) are read from the DOM at most every 250 ms, never per label; fitLabel() leaves the
+// The HUD rectangles (left, top, right, bottom, canvas pixels) are read from the DOM at most every 250 ms, never per label; placeLabel() leaves the
 // result in labelPlace (no allocation).
 const hudRects = new Int32Array(4 * 16);
 let hudCount = 0;
@@ -409,8 +409,7 @@ export function submitFrame(view) {
                 const lw = label.width, lh = label.height;
                 const x0 = Math.round(dx * scale - lw / 2);
                 const y0 = Math.round(dy * scale - lh);
-                stackLabel(labelPlace, placed, placedCount, x0, y0, lw, lh);
-                fitLabel(labelPlace, hudRects, hudCount, canvas.width, canvas.height, labelPlace[0], labelPlace[1], lw, lh);
+                placeLabel(labelPlace, hudRects, hudCount, placed, placedCount, canvas.width, canvas.height, x0, y0, lw, lh);
                 const x = labelPlace[0];
                 const y = labelPlace[1];
                 if (placedCount + 4 <= placed.length) {
