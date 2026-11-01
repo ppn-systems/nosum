@@ -30,10 +30,27 @@
     justify-content: flex-end;
 }
 
-/* The arrange panel docks in the HUD's top-left region (GameHud TopLeft, docs/design/ui-standard.md section 2): one column of 124 u, so the room
-   stays open in the centre. The window's height follows its content up to the screen below the HUD bar. */
-.furniture-dock ::deep .trade-dialog {
-    width: calc(var(--u) * 124);
+/* The arrange panel docks in the HUD's top-left corner (GameHud TopLeft, docs/design/ui-standard.md section 2) at the M width (160 u): 480 px
+   at 1280 wide, which ends short of the room's centre. Its height follows its content up to the screen above the toast line and the hotbar. */
+
+/* The category filters are one row that scrolls sideways, so the grid and the Place/Pick up buttons stay in view without a vertical scroll. */
+.furniture-dock {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.furniture-tabs {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.furniture-tabs ::deep .game-row {
+    flex-wrap: nowrap;
+}
+
+.furniture-tabs ::deep .game-row > * {
+    flex: 0 0 auto;
 }
 
 /* The page scrolls inside the frame rather than spilling its buttons past the bottom edge (a long notice or an empty list). */

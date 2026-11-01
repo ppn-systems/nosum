@@ -32,9 +32,9 @@ Before is `master` (4221f3b); after is this branch. "Partly" means something is 
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
 | 1 | In its region; no floating card over the world | Fail | Fail | Pass | Pass | Pass | The panel is in the top-left region, not a centre window over the room |
 | 2 | Nothing overlaps | Fail | Fail | Pass | Pass | Pass | Layout check: no overlapping pair at any size |
-| 3 | Menu column: one column, ≤ 8 | Pass | Fail | Pass | Pass | Partly | Column and minimap button are hidden while the panel is open; the general phone collapse (§6) is still open |
+| 3 | Menu column: one column, ≤ 8 | Pass | Fail | Pass | Pass | Partly | Column and minimap button are hidden while the panel is open; the general phone collapse (§6) is out of scope |
 | 4 | Edges line up | Pass | Pass | Pass | Pass | Pass | One card in the region (the quest card is hidden while arranging) |
-| 5 | `GamePanel`, S/M/L/XL width | Pass | Pass | Partly | Partly | Partly | Shared frame and title bar; the width is the region's 124 u, not a named size (follow-up 2) |
+| 5 | `GamePanel`, S/M/L/XL width | Pass | Pass | Pass | Pass | Pass | M width (160 u), shared frame and title bar |
 | 6 | Three font sizes, nothing clipped | Fail | Fail | Pass | Pass | Pass | The title is whole, the key caps wrap inside the panel, the toasts are whole |
 | 7 | No inner scrollbar at ≥ 1280×720 | Pass | n/a | Pass | Pass | n/a | `scrolls` is false in the layout check |
 | 8 | Item icons whole and centred | Pass | Pass | Pass | Pass | Pass | Unchanged |
@@ -60,7 +60,6 @@ Before is `master` (4221f3b); after is this branch. "Partly" means something is 
 
 ## Open
 
-- At 1280×720 in Vietnamese with the three-line build confirmation and an empty list, the panel's body scrolls and the Place and Pick up buttons sit below the visible part (`build-desktop-vi/02-first-press-confirm.png`). The layout needs a decision (one scrollable tab row, or a larger width); the scroll is the fallback.
-- The general phone menu collapse (§6) and the panel width (§3) need a decision of their own.
+- The general phone menu collapse (§6) is out of scope for this PR.
 - The farm hint shows in the farmhouse while arranging (finding 13).
 - Chests, furnaces and sprinklers are not played through the browser flow.
