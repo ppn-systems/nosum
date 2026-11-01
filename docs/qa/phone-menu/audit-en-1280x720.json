@@ -1,0 +1,107 @@
+[
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "settings: language English",
+    "status": "pass",
+    "notes": "switched in Settings > General"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "HUD",
+    "status": "captured",
+    "notes": ""
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "movement (WASD)",
+    "status": "captured",
+    "notes": "screenshot only; position is not read back (no test hook)"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Mail",
+    "status": "pass",
+    "notes": "box [400,96,480,192]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Settings",
+    "status": "pass",
+    "notes": "box [400,96,480,371]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Inventory [I]",
+    "status": "pass",
+    "notes": "box [310,96,660,490]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Crafting",
+    "status": "pass",
+    "notes": "box [310,96,660,541]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Trade [T]",
+    "status": "pass",
+    "notes": "box [400,96,480,192]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Friends",
+    "status": "pass",
+    "notes": "box [400,96,480,362]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Skills",
+    "status": "pass",
+    "notes": "box [310,96,660,545]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Skills (bestiary tab)",
+    "status": "pass",
+    "notes": "box [310,96,660,407]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: World map [Tab]",
+    "status": "pass",
+    "notes": "box [310,96,660,506]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Journal [J]",
+    "status": "pass",
+    "notes": "box [310,96,660,481]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Menu",
+    "status": "pass",
+    "notes": "box [490,96,300,345]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "console / page errors",
+    "status": "pass",
+    "notes": "none"
+  }
+]

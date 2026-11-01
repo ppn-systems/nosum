@@ -1,7 +1,7 @@
-/* The world map: cards in a grid that wraps to one column on a phone, the current map outlined in gold. Colours are the theme's. */
+/* The world map: two cards to a page in one column (WorldMapViewModel.CardsPerPage), the current map outlined in gold. Colours are the theme's. */
 .world-map-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: calc(var(--u) * 3);
 }
 

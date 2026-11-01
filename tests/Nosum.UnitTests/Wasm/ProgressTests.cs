@@ -15,6 +15,7 @@ using Nosum.Contracts.Inventory.S2C;
 using Nosum.Contracts.Player;
 using Nosum.Contracts.Player.C2S;
 using Nosum.Contracts.Player.S2C;
+using Nosum.Gameplay.Energy;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Skills;
 using Nosum.Wasm.Socket.Farm;
@@ -115,6 +116,60 @@ public sealed class ProgressTests
         PushEnergy(socket, 0);
         vm.EnergyFraction.Should().Be(0);
         vm.EnergyLow.Should().BeTrue("an empty bar warns");
+    }
+
+    [Fact]
+    public void ToolUsesTip_HoeAtLevelZero_IsEnergyDividedByTheServerCost()
+    {
+        using CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+        using ProgressChannel channel = new(socket);
+        using ProgressViewModel vm = new(channel, Localizer<Language>());
+        PushEnergy(socket, 9);
+
+        vm.ToolUsesLeft(ToolKind.Hoe).Should().Be(3, "a hoe costs 3 energy at level zero");
+        vm.ToolUsesTip(ToolKind.Hoe).Should().Be("About 3 tool uses left");
+    }
+
+    [Fact]
+    public void ToolUsesTip_EnergyBelowOneCost_SaysThereIsNoUseLeft_AndMatchesTheServerRefusal()
+    {
+        using CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+        using ProgressChannel channel = new(socket);
+        using ProgressViewModel vm = new(channel, Localizer<Language>());
+        PushEnergy(socket, 2);
+
+        EnergyRules.TrySpend(2, EnergyRules.Cost(ToolKind.Hoe, 0), out _).Should().BeFalse("the server refuses the hoe at 2 energy");
+        vm.ToolUsesLeft(ToolKind.Hoe).Should().Be(0);
+        vm.ToolUsesTip(ToolKind.Hoe).Should().Be("Not enough energy for another use");
+    }
+
+    [Fact]
+    public void ToolUsesTip_ScytheAndNoTool_AddNoLine()
+    {
+        using CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+        using ProgressChannel channel = new(socket);
+        using ProgressViewModel vm = new(channel, Localizer<Language>());
+        PushEnergy(socket, 100);
+
+        vm.ToolUsesTip(ToolKind.Scythe).Should().BeEmpty("the scythe costs no energy");
+        vm.ToolUsesTip(ToolKind.None).Should().BeEmpty("no tool is in hand");
+    }
+
+    [Fact]
+    public void ToolUsesLeft_UsesTheSkillLevelDiscount_TheServerApplies()
+    {
+        using CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+        using ProgressChannel channel = new(socket);
+        using ProgressViewModel vm = new(channel, Localizer<Language>());
+        PushXp(socket, farming: 400);
+        PushEnergy(socket, 90);
+
+        int level = SkillRules.LevelOf(400);
+        vm.ToolUsesLeft(ToolKind.Hoe).Should().Be(90 / EnergyRules.Cost(ToolKind.Hoe, level));
     }
 
     [Fact]

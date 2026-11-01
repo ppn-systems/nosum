@@ -73,6 +73,60 @@ public sealed class HudMenuColumnTests
     }
 
     [Fact]
+    public void ColumnCollapsed_IsOffByDefault_SoADesktopMenuKeepsOnlyTheExtras()
+    {
+        using ToolbarViewModel vm = new(Localizer<Language>());
+
+        vm.ColumnCollapsed.Should().BeFalse();
+        vm.MenuItems.Select(i => i.Kind).Should().NotIntersectWith(ToolbarViewModel.ColumnKinds);
+    }
+
+    [Fact]
+    public void PhoneMenu_HasATileForEveryColumnPanel()
+    {
+        using ToolbarViewModel vm = new(Localizer<Language>());
+        vm.ColumnCollapsed = true;
+
+        // The column is collapsed into the Menu button on a phone, so the Menu window is the only door to these panels (docs/design/ui-standard.md section 6).
+        vm.MenuItems.Select(i => i.Kind).Should().Contain(ToolbarViewModel.ColumnKinds);
+        vm.ColumnItems.Select(i => i.Kind).Should().Equal(ToolbarViewModel.ColumnKinds);
+    }
+
+    [Fact]
+    public void PhoneMenu_KeepsTheExtrasAndStillLeavesOutMerchantsMailAndSettings()
+    {
+        using ToolbarViewModel vm = new(Localizer<Language>());
+        vm.ColumnCollapsed = true;
+
+        vm.MenuItems.Select(i => i.Kind).Should().BeEquivalentTo(
+            vm.Items.Select(i => i.Kind).Where(k => !ToolbarViewModel.NpcKinds.Contains(k) && k is not (PanelKind.Mail or PanelKind.Settings)));
+        vm.MenuItems.Select(i => i.Kind).Should().NotIntersectWith(ToolbarViewModel.NpcKinds);
+    }
+
+    [Fact]
+    public void PhoneMenu_FitsTheTileGrid_TenTilesAtMost()
+    {
+        using ToolbarViewModel vm = new(Localizer<Language>());
+        vm.ColumnCollapsed = true;
+
+        // Ten tiles fill the 390x844 grid without scrolling (the QA pass checks the rendered window).
+        vm.MenuItems.Count.Should().BeLessThanOrEqualTo(10);
+    }
+
+    [Fact]
+    public void ColumnCollapsed_ChangingItRaisesChanged()
+    {
+        using ToolbarViewModel vm = new(Localizer<Language>());
+        int raised = 0;
+        vm.Changed += () => raised++;
+
+        vm.ColumnCollapsed = true;
+        vm.ColumnCollapsed = true;
+
+        raised.Should().Be(1, "a value that does not change raises nothing");
+    }
+
+    [Fact]
     public void PanelKindMenu_IsAppendOnlyAtTheEnd()
     {
         ((int)PanelKind.Menu).Should().Be(21, "panel kinds are append-only");

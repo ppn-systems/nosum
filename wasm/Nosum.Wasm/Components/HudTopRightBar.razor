@@ -10,7 +10,7 @@
 
 @* Top-right HUD: row one (the calendar clock, the coin balance, Mail and Settings), then the minimap card and the menu column under it, sharing the right edge. *@
 <div class="hud-bar">
-    <CalendarClock Vm="Calendar" />
+    <CalendarClock Vm="Calendar" OnOpen="@(() => OnTogglePanel.InvokeAsync(PanelKind.Today))" />
     <CoinBadge Vm="Wallet" />
     @* Mail and Settings are standalone windows of their own (docs/adr/ADR-043 D4, ADR-044). *@
     <GameIconButton Icon="tab-mail" Active="@(ActivePanel == PanelKind.Mail)" Tip="@Toolbar.MailTip(Mail.Unread)" Badge="Mail.Unread" OnClick="@(() => OnTogglePanel.InvokeAsync(PanelKind.Mail))" />

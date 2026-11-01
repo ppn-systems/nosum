@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Shop;
 using Nosum.Gameplay.Calendar;
+using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Placeables;
 using Nosum.Gameplay.Shops;
 using Nosum.Wasm.Socket.Calendar;
 using Nosum.Wasm.Socket.Inventory;
@@ -48,7 +50,8 @@ public enum ShopBlock
 /// <param name="CanBuy">Whether Buy is on for the typed quantity.</param>
 /// <param name="Dimmed">Whether the balance does not cover one unit: the row is dimmed.</param>
 /// <param name="BlockText">Why Buy is off, localized; empty when it is on.</param>
-public sealed record ShopOfferDisplay(int ItemId, SlotDisplay Item, string PriceText, bool CanBuy, bool Dimmed, string BlockText);
+/// <param name="SeasonNote">Why the row is greyed out of season, for example "Plants in Spring"; empty when the item is in season. Such a row cannot be bought or selected.</param>
+public sealed record ShopOfferDisplay(int ItemId, SlotDisplay Item, string PriceText, bool CanBuy, bool Dimmed, string BlockText, string SeasonNote = "");
 
 /// <summary>The detail strip under the list: the selected item, what it does, and what the typed quantity costs.</summary>
 /// <param name="ItemId">The item.</param>
@@ -207,8 +210,11 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
             int quantity = this.Quantity;
             foreach (ShopOffer offer in shop.Offers)
             {
+                // Out of season the row stays, greyed, and its price cell says why (docs/design/research-hud-and-loops.md, backlog item 4).
                 if (calendar is not null && !ShopRules.IsInSeason(_shopId, offer.ItemId, calendar, nowMs))
                 {
+                    string reason = this.SeasonNoteOf(offer.ItemId);
+                    rows.Add(new ShopOfferDisplay(offer.ItemId, _describer.Describe(0, offer.ItemId, 1), reason, false, true, reason, reason));
                     continue;
                 }
 
@@ -414,6 +420,13 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
     public void Buy(int itemId)
     {
         this.ClearStatus();
+
+        // A seed out of season is greyed and cannot be bought; the server would refuse it too.
+        if (this.Offers.Find(o => o.ItemId == itemId) is { SeasonNote.Length: > 0 })
+        {
+            return;
+        }
+
         int quantity = this.Quantity;
         long total = this.TotalFor(itemId, quantity);
         if (total > 0 && (quantity > 1 || total * 4 >= _wallet.Coins))
@@ -493,6 +506,32 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
         }
 
         return this.HasRoomFor(itemId) ? ShopBlock.None : ShopBlock.BagFull;
+    }
+
+    // Why a row is greyed out of season: the seasons a seed grows in, or the season a seasonal piece of furniture is sold in. A counter's own
+    // rotation has no season name to give, so it says only that the item is not sold now.
+    private string SeasonNoteOf(int itemId)
+    {
+        if (PlaceableCatalog.TryGet(itemId, out PlaceableDefinition? piece) && piece.SoldIn is { } soldIn)
+        {
+            return this.Text("Shop_Block_SoldIn", this.Text("Season_" + soldIn));
+        }
+
+        if (ItemCatalog.TryGet(itemId, out ItemDefinition? item) && item.Kind == ItemKind.Seed && CropCatalog.TryGet(item.CropId, out CropDefinition? crop))
+        {
+            List<string> seasons = [];
+            foreach (Season season in Enum.GetValues<Season>())
+            {
+                if (crop.Seasons.Contains(season))
+                {
+                    seasons.Add(this.Text("Season_" + season));
+                }
+            }
+
+            return this.Text("Shop_Block_NotInSeason", string.Join(", ", seasons));
+        }
+
+        return this.Text("Shop_Block_NotThisSeason");
     }
 
     private string BlockText(ShopBlock block, int itemId, int quantity) => block switch

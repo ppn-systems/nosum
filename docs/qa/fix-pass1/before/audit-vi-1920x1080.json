@@ -1,0 +1,93 @@
+[
+  {
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "feature": "HUD",
+    "status": "captured",
+    "notes": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "feature": "movement (WASD)",
+    "status": "captured",
+    "notes": "screenshot only; position is not read back (no test hook)"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "feature": "panel: Thư",
+    "status": "pass",
+    "notes": "box [560,160,800,320]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "feature": "panel: Cài đặt",
+    "status": "pass",
+    "notes": "box [560,160,800,611]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "feature": "panel: Túi đồ [I]",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 698/688"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "feature": "panel: Chế tạo",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 777/739"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "feature": "panel: Giao dịch [T]",
+    "status": "pass",
+    "notes": "box [560,160,800,320]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "feature": "panel: Bạn bè",
+    "status": "pass",
+    "notes": "box [560,160,800,574]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "feature": "panel: Kỹ năng",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 776/739"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "feature": "panel: Bản đồ thế giới [Tab]",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 1375/755"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "feature": "panel: Sổ sưu tập [J]",
+    "status": "pass",
+    "notes": "box [410,160,1100,798]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "feature": "panel: Menu",
+    "status": "pass",
+    "notes": "box [710,160,500,575]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "feature": "console / page errors",
+    "status": "pass",
+    "notes": "none"
+  }
+]

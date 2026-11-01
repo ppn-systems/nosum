@@ -110,7 +110,8 @@ A feature does not invent a new kind of popup. Toasts never overlap each other, 
 
 ## 6. Touch and small screens (390×844)
 
-- The menu column collapses into one "Menu" button that opens `GameMenuWindow`; the minimap collapses into a button.
+- The menu column collapses into one "Menu" button that opens `GameMenuWindow`; the minimap collapses into a button. The window then gives
+  a tile for every column panel, as well as the extras: the column is the only other door, and it is hidden here.
 - Panels take the full width minus the edge margin; their content stacks vertically.
 - Touch targets are at least 14 `--u` square.
 

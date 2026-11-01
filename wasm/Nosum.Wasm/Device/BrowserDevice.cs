@@ -62,6 +62,16 @@ internal static partial class BrowserDevice
     [JSImport("globalThis.nosumPage.watchWidth")]
     public static partial void WatchWidth(int minWidth, [JSMarshalAs<JSType.Function<JSType.Boolean>>] Action<bool> onChange);
 
+    /// <summary>Reads whether the HUD's menu column is collapsed into its Menu button (a phone or a touch screen).</summary>
+    /// <returns><see langword="true"/> when collapsed.</returns>
+    [JSImport("globalThis.nosumPage.menuColumnCollapsed")]
+    public static partial bool MenuColumnCollapsed();
+
+    /// <summary>Calls back each time the menu column collapses or opens again.</summary>
+    /// <param name="onChange">The callback, with <see langword="true"/> when collapsed.</param>
+    [JSImport("globalThis.nosumPage.watchMenuColumn")]
+    public static partial void WatchMenuColumn([JSMarshalAs<JSType.Function<JSType.Boolean>>] Action<bool> onChange);
+
     /// <summary>Vibrates for a <see cref="ViewModels.Device.HapticKind"/> where the browser supports it; a no-op elsewhere.</summary>
     /// <param name="kind">The kind's number.</param>
     [JSImport("globalThis.nosumPage.vibrate")]
