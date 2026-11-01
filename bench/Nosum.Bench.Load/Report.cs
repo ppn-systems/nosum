@@ -81,6 +81,20 @@ internal static class Report
             _ = text.AppendLine(string.Create(c, $"bandwidth    {b.Mean / 1024:0.0} KiB per tick on average, {b.Mean * 10 / 1024:0.0} KiB/s out of the snapshot loop (server's count, before encryption)"));
         }
 
+        if (after.Window("nosum_handler_duration_ms", before) is { } handlers)
+        {
+            _ = text.AppendLine(string.Create(c, $"handlers     {handlers.Count} packets: mean {handlers.Mean:0.00} ms, p50 <= {Bound(handlers.P50)} ms, p95 <= {Bound(handlers.P95)} ms, p99 <= {Bound(handlers.P99)} ms (every opcode, measured in the server)"));
+        }
+
+        // The server runs on the same machine as the bots, so its CPU share is measured against the whole machine's cores.
+        double cpuSeconds = after.SumOf("nosum_process_cpu_seconds_total") - before.SumOf("nosum_process_cpu_seconds_total");
+        double allocated = after.SumOf("nosum_gc_allocated_bytes_total") - before.SumOf("nosum_gc_allocated_bytes_total");
+        double pauseSeconds = after.SumOf("nosum_gc_pause_seconds_total") - before.SumOf("nosum_gc_pause_seconds_total");
+        double Collections(int generation) => after.Get($"nosum_gc_collections_total{{generation=\"{generation}\"}}") - before.Get($"nosum_gc_collections_total{{generation=\"{generation}\"}}");
+        double ticks = Math.Max(1, tick?.Count ?? 1);
+        _ = text.AppendLine(string.Create(c, $"resources    server CPU {cpuSeconds / seconds * 100:0} % of one core ({cpuSeconds / seconds * 100 / Environment.ProcessorCount:0} % of {Environment.ProcessorCount} cores, shared with the bots), allocations {allocated / seconds / 1048576:0.0} MiB/s ({allocated / ticks / 1024:0.0} KiB per snapshot tick)"));
+        _ = text.AppendLine(string.Create(c, $"gc           gen0 {Collections(0) / seconds:0.00}/s, gen1 {Collections(1) / seconds:0.00}/s, gen2 {Collections(2):0} in the window; paused {pauseSeconds * 1000:0} ms ({pauseSeconds / seconds * 100:0.00} % of the time); working set {after.Get("nosum_process_working_set_bytes") / 1048576:0} MiB"));
+
         _ = text.AppendLine().AppendLine(pass ? "verdict      PASS" : "verdict      FAIL");
         return text.ToString();
     }

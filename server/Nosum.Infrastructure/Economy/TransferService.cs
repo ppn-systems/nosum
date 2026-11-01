@@ -144,10 +144,18 @@ public sealed class TransferService : ITransferService
             return TransferStatus.Invalid;
         }
 
-        // Removes first, so room freed by giving counts for receiving; the extra operations (a backpack growth) come last.
+        // Removes first, so room freed by giving counts for receiving; the extra operations (a backpack growth) come last. A party whose legs are
+        // coins only has no item operation and no extra operation, so its inventory is not loaded at all (a seller of a listing: docs/adr/ADR-035 D1).
+        // If every party is coins only, one empty change is kept: the unit of work that carries the coin legs runs only when there is a change to apply.
         List<PlayerInventoryChange> changes = [];
         foreach (Guid player in players)
         {
+            bool hasExtra = player == extraPlayer && extraOperations.Count > 0;
+            if (removes[player].Count == 0 && adds[player].Count == 0 && !hasExtra)
+            {
+                continue;
+            }
+
             List<InventoryOperation> operations = [.. removes[player], .. adds[player]];
             if (player == extraPlayer)
             {
@@ -155,6 +163,11 @@ public sealed class TransferService : ITransferService
             }
 
             changes.Add(new PlayerInventoryChange(player, operations));
+        }
+
+        if (changes.Count == 0)
+        {
+            changes.Add(new PlayerInventoryChange(players[0], []));
         }
 
         TransferStatus failure = TransferStatus.Ok;
