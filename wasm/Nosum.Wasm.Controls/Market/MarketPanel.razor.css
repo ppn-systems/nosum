@@ -62,7 +62,7 @@
     color: var(--nosum-ink-soft);
 }
 
-/* The search and the sort share one row (ADR-097): the field takes the room the buttons leave, the sort wraps only on a phone. */
+/* The search and the sort share one row (ADR-101): the field takes the room the buttons leave, the sort wraps only on a phone. */
 .market-filter {
     display: flex;
     flex-wrap: wrap;
@@ -83,7 +83,7 @@
     }
 }
 
-/* One line each: "Name x3 Seller: name" ends in an ellipsis instead of wrapping (ADR-097). */
+/* One line each: "Name x3 Seller: name" ends in an ellipsis instead of wrapping (ADR-101). */
 .listing-main {
     display: block;
     min-width: 0;

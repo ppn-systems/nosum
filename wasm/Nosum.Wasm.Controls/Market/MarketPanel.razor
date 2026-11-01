@@ -28,7 +28,7 @@
                 int itemId = listing.Item.ItemId;
                 <GameRow Class="listing-row">
                     <ItemSlotButton Slot="listing.Item" Compact="true" />
-                    @* One line: "Name x3 · Seller: name". A long line ends in an ellipsis (ADR-097). *@
+                    @* One line: "Name x3 · Seller: name". A long line ends in an ellipsis (ADR-101). *@
                     <span class="listing-main"><span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span> <span class="listing-seller">@listing.SellerText</span></span>
                     <span class="listing-price">@listing.PriceText</span>
                     <GameButton Variant="secondary" Text="@Vm.Text("Market_History")" Title="@Vm.Text("Market_History_Tip")" OnClick="@(() => Vm.ShowHistory(itemId))" />

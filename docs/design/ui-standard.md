@@ -85,7 +85,7 @@ Every panel is a `GamePanel` opened in the center region:
   cost) spans the full width at the bottom of the panel.
 - Only one panel is open at a time; opening another closes the first. Esc and the close button close it.
 - Item icons always use the shared icon control, whole sprite, centered, scaled down to fit the slot, never cropped.
-- **Exception (ADR-097):** a dense list (the market listings) may use the compact slot, 12 UI pixels with an 8 px picture, `ItemSlotButton Compact="true"`. The picture rule is the same. No other list uses it.
+- **Exception (ADR-101):** a dense list (the market listings) may use the compact slot, 12 UI pixels with an 8 px picture, `ItemSlotButton Compact="true"`. The picture rule is the same. No other list uses it.
 
 ## 4. Things anchored to the world
 

@@ -176,7 +176,7 @@ Tests: `EconomyBalanceTests.HayRation_*`, `BackpackRulesTests`, `BlacksmithRules
 
 ## 11. Round 3: what changed, what did not
 
-Branch `claude/economy-round3`, ADR-097. Captures and grading: [`docs/qa/economy-round3/`](../qa/economy-round3/README.md).
+Branch `claude/economy-round3`, ADR-101. Captures and grading: [`docs/qa/economy-round3/`](../qa/economy-round3/README.md).
 
 | Section | Item | Result |
 |:--|:--|:--|
