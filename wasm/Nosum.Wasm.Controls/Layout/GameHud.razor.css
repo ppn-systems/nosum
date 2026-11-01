@@ -59,6 +59,11 @@
     align-items: flex-start;
 }
 
+/* The quest card keeps to a fixed width, so a long tip wraps inside it rather than widening the card over the menu column (ui-standard section 2). */
+.hud-top-left ::deep .game-panel.quest {
+    max-width: calc(var(--u) * 120);
+}
+
 .hud-top-left:empty,
 .game-hud:has(.hud-center > *) .hud-top-left,
 .game-hud:has(.hud-center > *) .hud-top-right ::deep .hud-menu-column {

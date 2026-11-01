@@ -84,3 +84,18 @@ Four more species join the chicken and the cow, bought at the same carpenter cou
 
 Animal produce prices are balance data. ADR-081 D4 sets the target: an everyday product collected over a 28-day season pays 40 to 60 %
 of the animal's purchase price. Gold stays 1.5× the everyday product. `docs/design/economy.md` gives each animal's values before and after.
+
+## Amendment 3 — the feeding bench shows its state; one press fills it
+
+Client-only: no packet, field, persistence or `NosumProtocol.Version` change. Found in the animals and pets critique
+([`docs/design/critique-animals-pets.md`](../design/critique-animals-pets.md)).
+
+- **One press fills the bench.** A press at the trough sends the held stack up to the bench's size (`AnimalRules.MaxFeedAtOnce`, 24),
+  not the animal capacity. The server already takes the smaller of the stack and the room (D3), so the client asks for the most.
+  A press used to put in only four rations for four animals.
+- **The bench shows its state.** With animals in the building, an empty bench shows an exclamation mark over the trough (emote
+  sheet, index 4, drawn by the engine); a stocked bench shows a hay sheaf (ground sheet, item 508). The count is not drawn. The
+  rule is `AnimalRules.BenchNeedsHay`; the drawing is `AnimalsDecorator.AddBench`.
+- **The purchase notice.** The English notice no longer names the barn for every species; the Vietnamese one was already generic.
+- **Not done.** Produce that waits for a touch has no cue (the settlement stays lazy, D3); the action key does not preview what
+  it will do to the animal in front of the farmer. Both are listed in the critique.

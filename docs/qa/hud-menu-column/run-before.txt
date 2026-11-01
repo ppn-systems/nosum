@@ -1,0 +1,12 @@
+vi 1280x720 | column: Thư | Cài đặt | Túi đồ [I] | Tủ đồ [C] | Chế tạo | Giao dịch [T] | Hợp tác xã [G] | Khách | Bạn bè | Kỹ năng | Thú cưng | Hồ sơ [N] | Bản đồ thế giới [Tab] | Sổ sưu tập [J] | Biểu cảm [B]
+vi 1280x720 | chest: captured | errors: none
+vi 1920x1080 | column: Thư | Cài đặt | Túi đồ [I] | Tủ đồ [C] | Chế tạo | Giao dịch [T] | Hợp tác xã [G] | Khách | Bạn bè | Kỹ năng | Thú cưng | Hồ sơ [N] | Bản đồ thế giới [Tab] | Sổ sưu tập [J] | Biểu cảm [B]
+vi 1920x1080 | chest: captured | errors: none
+vi 390x844 | column: Thư | Cài đặt | Túi đồ [I] | Tủ đồ [C] | Chế tạo | Giao dịch [T] | Hợp tác xã [G] | Khách | Bạn bè | Kỹ năng | Thú cưng | Hồ sơ [N] | Bản đồ thế giới [Tab] | Sổ sưu tập [J] | Biểu cảm [B]
+vi 390x844 | chest: captured | errors: none
+en 1280x720 | column: Mail | Settings | Inventory [I] | Wardrobe [C] | Crafting | Trade [T] | Co-op [G] | Visitors | Friends | Skills | Pet | Profile [N] | World map [Tab] | Journal [J] | Emotes [B]
+en 1280x720 | chest: captured | errors: none
+en 1920x1080 | column: Mail | Settings | Inventory [I] | Wardrobe [C] | Crafting | Trade [T] | Co-op [G] | Visitors | Friends | Skills | Pet | Profile [N] | World map [Tab] | Journal [J] | Emotes [B]
+en 1920x1080 | chest: captured | errors: none
+en 390x844 | column: Mail | Settings | Inventory [I] | Wardrobe [C] | Crafting | Trade [T] | Co-op [G] | Visitors | Friends | Skills | Pet | Profile [N] | World map [Tab] | Journal [J] | Emotes [B]
+en 390x844 | chest: captured | errors: none

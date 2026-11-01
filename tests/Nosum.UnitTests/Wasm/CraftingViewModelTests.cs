@@ -31,6 +31,46 @@ public sealed class CraftingViewModelTests
     }
 
     [Fact]
+    public void MaxCraftable_IsWhatTheItemsAllow_AndCraftMaxSendsThatCount()
+    {
+        // A fence takes two wood: nine wood make four fences.
+        (CraftingViewModel vm, FakeGameSocket socket) = Create([RecipeCatalog.WoodFence], (0, ItemCatalog.Wood, 9));
+        socket.ReplyWith(_ => new CraftResult { Status = CraftStatus.Ok, Times = 4 });
+        vm.Select(RecipeCatalog.WoodFence);
+
+        vm.MaxCraftable.Should().Be(4);
+        vm.CraftMax();
+
+        Craft request = (Craft)socket.Requests[^1];
+        (request.RecipeId, request.Times).Should().Be(((ushort)RecipeCatalog.WoodFence, (byte)4));
+    }
+
+    [Fact]
+    public void MaxCraftable_IsCappedAtTheServerBatchLimit()
+    {
+        // Thirty-six full stacks of wood: far more fences than one request may ask for.
+        (int Slot, int ItemId, int Quantity)[] bag = [.. Enumerable.Range(0, 36).Select(i => (i, ItemCatalog.Wood, 99))];
+        (CraftingViewModel vm, _) = Create([RecipeCatalog.WoodFence], bag);
+        vm.Select(RecipeCatalog.WoodFence);
+
+        vm.MaxCraftable.Should().Be(RecipeCatalog.MaxBatch);
+    }
+
+    [Fact]
+    public void MaxCraftable_OfALockedRecipe_IsZeroAndCraftMaxSendsNothing()
+    {
+        (CraftingViewModel vm, FakeGameSocket socket) = Create([], (0, ItemCatalog.Wood, 90));
+        vm.Select(RecipeCatalog.WoodFence);
+        int before = socket.Requests.Count;
+
+        vm.MaxCraftable.Should().Be(0);
+        vm.CanCraftMax.Should().BeFalse();
+        vm.CraftMax();
+
+        socket.Requests.Count.Should().Be(before);
+    }
+
+    [Fact]
     public void Rows_ListEveryRecipe_WithHaveAndNeedCounts()
     {
         (CraftingViewModel vm, _) = Create([RecipeCatalog.Chest], (0, ItemCatalog.Wood, 30), (1, ItemCatalog.Wood, 5));
