@@ -39,12 +39,27 @@
     gap: calc(var(--u) * 2);
 }
 
-/* Key bindings: the action name, then its key as a button, two actions per row. */
+/* Key bindings: the action name, then its key as a button, three actions per row (about twenty actions fit the 1280x720 tab without scrolling).
+   A phone keeps two per row: the three-wide grid does not fit 390 px. */
 .set-keys {
     display: grid;
-    grid-template-columns: 1fr max-content 1fr max-content;
+    grid-template-columns: repeat(3, minmax(0, 1fr) max-content);
     align-items: center;
-    gap: calc(var(--u) * 1) calc(var(--u) * 3);
+    gap: calc(var(--u) * 1) calc(var(--u) * 2);
+}
+
+/* A wide screen (1600 px and more) gives the window room for four pairs, which keeps the list on one screen at 1920x1080 too. */
+@media (min-width: 1600px) {
+    .set-keys {
+        grid-template-columns: repeat(4, minmax(0, 1fr) max-content);
+    }
+}
+
+@media (max-width: 640px) {
+    .set-keys {
+        grid-template-columns: repeat(2, minmax(0, 1fr) max-content);
+        gap: calc(var(--u) * 1) calc(var(--u) * 3);
+    }
 }
 
 .set-key-label {

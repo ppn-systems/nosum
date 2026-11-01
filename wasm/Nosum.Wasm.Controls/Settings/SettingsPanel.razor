@@ -2,8 +2,9 @@
 @using Nosum.Wasm.ViewModels.Settings
 @implements IDisposable
 
-@* The settings page (docs/adr/ADR-033 D1, ADR-044), four focused tabs: General (language, hints), Display (zoom, names, motion, contrast),
-   Sound (volumes, mute) and Controls (key bindings). Account management lives in the Profile panel. *@
+@* The settings page (docs/adr/ADR-033 D1, ADR-044), four focused tabs. General: language, interface size (zoom and panel size) and hints. Display: what
+   the screen shows (names, minimap, motion, contrast, touch buttons). Sound: volumes, mute and the vibration feedback. Controls: key bindings. Each tab
+   fits 1280x720 without scrolling (docs/design/ui-standard.md section 7). Account management lives in the Profile panel. *@
 <MenuPage Status="@Settings.Status" Good="Settings.StatusIsGood" Footer="@(_tab == TabControls ? ResetFooter : null)">
     <div class="set-page">
         <nav aria-label="@Settings.Text("Settings_TabsLabel")">
@@ -12,24 +13,6 @@
         @switch (_tab)
         {
             case TabDisplay:
-                <GameSection Title="@Settings.Text("Settings_UiScale")">
-                    <div class="set-body">
-                        <div class="set-scale" role="group" aria-label="@Settings.Text("Settings_UiScale")">
-                            @foreach (int scale in SettingsViewModel.ScaleChoices)
-                            {
-                                int choice = scale;
-                                <GameButton Variant="tab" Active="@(Settings.Current.UiScale == choice)" Text="@(choice == 0 ? Settings.Text("Settings_ScaleAuto") : Settings.Text("Settings_ScaleValue", choice))" OnClick="@(() => Settings.SetUiScale(choice))" />
-                            }
-                        </div>
-                        <p class="set-note">@Settings.Text("Settings_ScaleHint")</p>
-                    </div>
-                </GameSection>
-                <GameSection Title="@Settings.Text("Settings_PanelScale")">
-                    <div class="set-body">
-                        <GameSlider Label="@Settings.Text("Settings_PanelScaleLabel")" Value="Settings.Current.PanelScale" ValueChanged="Settings.SetPanelScale"
-                                    Min="ClientSettings.MinPanelScale" Max="ClientSettings.MaxPanelScale" Step="5" Format="Percent" />
-                    </div>
-                </GameSection>
                 <GameSection Title="@Settings.Text("Settings_Display")">
                     <div class="set-body">
                         <GameToggle Label="@Settings.Text("Settings_ShowNames")" Value="Settings.Current.ShowNames" ValueChanged="Settings.SetShowNames" />
@@ -43,7 +26,6 @@
                         }
                         <GameToggle Label="@Settings.Text("Settings_HighContrast")" Value="Settings.Current.HighContrast" ValueChanged="Settings.SetHighContrast" />
                         <GameToggle Label="@Settings.Text("Settings_TouchControls")" Value="Settings.Current.TouchControls" ValueChanged="Settings.SetTouchControls" />
-                        <GameToggle Label="@Settings.Text("Settings_Haptics")" Value="Settings.Current.Haptics" ValueChanged="Settings.SetHaptics" />
                     </div>
                 </GameSection>
                 break;
@@ -53,6 +35,11 @@
                         <GameSlider Icon="music" Label="@Settings.Text("Settings_Music")" Value="Settings.Current.MusicVolume" ValueChanged="Settings.SetMusicVolume" Format="Percent" />
                         <GameSlider Icon="sound-on" Label="@Settings.Text("Settings_SoundFx")" Value="Settings.Current.SoundVolume" ValueChanged="Settings.SetSoundVolume" Format="Percent" />
                         <GameToggle Icon="sound-off" Label="@Settings.Text("Settings_Mute")" Value="Settings.Current.Muted" ValueChanged="Settings.SetMuted" />
+                    </div>
+                </GameSection>
+                <GameSection Title="@Settings.Text("Settings_Feedback")">
+                    <div class="set-body">
+                        <GameToggle Label="@Settings.Text("Settings_Haptics")" Value="Settings.Current.Haptics" ValueChanged="Settings.SetHaptics" />
                     </div>
                 </GameSection>
                 break;
@@ -91,6 +78,24 @@
                         {
                             <p class="set-note">@Vm.LanguageNote</p>
                         }
+                    </div>
+                </GameSection>
+                <GameSection Title="@Settings.Text("Settings_UiScale")">
+                    <div class="set-body">
+                        <div class="set-scale" role="group" aria-label="@Settings.Text("Settings_UiScale")">
+                            @foreach (int scale in SettingsViewModel.ScaleChoices)
+                            {
+                                int choice = scale;
+                                <GameButton Variant="tab" Active="@(Settings.Current.UiScale == choice)" Text="@(choice == 0 ? Settings.Text("Settings_ScaleAuto") : Settings.Text("Settings_ScaleValue", choice))" OnClick="@(() => Settings.SetUiScale(choice))" />
+                            }
+                        </div>
+                        <p class="set-note">@Settings.Text("Settings_ScaleHint")</p>
+                    </div>
+                </GameSection>
+                <GameSection Title="@Settings.Text("Settings_PanelScale")">
+                    <div class="set-body">
+                        <GameSlider Label="@Settings.Text("Settings_PanelScaleLabel")" Value="Settings.Current.PanelScale" ValueChanged="Settings.SetPanelScale"
+                                    Min="ClientSettings.MinPanelScale" Max="ClientSettings.MaxPanelScale" Step="5" Format="Percent" />
                     </div>
                 </GameSection>
                 <GameSection Title="@Settings.Text("Settings_Tutorial")">
