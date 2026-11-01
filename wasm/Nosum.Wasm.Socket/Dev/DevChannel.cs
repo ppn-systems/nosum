@@ -53,8 +53,8 @@ public sealed class DevChannel
         _ = await _socket.RequestAsync<DevTeleportResult>(request.Value).ConfigureAwait(false);
     });
 
-    /// <summary>Asks the server to pass the given number of season starts (docs/adr/ADR-079).</summary>
-    /// <param name="seasons">Season starts to pass, 1 to 4.</param>
+    /// <summary>Asks the server to pass the given number of season starts (docs/adr/ADR-079); zero passes to the next Spring (the QA run start).</summary>
+    /// <param name="seasons">Season starts to pass, 1 to 4, or 0 for the next Spring.</param>
     public void Season(int seasons) => _ = this.AskAsync(async () =>
     {
         using PacketScope<DevSeason> request = PacketFactory<DevSeason>.Acquire();

@@ -268,7 +268,7 @@ internal static class ClientWiring
         GameLoop.UseFishing(services.GetRequiredService<FishingViewModel>(), services.GetRequiredService<SettingsViewModel>());
         GameLoop.UseLooks(looks, services.GetRequiredService<NicknameFormatter>());
 #if NOSUM_DEV_TOOLS
-        DevTools.Use(services.GetRequiredService<DevChannel>(), services.GetRequiredService<FishingViewModel>());
+        DevTools.Use(services.GetRequiredService<DevChannel>(), services.GetRequiredService<FishingViewModel>(), combat);
 #endif
         FurnaceChannel furnaces = services.GetRequiredService<FurnaceChannel>();
         GameLoop.UseContainers(services.GetRequiredService<ChestChannel>(), furnaces);
@@ -352,6 +352,7 @@ internal static class ClientWiring
                 messages.Notify(localizer[refusal].Value);
             }
         };
+        GameLoop.SkillPressRefused += key => messages.Notify(localizer[key].Value);
         _ = services.GetRequiredService<NearbyPlayers>();
         ProgressViewModel progressVm = services.GetRequiredService<ProgressViewModel>();
         GameLoop.UseRunState(state =>
