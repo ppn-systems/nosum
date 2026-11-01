@@ -2,14 +2,19 @@
 @using Nosum.Wasm.ViewModels.Placement
 @inherits ObservingComponent<PlacementViewModel>
 
-@* Arrange-your-home mode: one row of key caps with a word each (the long explanation is in the settings page), inside the furniture panel. The caps are
-   clickable and do what the keys R, F and Q do; E only has its key. All text comes from the view model. *@
+@* Arrange-your-home mode: one row of key caps with a word each (the long explanation is in the settings page), inside the furniture panel. Every cap is a
+   button and does what its key does (E places, R rotates, F moves, Q stows), so touch players have the same actions. Under the caps, one notice line: why the
+   ghost cannot go there, or the second press a finished building needs. All text comes from the view model. *@
 @if (Vm.IsVisible)
 {
     <div class="strip-row" role="toolbar">
-            <span class="chip"><GameKey Text="E" /><span>@Vm.StripPlaceLabel</span></span>
+            <GameButton Variant="secondary" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.Place)"><GameKey Text="E" /><span>@Vm.StripPlaceLabel</span></GameButton>
             <GameButton Variant="secondary" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.Rotate)"><GameKey Text="R" /><span>@Vm.StripRotateLabel</span></GameButton>
             <GameButton Variant="secondary" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.Grab)"><GameKey Text="F" /><span>@Vm.StripMoveLabel</span></GameButton>
             <GameButton Variant="secondary" tabindex="-1" OnClick="() => Vm.Request(PlacementRequests.PickUp)"><GameKey Text="Q" /><span>@Vm.StripStowLabel</span></GameButton>
     </div>
+    @if (Vm.NoticeText is { } notice)
+    {
+        <GameNotice Kind="@(Vm.NoticeIsError ? "error" : "info")" Text="@notice" />
+    }
 }

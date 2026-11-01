@@ -103,7 +103,7 @@ public sealed partial class ThemeSpritesTests
         hotbar.Should().Contain("class=\"hotbar-skills\"");
         hotbar.Should().NotContain("<span>@Progress.WhirlwindLabel</span>");
         hotbarCss.Should().Contain(".hotbar-skills");
-        placement.Should().Contain("<span class=\"chip\">");
+        placement.Should().Contain("Vm.Request(PlacementRequests.Place)", "the E cap is a button too, so touch players can place (docs/design/critique-placement.md)");
         placement.Should().NotContain("<button");
     }
 

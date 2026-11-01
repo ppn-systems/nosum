@@ -105,6 +105,8 @@
   <data name="Placement_Move" xml:space="preserve"><value>Move (F)</value></data>
   <data name="Placement_Cancel" xml:space="preserve"><value>Cancel move (F)</value></data>
   <data name="Placement_Carrying" xml:space="preserve"><value>Carrying: {0}</value></data>
+  <data name="Placement_ConfirmBuild" xml:space="preserve"><value>A finished building cannot be moved or stowed. Press E again to build here.</value></data>
+  <data name="Place_Stowed" xml:space="preserve"><value>Stowed in your bag. You can place it again any time.</value></data>
   <data name="Panel_Close" xml:space="preserve"><value>Close</value></data>
   <data name="Toolbar_Label" xml:space="preserve"><value>Open a panel</value></data>
   <data name="Toolbar_Inventory" xml:space="preserve"><value>Inventory</value></data>

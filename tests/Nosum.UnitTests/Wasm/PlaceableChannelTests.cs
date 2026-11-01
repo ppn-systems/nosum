@@ -97,6 +97,38 @@ public sealed class PlaceableChannelTests
     }
 
     [Fact]
+    public void PickUp_SendsTheObjectAndRaisesPickUpCompleted_WhenTheServerAccepts()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => new PlaceResult { Status = PlaceStatus.Ok, ObjectId = 7 });
+        using PlaceableChannel channel = new(socket);
+        List<PlaceStatus> stowed = [];
+        List<PlaceStatus> answers = [];
+        channel.PickUpCompleted += stowed.Add;
+        channel.Completed += answers.Add;
+
+        channel.PickUp(7);
+
+        ((PickUpObject)socket.Requests[0]).ObjectId.Should().Be(7);
+        stowed.Should().Equal(PlaceStatus.Ok);
+        answers.Should().Equal(PlaceStatus.Ok);
+    }
+
+    [Fact]
+    public void PickUp_RaisesPickUpCompletedWithTheRefusal_SoItCanBeToldFromAStow()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => new PlaceResult { Status = PlaceStatus.Fixed });
+        using PlaceableChannel channel = new(socket);
+        List<PlaceStatus> stowed = [];
+        channel.PickUpCompleted += stowed.Add;
+
+        channel.PickUp(3);
+
+        stowed.Should().Equal(PlaceStatus.Fixed);
+    }
+
+    [Fact]
     public void Place_SendsTheSlotTileAndRotation_AndReportsTheServersAnswer()
     {
         FakeGameSocket socket = new();
