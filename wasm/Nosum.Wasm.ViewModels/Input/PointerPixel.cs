@@ -5,7 +5,7 @@ using System;
 namespace Nosum.Wasm.ViewModels.Input;
 
 /// <summary>
-/// Turns a pointer position from the browser into the whole pixel the frame takes (docs/adr/ADR-095 D1). A scaled or emulated screen reports
+/// Turns a pointer position from the browser into the whole pixel the frame takes (docs/adr/ADR-099 D1). A scaled or emulated screen reports
 /// fractional CSS pixels (for example 466.14); passed to an <c>int</c> parameter of a [JSExport], that value throws in the runtime and the frame loop
 /// stops at the first pointer move.
 /// </summary>

@@ -1,4 +1,4 @@
-# ADR-095: A fractional pointer no longer stops the frame loop; a farm use that worked says so; a tap's harvest is named like the action key's
+# ADR-099: A fractional pointer no longer stops the frame loop; a farm use that worked says so; a tap's harvest is named like the action key's
 
 ## Status
 
@@ -33,7 +33,7 @@ The farming round three pass (`docs/design/critique-farming.md`, round-three add
   "Đã xới đất."), `Farm_Done_Planted` ("Seeds planted." / "Đã gieo hạt."), `Farm_Done_Watered` ("Watered." / "Đã tưới nước."), `Farm_Done_Harvested`
   ("Harvested." / "Đã thu hoạch."), or the D2 line. A refusal, a ladder, a hit and a use that did nothing return no key and keep their own behaviour.
   `PlayerActions` raises `FarmUseSucceeded` with the key; the toast machinery (ui-standard section 5) shows it, and repeats collapse to "×N".
-- **D4 - Wire.** No change. Protocol version stays 31. The reply, the opcodes and every enum are as on master. The change is client-side: a `double`
+- **D4 - Wire.** No change. Protocol version stays 32. The reply, the opcodes and every enum are as on master. The change is client-side: a `double`
   parameter in a JS export, one event, and the new `.resx` keys, which exist in both languages (`FarmDoneNoticeTests.Keys_AreInBothLanguages`).
 
 ## Consequences

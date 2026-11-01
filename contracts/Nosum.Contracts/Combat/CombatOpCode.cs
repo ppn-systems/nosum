@@ -60,4 +60,7 @@ public static class CombatOpCode
 
     /// <summary>Reply to <see cref="EquipBestiaryTitle"/> (docs/adr/ADR-068).</summary>
     public const ushort EquipBestiaryTitleResult = 0xC248;
+
+    /// <summary>Push when an ordinary monster winds up a melee strike at a player; it lands after <c>DelayMs</c> if the player is still in reach (docs/adr/ADR-097).</summary>
+    public const ushort StrikeTelegraph = 0xC249;
 }

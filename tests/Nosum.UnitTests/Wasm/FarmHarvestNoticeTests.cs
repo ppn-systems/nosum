@@ -22,7 +22,7 @@ public sealed class FarmHarvestNoticeTests
     [Fact]
     public void NamesHarvest_TapWithWateringCan_NamesTheHarvestTooNotOnlyTheActionKey()
     {
-        // A mouse tap with the can on a ripe crop harvests it: the same line as the action key's harvest (docs/adr/ADR-095 D2).
+        // A mouse tap with the can on a ripe crop harvests it: the same line as the action key's harvest (docs/adr/ADR-099 D2).
         FarmHarvestNotice.NamesHarvest(FarmStatus.Ok, FarmAction.Harvested, 1, ItemCatalog.WateringCan).Should().BeTrue();
     }
 

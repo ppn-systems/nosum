@@ -54,7 +54,7 @@ internal sealed partial class PlayerActions
     private int _firedCost;
 
     // The item in hand of the queued and the fired use, and the tiles: a harvest of a ripe crop with another item in hand is named on the
-    // message line whichever key or tap made it (HarvestedWithOtherItem, docs/adr/ADR-095 D2).
+    // message line whichever key or tap made it (FarmUseSucceeded, docs/adr/ADR-099 D2).
     private int _queuedItemId;
     private int _firedItemId;
     private int _firedTiles;
@@ -274,7 +274,7 @@ internal sealed partial class PlayerActions
         _ = daysLeft;
 
         // A ripe crop harvested while another item is in hand (E or a tap) is named on the message line: the item in hand did not do it.
-        // A use that worked says so on the message line (docs/adr/ADR-095 D2 and D4): the key of the line, if the action has one.
+        // A use that worked says so on the message line (docs/adr/ADR-099 D2 and D4): the key of the line, if the action has one.
         string? doneKey = Nosum.Wasm.ViewModels.Feedback.FarmDoneNotice.KeyOf(status, action, _firedTiles, _firedItemId);
         if (doneKey is not null)
         {

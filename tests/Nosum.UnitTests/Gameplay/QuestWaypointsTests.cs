@@ -3,6 +3,7 @@
 using System.Linq;
 using FluentAssertions;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Mines;
 using Nosum.Gameplay.Quests;
 using Xunit;
 
@@ -21,12 +22,23 @@ public sealed class QuestWaypointsTests
     }
 
     [Fact]
-    public void TryGetForQuest_ChopTree_IsTheForestSpawnTile()
+    public void TryGetForQuest_ChopTree_IsTheTreeNearTheForestArrival()
     {
         QuestWaypoints.TryGetForQuest("chop_tree", out QuestWaypoint? waypoint).Should().BeTrue();
 
+        // Forest.tmx, Paths layer: the tree at (65, 9) is the one nearest the spawn tile (68, 0), where a player arrives and chops first.
+        waypoint!.Value.Should().Be(new QuestWaypoint(GameMaps.Forest, 65, 9));
         GameMaps.TryGet(GameMaps.Forest, out MapSpec? forest).Should().BeTrue();
-        waypoint!.Value.Should().Be(new QuestWaypoint(GameMaps.Forest, forest!.SpawnTileX, forest.SpawnTileY));
+        waypoint.Value.Should().NotBe(new QuestWaypoint(GameMaps.Forest, forest!.SpawnTileX, forest.SpawnTileY), "the waypoint is the node, not the arrival");
+    }
+
+    [Fact]
+    public void TryGetForQuest_MineOre_IsTheCaveShaftDownToTheOre()
+    {
+        QuestWaypoints.TryGetForQuest("mine_ore", out QuestWaypoint? waypoint).Should().BeTrue();
+
+        // The ore lies on the floors below the cave, generated per player, so the fixed node to walk to is the shaft (MineWorld.CaveShaft).
+        waypoint!.Value.Should().Be(new QuestWaypoint(GameMaps.Mine, MineWorld.CaveShaft.X, MineWorld.CaveShaft.Y));
     }
 
     [Fact]

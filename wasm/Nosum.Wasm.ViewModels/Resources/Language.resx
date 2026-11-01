@@ -558,7 +558,7 @@
   <data name="Chat_Channel_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>
   <data name="Chat_Channel_Whisper" xml:space="preserve"><value>Thì thầm</value></data>
   <data name="Chat_InputHint" xml:space="preserve"><value>Gõ để nói. Tab đổi kênh, /w tên để thì thầm</value></data>
-  <data name="Chat_GuestHint" xml:space="preserve"><value>Khách chỉ chat được ở kênh Gần. Hãy đăng ký để dùng thêm kênh</value></data>
+  <data name="Chat_GuestHint" xml:space="preserve"><value>Chỉ kênh Gần</value></data>
   <data name="Chat_InputLabel" xml:space="preserve"><value>Nhập tin nhắn</value></data>
   <data name="Chat_WhisperFromTo" xml:space="preserve"><value>{0} → {1}</value></data>
   <data name="Chat_Sys_Usage" xml:space="preserve"><value>Cách dùng: /w tên nội dung, /block tên, /unblock tên, /report tên.</value></data>
@@ -1124,6 +1124,7 @@
   <data name="Fishing_Waiting" xml:space="preserve"><value>Đang chờ cá cắn câu...</value></data>
   <data name="Fishing_Bite" xml:space="preserve"><value>Cá đang cắn câu!</value></data>
   <data name="Fishing_Press" xml:space="preserve"><value>Nhấn Space hoặc bấm chuột để kéo cần!</value></data>
+  <data name="Fishing_PressTouch" xml:space="preserve"><value>Chạm để kéo cần!</value></data>
   <data name="Fishing_Reeling" xml:space="preserve"><value>Đang kéo cần...</value></data>
   <data name="Fishing_NotYet" xml:space="preserve"><value>Chưa phải lúc. Chờ cá cắn câu đã.</value></data>
   <data name="Fishing_Caught" xml:space="preserve"><value>Bạn câu được {0}!</value></data>
@@ -1262,5 +1263,7 @@
   <data name="Shop_Detail_Total" xml:space="preserve"><value>Tổng: {0} xu cho {1} món</value></data>
   <data name="Shop_Detail_After" xml:space="preserve"><value>Số dư sau khi mua: {0} xu</value></data>
   <data name="Market_Confirm_Text" xml:space="preserve"><value>Đăng bán {1} {0} với giá {2} xu?</value></data>
+  <data name="Market_BuyConfirm_Title" xml:space="preserve"><value>Xác nhận mua</value></data>
+  <data name="Market_BuyConfirm_Text" xml:space="preserve"><value>Mua {1} {0} với giá {2} xu?</value></data>
   <data name="Tooltip_RunEnergySave" xml:space="preserve"><value>Chạy tốn ít sức lực hơn: {0}%</value></data>
 </root>

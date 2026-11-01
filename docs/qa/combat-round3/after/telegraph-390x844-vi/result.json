@@ -1,0 +1,35 @@
+{
+  "mode": "telegraph",
+  "size": "390x844",
+  "locale": "vi-VN",
+  "landings": [
+    {
+      "atRelMs": 0,
+      "from": 73,
+      "to": 65
+    },
+    {
+      "atRelMs": 1099,
+      "from": 65,
+      "to": 62
+    },
+    {
+      "atRelMs": 1503,
+      "from": 62,
+      "to": 54
+    }
+  ],
+  "frameOffsetsMs": [
+    806,
+    892,
+    968,
+    1060,
+    1156,
+    1239,
+    1310,
+    1393,
+    1493,
+    1594
+  ],
+  "errors": []
+}

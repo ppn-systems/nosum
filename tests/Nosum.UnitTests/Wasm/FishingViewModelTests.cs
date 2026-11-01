@@ -291,6 +291,7 @@ public sealed class FishingViewModelTests
             "Fishing_Waiting",
             "Fishing_Bite",
             "Fishing_Press",
+            "Fishing_PressTouch",
             "Fishing_Reeling",
             "Fishing_NotYet",
             "Fishing_Caught",
@@ -299,6 +300,20 @@ public sealed class FishingViewModelTests
 
         Keys("Language.resx").Should().Contain(needed);
         Keys("Language.en.resx").Should().Contain(needed);
+    }
+
+    [Fact]
+    public void PressPrompt_OnTouch_AsksForATap_AndOnTheKeyboardForSpaceOrClick()
+    {
+        Rig rig = Create(null);
+        string keyboardPrompt = rig.Vm.PressPrompt;
+
+        rig.Vm.TouchInput = true;
+
+        rig.Vm.PressPrompt.Should().NotBe(keyboardPrompt);
+        rig.Vm.PressPrompt.Should().NotContain("Space");
+        rig.Vm.TouchInput = false;
+        rig.Vm.PressPrompt.Should().Be(keyboardPrompt);
     }
 
     private static Rig Create(CastResult? cast, ReelResult? reel = null)

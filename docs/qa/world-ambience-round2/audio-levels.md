@@ -1,5 +1,7 @@
 # Audio levels: measured, targeted and normalised
 
+> Round 4 ([ADR-090 amendment](../../adr/ADR-090-audio-mix-loudness-targets.md)): the footstep target is now −16.5 (was −18.0). The rows below are the round-2 state; the footstep numbers are in [`docs/qa/world-ambience-round4/audio-proxy.md`](../world-ambience-round4/audio-proxy.md).
+
 Measured with `tools/measure_audio.py` (standard library, read-only) on the committed files in `wasm/Nosum.Wasm/wwwroot/audio/`, and
 normalised by the mix table in `AudioCatalog.cs` (`AudioMix`, [ADR-090](../../adr/ADR-090-audio-mix-loudness-targets.md)). Levels are the RMS
 over the **active** samples (those above −50 dBFS), in dBFS, before the bus gains of the settings and before the per-cue volume of the hook. A

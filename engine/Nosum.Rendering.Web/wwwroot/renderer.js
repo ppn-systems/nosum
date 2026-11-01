@@ -6,22 +6,21 @@
 // decode and draw synchronously, never keep the view.
 
 import { audioCommand } from "./audio.js";
+import { LABEL_EDGE, hudRect, placeLabel } from "./label-fit.js";
 // The sound commands (-7 sound, -8 music, -9 ambient loop; docs/adr/ADR-039) go to audio.js; these are the module's exports .NET calls.
 export { loadAudio, setAudioLevels, setUiClickSound } from "./audio.js";
 
 const textures = [];          // texture id -> ImageBitmap
 const placed = new Int32Array(256); // rectangles of the labels drawn this frame (x, y, w, h), to stack names that overlap
 let placedCount = 0;
-// A world label stays on screen and off the HUD (docs/design/ui-standard.md sections 2 and 4). The HUD rectangles (x, y, right, bottom, canvas
-// pixels) are read from the DOM at most every 250 ms, never per label; fitLabel() leaves the result in labelX and labelY (no allocation).
+// A world label stays on screen and off the HUD and the touch controls (docs/design/ui-standard.md sections 2 and 4; label-fit.js, docs/adr/ADR-095).
+// The HUD rectangles (left, top, right, bottom, canvas pixels) are read from the DOM at most every 250 ms, never per label; placeLabel() leaves the
+// result in labelPlace (no allocation).
 const hudRects = new Int32Array(4 * 16);
 let hudCount = 0;
 let hudStamp = -Infinity;
-let labelX = 0;
-let labelY = 0;
-const LABEL_EDGE = 4; // the smallest margin between a label and the canvas edge
-const LABEL_GAP = 2;  // the space kept between a label and a HUD rectangle
-const HUD_SELECTOR = ".game-hud .hud-top-left, .game-hud .hud-top-center, .game-hud .hud-top-right, .game-hud .hud-bottom-left, .game-hud .hud-bottom-center, .game-hud .hud-bottom-right";
+const labelPlace = new Int32Array(2);
+const HUD_SELECTOR = ".game-hud .hud-top-left, .game-hud .hud-top-center, .game-hud .hud-top-right, .game-hud .hud-bottom-left, .game-hud .hud-bottom-center, .game-hud .hud-bottom-right, .touch-stick, .touch-use, .touch-run, .touch-chat";
 const labels = [];            // label id -> OffscreenCanvas with the pre-rendered text (glyph cache)
 const tinted = new Map();     // "id:rgba" -> canvas with the tint applied
 let canvas = null;
@@ -324,21 +323,16 @@ function refreshHud(now) {
     const base = canvas.getBoundingClientRect();
     for (const el of document.querySelectorAll(HUD_SELECTOR)) {
         const r = el.getBoundingClientRect();
-        if (r.width <= 0 || r.height <= 0 || r.height >= base.height * 0.9 || hudCount >= 16) {
+        // A region that covers the whole canvas (a backdrop) is left out. A tall column in the corner (the top right: calendar, minimap, menu) is not:
+        // it is the thing the labels and the edge arrow must keep off (docs/adr/ADR-096 D2).
+        if (r.width <= 0 || r.height <= 0 || (r.height >= base.height * 0.9 && r.width >= base.width * 0.9) || hudCount >= 16) {
             continue;
         }
 
-        const o = hudCount * 4;
-        hudRects[o] = Math.round(r.left - base.left);
-        hudRects[o + 1] = Math.round(r.top - base.top);
-        hudRects[o + 2] = Math.round(r.right - base.left);
-        hudRects[o + 3] = Math.round(r.bottom - base.top);
+        hudRect(hudRects, hudCount * 4, Math.round(r.left - base.left), Math.round(r.top - base.top), Math.round(r.right - base.left),
+            Math.round(r.bottom - base.top), Math.round(base.height));
         hudCount++;
     }
-}
-
-function clampTo(v, lo, hi) {
-    return v < lo ? lo : v > hi ? hi : v;
 }
 
 // The index of the first HUD rectangle that the box (x, y, w, h) overlaps, or -1.
@@ -352,44 +346,57 @@ function hudHit(x, y, w, h) {
     return -1;
 }
 
-// Moves a label box inside the canvas and off the HUD: beside the HUD rectangle it hit, then below it, then above it. Leaves the result in labelX/labelY.
-function fitLabel(x, y, w, h) {
-    const maxX = canvas.width - w - LABEL_EDGE;
-    const maxY = canvas.height - h - LABEL_EDGE;
-    x = clampTo(x, LABEL_EDGE, maxX);
-    y = clampTo(y, LABEL_EDGE, maxY);
-    const k = hudHit(x, y, w, h);
-    if (k < 0) {
-        labelX = x;
-        labelY = y;
-        return;
-    }
+// The edge arrow's placement (canvas pixels), set by fitArrow for the frame's arrow command.
+let arrowOn = false;
+let arrowX = 0, arrowY = 0, arrowDir = -1;
 
-    const o = k * 4;
-    const left = clampTo(hudRects[o] - w - LABEL_GAP, LABEL_EDGE, maxX);
-    if (hudHit(left, y, w, h) < 0) {
-        labelX = left;
-        labelY = y;
-        return;
+// Places an edge arrow (box side s, canvas pixels) at (x, y) and, when it hits a HUD rectangle, slides it along its edge one view pixel at a time,
+// nearest first, until it is clear. Up and down arrows slide along x, left and right arrows along y. Returns false when no clear place exists on the edge.
+function fitArrow(x, y, s, dir, scale) {
+    const alongX = dir === 0 || dir === 2;
+    const lo = LABEL_EDGE;
+    const hi = (alongX ? canvas.width : canvas.height) - s - LABEL_EDGE;
+    const base = alongX ? x : y;
+    const span = Math.max(canvas.width, canvas.height);
+    // No array per step: the frame path allocates nothing (docs/adr/ADR-096 D2).
+    for (let k = 0; k <= span; k++) {
+        const sides = k === 0 ? 1 : 2;
+        for (let side = 0; side < sides; side++) {
+            const p = side === 0 ? base - k * scale : base + k * scale;
+            if (p < lo || p > hi) {
+                continue;
+            }
+            const cx = alongX ? p : x, cy = alongX ? y : p;
+            if (hudHit(cx, cy, s, s) < 0) {
+                arrowX = cx; arrowY = cy;
+                return true;
+            }
+        }
+        if (base - k * scale < lo && base + k * scale > hi) {
+            break;
+        }
     }
+    return false;
+}
 
-    const below = clampTo(hudRects[o + 3] + LABEL_GAP, LABEL_EDGE, maxY);
-    if (hudHit(x, below, w, h) < 0) {
-        labelX = x;
-        labelY = below;
-        return;
+// Draws the 9 by 9 arrow glyph, one rectangle per row: the head widens by two cells a row, then a three-cell shaft. Mirrors EdgeArrow.Glyph (engine).
+function drawArrowGlyph(draw, x, y, s, dir, scale, colour) {
+    const cell = scale;
+    const u = colour >>> 0;
+    draw.save();
+    draw.setTransform(1, 0, 0, 1, 0, 0);
+    draw.fillStyle = `rgba(${u >>> 24}, ${(u >>> 16) & 255}, ${(u >>> 8) & 255}, ${(u & 255) / 255})`;
+    for (let row = 0; row < 9; row++) {
+        const start = row <= 4 ? 4 - row : 3;
+        const len = row <= 4 ? 2 * row + 1 : 3;
+        const r = dir === 1 || dir === 2 ? 8 - row : row;
+        if (dir === 0 || dir === 2) {
+            draw.fillRect(x + start * cell, y + r * cell, len * cell, cell);
+        } else {
+            draw.fillRect(x + r * cell, y + start * cell, cell, len * cell);
+        }
     }
-
-    const above = clampTo(hudRects[o + 1] - h - LABEL_GAP, LABEL_EDGE, maxY);
-    if (hudHit(x, above, w, h) < 0) {
-        labelX = x;
-        labelY = above;
-        return;
-    }
-
-    // No free spot next to the HUD (a crowded corner): keep it at the left of the rectangle, which is still on screen.
-    labelX = left;
-    labelY = y;
+    draw.restore();
 }
 
 export function submitFrame(view) {
@@ -459,6 +466,22 @@ export function submitFrame(view) {
             draw.fillRect(dx, dy, w, h);
             continue;
         }
+        if (id === -12) {
+            // Edge arrow of a quest waypoint (docs/adr/ADR-096 D2): sx is the direction, sy 1 for the shadow and 0 for the arrow, (dx, dy) its
+            // top left in view pixels, w its box side, tint its colour. It slides along its edge until it is off every HUD rectangle, and is not drawn
+            // when no place on that edge is clear. The shadow comes first, so it places the arrow; the arrow then draws in that place.
+            if (sy === 1) {
+                arrowOn = fitArrow(dx * scale, dy * scale, w * scale, sx, scale);
+                arrowDir = sx;
+                if (arrowOn) {
+                    drawArrowGlyph(draw, arrowX + scale, arrowY + scale, w * scale, sx, scale, tint);
+                }
+            } else if (arrowOn && sx === arrowDir) {
+                drawArrowGlyph(draw, arrowX, arrowY, w * scale, sx, scale, tint);
+                arrowOn = false;
+            }
+            continue;
+        }
         if (id === -3) {
             // Pre-rendered label: sx is the label id; (dx, dy) is its bottom centre.
             // Drawn in screen space at 1x at every zoom (a name stays small and its pixels stay hard). Two names that would overlap are
@@ -466,17 +489,11 @@ export function submitFrame(view) {
             const label = labels[sx];
             if (label) {
                 const lw = label.width, lh = label.height;
-                let x = Math.round(dx * scale - lw / 2);
-                let y = Math.round(dy * scale - lh);
-                for (let k = 0; k < placedCount; k += 4) {
-                    if (x < placed[k] + placed[k + 2] && x + lw > placed[k] && y < placed[k + 1] + placed[k + 3] && y + lh > placed[k + 1]) {
-                        y = placed[k + 1] - lh;
-                        k = -4;
-                    }
-                }
-                fitLabel(x, y, lw, lh);
-                x = labelX;
-                y = labelY;
+                const x0 = Math.round(dx * scale - lw / 2);
+                const y0 = Math.round(dy * scale - lh);
+                placeLabel(labelPlace, hudRects, hudCount, placed, placedCount, canvas.width, canvas.height, x0, y0, lw, lh);
+                const x = labelPlace[0];
+                const y = labelPlace[1];
                 if (placedCount + 4 <= placed.length) {
                     placed[placedCount] = x; placed[placedCount + 1] = y; placed[placedCount + 2] = lw; placed[placedCount + 3] = lh;
                     placedCount += 4;

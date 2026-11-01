@@ -1,4 +1,4 @@
-# QA captures: farming round three (ADR-095)
+# QA captures: farming round three (ADR-099)
 
 Branch `claude/farming-round3` from master `7800a2e`. Script `tests/browser/farm-round3-capture.cjs` (Development server, client published with
 `-p:NosumDevTools=true`, `?qa=1`, saved language vi or en). Each file is one frame at the moment the message line shows the expected text, or after
@@ -25,11 +25,11 @@ Grade: **pass** = the line is present, in the right language and the frame is cl
 | harvest with item in hand (E) 1280x720, vi | pass, old text "Đã thu hoạch bằng phím E…" (`vi-07`) | pass, "Đã thu hoạch, dù đang cầm đồ khác." | The text no longer names the key. |
 | harvest with item in hand (E) 1280x720, en | pass, "Harvested with E…" | pass, "Harvested, even with another item in hand." | |
 | harvest with item in hand (E) 390x844, en | pass, "Harvested with E, even with another item in hand." (`before/en-07`) | pass, "Harvested, even with another item in hand." | |
-| harvest by tap with a can 1280x720 | **fail, silent** (`before/en-08`, the quest moved to "Sell your produce", no line) | pass | ADR-095 D2. |
+| harvest by tap with a can 1280x720 | **fail, silent** (`before/en-08`, the quest moved to "Sell your produce", no line) | pass | ADR-099 D2. |
 | harvest by tap with a can 390x844, en | **fail, silent** (`before/en-08`, the quest moved to "Sell your produce", no line) | pass | |
-| success lines (till, sow, water) 1280x720 | fail, silent (`before/en-02`, `en-03`, `en-04`) | pass ("Soil tilled.", "Seeds planted. ×2", "Watered. ×2") | ADR-095 D3. |
+| success lines (till, sow, water) 1280x720 | fail, silent (`before/en-02`, `en-03`, `en-04`) | pass ("Soil tilled.", "Seeds planted. ×2", "Watered. ×2") | ADR-099 D3. |
 | success lines 390x844 | fail, silent | pass | |
-| Frame loop at a fractional pointer position, 390x844 | **fail in the run where it occurred**: `Assert failed: Value is not an integer: 466.138671875`; the loop stopped. Two later before runs had no error. | pass: no pageerror in any after run | ADR-095 D1. The fault depends on where the pointer lands; it is not reproduced on every run. |
+| Frame loop at a fractional pointer position, 390x844 | **fail in the run where it occurred**: `Assert failed: Value is not an integer: 466.138671875`; the loop stopped. Two later before runs had no error. | pass: no pageerror in any after run | ADR-099 D1. The fault depends on where the pointer lands; it is not reproduced on every run. |
 | Layout, 390x844, the touch layout | pass with notes: the stick, Chat, Run and Use buttons and the hotbar are drawn; the quest card covers about a fifth of the height; the hotbar has nine slots and no Z X V; slot counts are small | pass with the same notes | Owner decision (critique round three, finding 8). |
 | Hint over the work area, 1280x720 | partial (`before/vi-07`, the hint covers the row, y 460 to 525) | partial, unchanged | Critique round three, finding 3. |
 | Scythe tap on an unripe crop | fail, silent (no line in three runs) | fail, silent (unchanged) | Critique round three, finding 1; cause not found. |

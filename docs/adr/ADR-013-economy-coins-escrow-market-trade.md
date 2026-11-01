@@ -158,3 +158,11 @@ Amends A2: the Town's one general store is now three shops, each one catalogue e
   other gets `ListingGone`, because the in-process lock orders them before the save.
 - **Not changed:** the fee (5 %, destroyed), the 48-hour listing time, the 20-listing limit, the confirm for a stack of ten or more (the sell side only). The buy side has no
   confirm for a big purchase; that is an owner question, not a data change.
+
+### 2026-11-01 (round 2) - a large purchase asks first
+
+- **A10 - Buy-side confirm.** A market purchase of **1 000 coins or more** (`MarketViewModel.LargePurchase`) waits for the buyer's confirm in a `ConfirmDialog`
+  (`MarketBuyOverlay`, the same centre box as the pet purchase): what, how many and the price. Yes sends `BuyListing`; No sends nothing. A smaller purchase is sent at once, as
+  before. It is the buy side of the listing confirm (A7, ten or more units). Client only: the server is unchanged, and the wire stays at protocol 30.
+  Tests: `MarketSortViewModelTests.Buy_*`.
+- **Not in this amendment.** Expiry on "My listings" (critique section 6) and a price history of asks, both still open.

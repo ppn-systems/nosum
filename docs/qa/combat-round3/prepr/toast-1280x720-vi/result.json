@@ -1,0 +1,66 @@
+{
+  "mode": "toast",
+  "size": "1280x720",
+  "locale": "vi-VN",
+  "tries": [
+    {
+      "try": 1,
+      "toasts": [
+        {
+          "text": "Kỹ năng này vẫn đang hồi, chưa thể thi triển!",
+          "box": [
+            397,
+            542,
+            486,
+            52
+          ]
+        }
+      ],
+      "chip": {
+        "text": "Chuỗi đòn 4x (+15%)",
+        "box": [
+          801,
+          554,
+          229,
+          40
+        ]
+      },
+      "overlapToastAndChip": {
+        "px": [
+          82,
+          40
+        ]
+      }
+    }
+  ],
+  "final": {
+    "try": 1,
+    "toasts": [
+      {
+        "text": "Kỹ năng này vẫn đang hồi, chưa thể thi triển!",
+        "box": [
+          397,
+          542,
+          486,
+          52
+        ]
+      }
+    ],
+    "chip": {
+      "text": "Chuỗi đòn 4x (+15%)",
+      "box": [
+        801,
+        554,
+        229,
+        40
+      ]
+    },
+    "overlapToastAndChip": {
+      "px": [
+        82,
+        40
+      ]
+    }
+  },
+  "errors": []
+}

@@ -147,7 +147,7 @@ internal static partial class GameLoop
     /// <summary>Raised with a resource key when a skill press is refused on the client, so the player is told why (docs/adr/ADR-056 D5).</summary>
     public static event Action<string>? SkillPressRefused;
 
-    /// <summary>Raised with the resource key of the message line when a farm use worked (docs/adr/ADR-095 D2 and D4).</summary>
+    /// <summary>Raised with the resource key of the message line when a farm use worked (docs/adr/ADR-099 D2 and D4).</summary>
     public static event Action<string>? FarmUseSucceeded;
 
     /// <summary>Raised when the crop under the mouse changes: the zero-based growth stage and the stage count, or (-1, 0) for none (backlog item 4).</summary>
@@ -485,8 +485,8 @@ internal static partial class GameLoop
     /// <param name="keys">Held directions (<see cref="InputState"/> bits) and the keys pressed since the last frame, packed by <see cref="InputPacking"/>.</param>
     /// <param name="width">Canvas width, CSS pixels.</param>
     /// <param name="height">Canvas height, CSS pixels.</param>
-    /// <param name="pointerX">Mouse x over the canvas, CSS pixels, possibly fractional on a scaled screen (drag-to-sow; rounded, docs/adr/ADR-095 D1).</param>
-    /// <param name="pointerY">Mouse y over the canvas, CSS pixels, possibly fractional (drag-to-sow; rounded, docs/adr/ADR-095 D1).</param>
+    /// <param name="pointerX">Mouse x over the canvas, CSS pixels, possibly fractional on a scaled screen (drag-to-sow; rounded, docs/adr/ADR-099 D1).</param>
+    /// <param name="pointerY">Mouse y over the canvas, CSS pixels, possibly fractional (drag-to-sow; rounded, docs/adr/ADR-099 D1).</param>
     /// <param name="pointerHeld">Bit <see cref="MouseHeldFlag"/> while the mouse button is down over the canvas; bit <see cref="UseHeldFlag"/> while the use button (touch) or the
     /// use key is held down (hold-to-repeat, backlog item 5). Other bits are zero.</param>
     [JSExport]
