@@ -78,9 +78,15 @@ public static class AmbientLightRules
             return outdoor;
         }
 
-        return outdoor.A == 0
-            ? new AmbientTint(40, 52, 80, extra)
-            : outdoor with { A = Math.Min(230, outdoor.A + extra) };
+        if (outdoor.A == 0)
+        {
+            return new AmbientTint(40, 52, 80, extra);
+        }
+
+        // At dusk and night the sky is already dark: the weather adds only its share of the light that is left. Rain stacked on the full night tint
+        // crushed the farm to a dark blue (a rainy night was 196 of 255 opacity, the sprites lost their contrast); now it is a little darker than a clear night.
+        int share = extra * (255 - outdoor.A) / 255;
+        return outdoor with { A = outdoor.A + share };
     }
 
     private static AmbientTint Curve(int minute)
