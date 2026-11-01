@@ -509,6 +509,13 @@
   <data name="Weather_Storm" xml:space="preserve"><value>Storm</value></data>
   <data name="Weather_Snow" xml:space="preserve"><value>Snow</value></data>
   <data name="Calendar_Forecast" xml:space="preserve"><value>Today: {0}. Tomorrow: {1}.</value></data>
+  <data name="Today_Title" xml:space="preserve"><value>Today</value></data>
+  <data name="Today_Tip" xml:space="preserve"><value>Show today's details</value></data>
+  <data name="Today_Date" xml:space="preserve"><value>{0}, {1}</value></data>
+  <data name="Today_Weather_Today" xml:space="preserve"><value>Weather today: {0}</value></data>
+  <data name="Today_Weather_Tomorrow" xml:space="preserve"><value>Weather tomorrow: {0}</value></data>
+  <data name="Today_Crops" xml:space="preserve"><value>Crops in season: {0}</value></data>
+  <data name="Today_Crops_None" xml:space="preserve"><value>No crops grow this season</value></data>
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>That crop does not grow in this season.</value></data>
   <data name="Farm_Status_Withered" xml:space="preserve"><value>The crop withered from lack of water or the end of its season. Plant a new seed over it.</value></data>
   <data name="Farm_Thirsty_Morning" xml:space="preserve"><value>{0} crops need water</value></data>
