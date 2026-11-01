@@ -993,6 +993,7 @@
   <data name="Craft_Skill_Fishing" xml:space="preserve"><value>Fishing</value></data>
   <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Not enough MP to cast!</value></data>
   <data name="Combat_Refused_OnCooldown" xml:space="preserve"><value>That skill is still recharging!</value></data>
+  <data name="Combat_Refused_NoTarget" xml:space="preserve"><value>No monster in reach for this skill!</value></data>
   <data name="Combat_Refused_OutOfRange" xml:space="preserve"><value>The target is out of reach!</value></data>
   <data name="Combat_Refused_AlreadyFull" xml:space="preserve"><value>Your health is already full!</value></data>
   <data name="Combat_Refused_UnknownMonster" xml:space="preserve"><value>That target is no longer here!</value></data>

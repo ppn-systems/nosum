@@ -65,3 +65,20 @@ The rules that stay fixed: the server decides every outcome (docs/adr/ADR-003, `
   day and the banner follow within one reply. No wire change: `GetCalendar` already carries the server clock.
 - The season banner is raised by the same comparison as before (`CalendarViewModel.SeasonChanged`); only the stale offset was missing. A real season
   boundary needs no jump, so the local calculation already crossed it.
+
+### 2026-11-01 - a Spring reset, a teleport next to a monster, and a named refusal for a silent skill press (world pass 3)
+
+- **D3 — `DevSeason` with zero passes to the next Spring.** `IDevClockService.AdvanceSeasons(0)` moves the clock to the next Spring, one pass per season
+  between the current season and Spring (0 to 3; zero passes in Spring). It is a Development-only server behaviour change: the packet, its fields and
+  the protocol version are unchanged. The client calls it as `window.nosumQa.springReset()` at the start of a QA run. Out-of-range values (below 0 or
+  above 4) still change nothing.
+- **D8 — a skill press that the client refuses says why.** `PlayerActions` checked Z (Whirlwind), X (Fireball) and V (heal) against the same rules as
+  the server and dropped a refused press without a word, so Z with no monster within two tiles did nothing visible. The refusal is now decided by
+  `SkillPressRefusal.KeyFor` (cooldown, too little MP, no monster in reach, full health for the heal) and shown as a toast through
+  `GameLoop.SkillPressRefused`. A cast already in flight still does nothing, silently, because the reply shows its result. The server's own refusals
+  already had toasts (`SkillRefusalText`); the client check runs first only so the press is never silent before it is sent. The server still decides.
+- **D9 — a QA teleport next to a monster.** `window.nosumQa.teleportToMonster(mapId)` moves the farmer onto the tile of a living monster the client
+  already holds for the current map (the server places the farmer beside it). Development build only, like the other tester calls.
+- **Beach coordinates.** The Beach's sand row above the sea is `y = 43` (`art/own/Maps/Beach.tmx`: the sea starts at `y = 44`). The world pass used
+  `(39, 2)`, which is the Town road. A rod casts only by a click on water (ADR-078 D2); the action key does nothing with a rod, so a QA cast is a mouse
+  click on the sea.

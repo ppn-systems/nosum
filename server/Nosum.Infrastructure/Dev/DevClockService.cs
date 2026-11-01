@@ -45,9 +45,16 @@ public sealed class DevClockService : IDevClockService
     /// <inheritdoc/>
     public long? AdvanceSeasons(int seasons)
     {
-        if (seasons < 1 || seasons > IDevClockService.MaxSeasons)
+        if (seasons is < 0 or > IDevClockService.MaxSeasons)
         {
             return null;
+        }
+
+        if (seasons == 0)
+        {
+            // Zero means "to the next Spring": one pass per season between the current one and the year's first season (0 to 3 passes).
+            long nowMs = _time.GetUtcNow().ToUnixTimeMilliseconds();
+            seasons = (GameCalendar.SeasonsPerYear - (int)_calendar.SeasonAt(nowMs)) % GameCalendar.SeasonsPerYear;
         }
 
         // Season starts fall on day boundaries (the epoch is one), so each jump is a whole number of game days.

@@ -993,6 +993,7 @@
   <data name="Craft_Skill_Fishing" xml:space="preserve"><value>Câu cá</value></data>
   <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Không đủ MP để thi triển phép!</value></data>
   <data name="Combat_Refused_OnCooldown" xml:space="preserve"><value>Kỹ năng này vẫn đang hồi, chưa thể thi triển!</value></data>
+  <data name="Combat_Refused_NoTarget" xml:space="preserve"><value>Không có quái vật trong tầm để thi triển!</value></data>
   <data name="Combat_Refused_OutOfRange" xml:space="preserve"><value>Mục tiêu ở quá xa để thi triển!</value></data>
   <data name="Combat_Refused_AlreadyFull" xml:space="preserve"><value>Máu đã đầy, không cần hồi phục!</value></data>
   <data name="Combat_Refused_UnknownMonster" xml:space="preserve"><value>Mục tiêu không còn ở đây!</value></data>

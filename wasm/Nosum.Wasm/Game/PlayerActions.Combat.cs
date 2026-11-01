@@ -1,5 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System;
 using Nosum.Contracts.Combat;
 using Nosum.Core;
 using Nosum.Gameplay.Combat;
@@ -9,6 +10,7 @@ using Nosum.Gameplay.Placeables;
 using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.ViewModels.Audio;
+using Nosum.Wasm.ViewModels.Progress;
 
 namespace Nosum.Wasm.Game;
 
@@ -58,6 +60,10 @@ internal sealed partial class PlayerActions
         return false;
     }
 
+    /// <summary>Raised with a resource key when a skill press is refused on the client before it is sent (no monster in reach, a cooldown, too little
+    /// MP, full health for the heal), so the press is never silent (docs/adr/ADR-056 D5).</summary>
+    public event Action<string>? SkillPressRefused;
+
     private void TryCastSkillFromEdges(InputEdges edges, int x, int y, double nowSeconds)
     {
         if (_combat is null)
@@ -65,12 +71,25 @@ internal sealed partial class PlayerActions
             return;
         }
 
-        if ((edges & InputEdges.Skill1) != 0 && this.CanCastSkill(1, x, y))
+        byte skillId = (edges & InputEdges.Skill1) != 0 ? (byte)1
+            : (edges & InputEdges.Skill2) != 0 ? (byte)2
+            : (edges & InputEdges.Skill3) != 0 ? (byte)3
+            : (byte)0;
+        if (skillId == 0 || _combat.IsSkillPending(skillId))
         {
-            this.BeginSwing(this.HeldTool(), this.HeldItemId, nowSeconds);
-            _combat.CastSkill(1);
+            // No skill key, or a cast still in flight: nothing to start; the reply shows the result.
+            return;
         }
-        else if ((edges & InputEdges.Skill2) != 0 && this.CanCastSkill(2, x, y))
+
+        string? refusal = this.SkillRefusalKey(skillId, x, y);
+        if (refusal is not null)
+        {
+            this.SkillPressRefused?.Invoke(refusal);
+            return;
+        }
+
+        this.BeginSwing(this.HeldTool(), this.HeldItemId, nowSeconds);
+        if (skillId == 2)
         {
             int targetId = 0;
             if (_combat.TryFindTarget(x, y, 6, out MonsterClientRow tm))
@@ -78,13 +97,11 @@ internal sealed partial class PlayerActions
                 targetId = tm.MonsterId;
             }
 
-            this.BeginSwing(this.HeldTool(), this.HeldItemId, nowSeconds);
             _combat.CastSkill(2, targetId);
         }
-        else if ((edges & InputEdges.Skill3) != 0 && this.CanCastSkill(3, x, y))
+        else
         {
-            this.BeginSwing(this.HeldTool(), this.HeldItemId, nowSeconds);
-            _combat.CastSkill(3);
+            _combat.CastSkill(skillId);
         }
     }
 
@@ -147,25 +164,18 @@ internal sealed partial class PlayerActions
         }
     }
 
-    // A press that the server would refuse starts no swing: the same rules as the server's, checked on the client first. The server still decides.
-    private bool CanCastSkill(byte skillId, int x, int y)
+    // A press that the server would refuse starts no swing: the same rules as the server's, checked on the client first, and the reason is named
+    // (SkillPressRefused). The server still decides.
+    private string? SkillRefusalKey(byte skillId, int x, int y)
     {
         if (_combat is null || !SkillCatalog.TryGet((CombatSkillKind)skillId, out SkillDefinition skill))
         {
-            return false;
+            return null;
         }
 
-        if (_combat.IsSkillPending(skillId) || _combat.GetSkillCooldownRemaining(skillId) > 0f || _combat.Mp < skill.MpCost)
-        {
-            return false;
-        }
-
-        return skill.Kind switch
-        {
-            CombatSkillKind.DivineHeal => _combat.Hp < _combat.MaxHp,
-            CombatSkillKind.Whirlwind or CombatSkillKind.Fireball => _combat.TryFindTarget(x, y, skill.Range, out _),
-            _ => false,
-        };
+        bool targetInReach = skill.Kind is not (CombatSkillKind.Whirlwind or CombatSkillKind.Fireball)
+            || _combat.TryFindTarget(x, y, skill.Range, out _);
+        return SkillPressRefusal.KeyFor(skill.Kind, _combat.GetSkillCooldownRemaining(skillId) > 0f, _combat.Mp, skill.MpCost, targetInReach, _combat.Hp >= _combat.MaxHp);
     }
 
     // The server refused a cast: a wind-up still in progress stops, so no skill animation plays for a cast that did nothing (docs/adr/ADR-056 D5).
