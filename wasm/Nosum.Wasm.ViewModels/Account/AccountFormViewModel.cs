@@ -199,7 +199,7 @@ public sealed class AccountFormViewModel : IObservableViewModel
 
     /// <summary>
     /// Gets whether Profile offers "save progress with an account": a signed-in guest, at any time (not only after the first quest, which
-    /// gates the session bar's invitation). The link keeps the same player, so the farm, coins and belongings stay (docs/adr/ADR-101).
+    /// gates the session bar's invitation). The link keeps the same player, so the farm, coins and belongings stay (docs/adr/ADR-102).
     /// </summary>
     public bool CanSaveProgress => this.CurrentSession is { IsGuest: true } && this.Mode != AccountFormMode.Upgrade;
 
@@ -212,7 +212,7 @@ public sealed class AccountFormViewModel : IObservableViewModel
     /// <summary>Gets the text of the save-progress button in Profile.</summary>
     public string SaveProgressText => _text["Account_SaveProgress_Action"];
 
-    /// <summary>Gets whether the sign-out question for a guest is open (docs/adr/ADR-101).</summary>
+    /// <summary>Gets whether the sign-out question for a guest is open (docs/adr/ADR-102).</summary>
     public bool IsSignOutQuestionOpen { get; private set; }
 
     /// <summary>Gets the title of the guest sign-out question.</summary>

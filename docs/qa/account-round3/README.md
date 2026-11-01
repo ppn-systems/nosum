@@ -2,7 +2,7 @@
 
 Captured with `tests/browser/account-round3/capture.js` (Playwright, Chromium) against the Development server (PostgreSQL, `nosum_dev`)
 and the client run with `dotnet run` in Development. Each run is one fresh guest, at 1280x720 and 390x844 (touch), in Vietnamese (default)
-and English. Decision record: [docs/adr/ADR-101](../../adr/ADR-101-guest-progress-and-sign-out-question.md).
+and English. Decision record: [docs/adr/ADR-102](../../adr/ADR-102-guest-progress-and-sign-out-question.md).
 
 - `before/`: `origin/master` (e2e224f), the client before this change.
 - `after/`: this branch.

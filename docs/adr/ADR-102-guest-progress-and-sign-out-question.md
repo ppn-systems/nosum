@@ -1,4 +1,4 @@
-# ADR-101: Guest progress from Profile, a sign-out question for guests, and hair-style names
+# ADR-102: Guest progress from Profile, a sign-out question for guests, and hair-style names
 
 ## Status
 

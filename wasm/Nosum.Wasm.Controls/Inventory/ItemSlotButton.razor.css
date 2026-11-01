@@ -30,7 +30,7 @@
     filter: brightness(0.88);
 }
 
-/* The compact slot (ADR-101): 12 u with a 1 u bevel, so the picture is 8 u and centred. Dense lists only. */
+/* The compact slot (ADR-102): 12 u with a 1 u bevel, so the picture is 8 u and centred. Dense lists only. */
 .slot.compact {
     width: calc(var(--u) * 12);
     height: calc(var(--u) * 12);
