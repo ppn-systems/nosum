@@ -64,7 +64,9 @@ Buying a chicken in a coop says "Bought, and on its way to the barn." (`Building
 
 **Status: fixed** in English: "Bought, and on its way to its new home." Vietnamese was already generic and is unchanged.
 
-### 6. The carpenter's animal section is hard to read (medium, not changed)
+### 6. The carpenter's animal section is hard to read (medium)
+
+**Status: fixed in round four (docs/adr/ADR-107).** The animals have their own Animals tab; each building is one group, its name once and its species as buy buttons that wrap. The coop and the barn are named for what they house ("Chuồng gia cầm" and "Chuồng gia súc"; "Poultry coop" and "Barn"), so the duck no longer reads "Chuồng gà". At 1280 x 720 nothing scrolls or is cut (`docs/qa/animals-round4/`). The findings below are as they were in round one.
 
 - The "Animal name" field sits above the species rows, so the player types a name before choosing a species. The hint "3 to 16
   letters or digits" is below the field, and the field keeps a red underline after a successful purchase (`02`).
@@ -75,6 +77,8 @@ Buying a chicken in a coop says "Bought, and on its way to the barn." (`Building
 
 ### 7. Payback: chickens are a poor buy, cows are not (design values, computed)
 
+**Status: fixed in round four (docs/adr/ADR-081 round-4 amendment, D12 to D14).** Net of feed a chicken took 9.5 seasons to pay back; the egg is now 20 and the price 950, so it takes 4.2, and every animal is inside a five-season limit that a test checks. The round-one text below is kept as it was.
+
 With the ADR-028 numbers: an egg sells for 50 coins, hay costs 30 coins at the carpenter, and a chicken costs 800 coins.
 *Computed:* one hay per chicken per day leaves 20 coins a day, so a chicken pays for itself in 40 days. A cow gives 125 coins of milk
 for the same hay, so it pays for itself (1 500 coins) in about 16 days. Large and gold produce raise these numbers, but the chicken
@@ -82,6 +86,8 @@ is the first animal a new player buys, and it is the one that pays back slowest.
 (`docs/design/economy.md`), not a bug, and it is not changed here.
 
 ### 8. A pet does almost nothing (high, not changed)
+
+**Status (round four): the mood still does nothing.** A data change cannot give it an effect. The proposal with numbers (the petting's energy by mood band, `3 + mood / 25`) is in docs/adr/ADR-092 round-4 amendment, for the owner's decision.
 
 - The cat trails the farmer as a small sprite (`07-cat-trails-farmer-small-no-reaction.png`). It does not react to being petted,
   and nothing in the world says it is there to be petted.

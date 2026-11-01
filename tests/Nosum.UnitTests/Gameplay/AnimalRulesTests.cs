@@ -173,7 +173,7 @@ public sealed class AnimalRulesTests
         AnimalRules.ProduceOf(cow!, s_animal, 3, 0).Should().BeOneOf(ItemCatalog.Milk, ItemCatalog.LargeMilk);
         chicken!.NeedsPail.Should().BeFalse();
         cow!.NeedsPail.Should().BeTrue();
-        (chicken.Coins, cow.Coins).Should().Be((800L, 1_500L));
+        (chicken.Coins, cow.Coins).Should().Be((950L, 1_500L));
     }
 
     [Fact]

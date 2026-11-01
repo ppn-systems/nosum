@@ -1,0 +1,31 @@
+{
+  "captured": [
+    "carpenter-buildings",
+    "carpenter-animals",
+    "carpenter-animals-after"
+  ],
+  "failed": [],
+  "scroll": {
+    "bodyScrollHeight": 753,
+    "bodyClientHeight": 753,
+    "bodyOverflowY": "visible",
+    "panelBottom": 1060,
+    "viewport": 1080,
+    "buttonsCut": [
+      "Mua Cừu · 1.600 xu",
+      "Mua Heo · 2.000 xu"
+    ],
+    "buttons": [
+      "Mua bản vẽ",
+      "Mua bản vẽ",
+      "Mua Bò · 1.500 xu",
+      "Mua Dê · 1.800 xu",
+      "Mua Cừu · 1.600 xu",
+      "Mua Heo · 2.000 xu"
+    ]
+  },
+  "placedAt": [
+    30,
+    48
+  ]
+}

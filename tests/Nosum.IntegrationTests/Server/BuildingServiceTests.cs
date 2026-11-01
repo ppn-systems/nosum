@@ -263,7 +263,7 @@ public sealed class BuildingServiceTests : IClassFixture<PostgresFixture>
         BuildingInfo building = world.BuildingDirectory.BuildingsOf(new MapInstance(GameMaps.Farm, owner)).Single();
 
         (await world.Access.CanEnterAsync(building.Interior, owner)).Should().BeFalse();
-        await world.GiveCoinsAsync(owner, 800);
+        await world.GiveCoinsAsync(owner, 950);
         world.StandAtCarpenter(owner);
         (await world.Buildings.BuyAnimalAsync(world.Presence.ConnectionOf(owner), building.Id, AnimalKind.Chicken, "Early")).Status.Should().Be(BuildingStatus.NotFinished);
 
@@ -278,14 +278,14 @@ public sealed class BuildingServiceTests : IClassFixture<PostgresFixture>
         Guid owner = await world.CreatePlayerAsync();
         _ = await Place(world, owner);
         BuildingInfo coop = await world.BuildAsync(owner, BuildingKind.Coop);
-        await world.GiveCoinsAsync(owner, 800);
+        await world.GiveCoinsAsync(owner, 950);
         long before = await world.CoinsOfAsync(owner);
 
         BuildingOutcome bought = await world.Buildings.BuyAnimalAsync(world.Presence.ConnectionOf(owner), coop.Id, AnimalKind.Chicken, "  Mi Mi ");
 
         bought.Status.Should().Be(BuildingStatus.Ok);
         bought.Id.Should().NotBe(Guid.Empty);
-        (await world.CoinsOfAsync(owner)).Should().Be(before - 800);
+        (await world.CoinsOfAsync(owner)).Should().Be(before - 950);
         await using NosumDbContext db = world.Db();
         FarmAnimal animal = await db.FarmAnimals.SingleAsync(a => a.Id == bought.Id);
         (animal.BuildingId, animal.Kind, animal.Name, animal.Friendship).Should().Be((coop.Id, (byte)AnimalKind.Chicken, "Mi Mi", 0));
@@ -336,7 +336,7 @@ public sealed class BuildingServiceTests : IClassFixture<PostgresFixture>
 
         outcomes.Count(o => o.Status == BuildingStatus.Ok).Should().Be(4);
         outcomes.Where(o => o.Status != BuildingStatus.Ok).Should().OnlyContain(o => o.Status == BuildingStatus.Full);
-        (await world.CoinsOfAsync(owner)).Should().Be(before - (4 * 800), "only the four that fit were paid for");
+        (await world.CoinsOfAsync(owner)).Should().Be(before - (4 * 950), "only the four that fit were paid for");
         BuildingView view = (await world.Buildings.ListAsync(me, mine: true)).Single();
         (view.Animals, view.Capacity).Should().Be((4, 4));
     }
@@ -380,7 +380,7 @@ public sealed class BuildingServiceTests : IClassFixture<PostgresFixture>
         Guid owner = await world.CreatePlayerAsync();
         _ = await Place(world, owner);
         BuildingInfo coop = await world.BuildAsync(owner, BuildingKind.Coop);
-        await world.GiveCoinsAsync(owner, 800);
+        await world.GiveCoinsAsync(owner, 950);
         Guid hen = (await world.Buildings.BuyAnimalAsync(world.Presence.ConnectionOf(owner), coop.Id, AnimalKind.Chicken, "Bella")).Id;
         BuildingDefinition definition = BuildingCatalog.All.Single(b => b.Kind == BuildingKind.Coop);
         IConnection me = world.Presence.ConnectionOf(owner);
@@ -459,7 +459,7 @@ public sealed class BuildingServiceTests : IClassFixture<PostgresFixture>
         Guid owner = await world.CreatePlayerAsync();
         _ = await Place(world, owner);
         BuildingInfo coop = await world.BuildAsync(owner, BuildingKind.Coop);
-        await world.GiveCoinsAsync(owner, 800);
+        await world.GiveCoinsAsync(owner, 950);
         Guid hen = (await world.Buildings.BuyAnimalAsync(world.Presence.ConnectionOf(owner), coop.Id, AnimalKind.Chicken, "Bella")).Id;
         IConnection me = world.Presence.ConnectionOf(owner);
         world.StandAt(owner, coop, hen);
@@ -484,7 +484,7 @@ public sealed class BuildingServiceTests : IClassFixture<PostgresFixture>
         _ = await Place(world, owner);
         await GrantVisitAsync(world, owner, visitor);
         BuildingInfo coop = await world.BuildAsync(owner, BuildingKind.Coop);
-        await world.GiveCoinsAsync(owner, 800);
+        await world.GiveCoinsAsync(owner, 950);
         Guid hen = (await world.Buildings.BuyAnimalAsync(world.Presence.ConnectionOf(owner), coop.Id, AnimalKind.Chicken, "Bella")).Id;
         IConnection friend = world.Presence.ConnectionOf(owner);
         BuildingDefinition definition = BuildingCatalog.All.Single(b => b.Kind == BuildingKind.Coop);
@@ -548,7 +548,7 @@ public sealed class BuildingServiceTests : IClassFixture<PostgresFixture>
         (await world.Access.CanEnterAsync(building.Interior, outsider)).Should().BeFalse();
 
         // A member buys the hen at the counter, feeds it; the hay they put in is in the audit log.
-        await world.GiveCoinsAsync(member, 800);
+        await world.GiveCoinsAsync(member, 950);
         world.StandAtCarpenter(member);
         Guid hen = (await world.Buildings.BuyAnimalAsync(world.Presence.ConnectionOf(member), building.Id, AnimalKind.Chicken, "Coopie")).Id;
         int hay = await world.GiveAsync(member, ItemCatalog.Hay, 2);
@@ -565,7 +565,7 @@ public sealed class BuildingServiceTests : IClassFixture<PostgresFixture>
         log.Single(e => e.Reason == CoopLand.CollectReason).Delta.Should().Be(1);
 
         // An outsider who is not in the co-op cannot buy for it.
-        await world.GiveCoinsAsync(outsider, 800);
+        await world.GiveCoinsAsync(outsider, 950);
         world.StandAtCarpenter(outsider);
         (await world.Buildings.BuyAnimalAsync(world.Presence.ConnectionOf(outsider), building.Id, AnimalKind.Chicken, "Nope")).Status.Should().Be(BuildingStatus.NotYours);
     }
@@ -642,7 +642,7 @@ public sealed class BuildingServiceTests : IClassFixture<PostgresFixture>
             _ = await Place(first, owner);
             BuildingInfo coop = await first.BuildAsync(owner, BuildingKind.Coop);
             buildingId = coop.Id;
-            await first.GiveCoinsAsync(owner, 800);
+            await first.GiveCoinsAsync(owner, 950);
             hen = (await first.Buildings.BuyAnimalAsync(first.Presence.ConnectionOf(owner), coop.Id, AnimalKind.Chicken, "Bella")).Id;
         }
 

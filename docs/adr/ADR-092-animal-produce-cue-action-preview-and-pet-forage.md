@@ -80,3 +80,18 @@ forage and the daily petting did not work as D1 and D2 describe. Each is fixed h
   counts. `PetWireTests.PetPet_WithAFullBag_LeavesTheForageOnTheGrassBesideThePlayer` checks it over a real session.
 - **D2 amendment - the pet is read when its panel opens.** The pet was read once at sign-in, so a petting on an earlier game day kept the Pet button
   off until the next sign-in. Opening the Pet panel reads the pet again (`Home.Show`), so each game day's petting is open.
+
+### 2026-11-01 - round four: the pet's mood, proposed with numbers (not applied)
+
+The round-four review (docs/design/critique-animals-pets.md, finding 8) asks what the pet's mood does. The answer is still nothing: `PetRules` raises the mood by
+`PettingMood` (10) on each petting, up to 100, and no rule reads it. A data change cannot give the mood an effect, so this round changes no rule. The proposal, for
+the owner's decision:
+
+- **Option 1, with numbers.** The energy from a petting is `PettingEnergy` plus the mood's band: `PetRules.PettingEnergyOf(mood) = 3 + mood / 25` (integer division).
+  A pet at mood 0 to 24 gives 3 energy, 25 to 49 gives 4, 50 to 74 gives 5 (today's 5 at the starting mood 50), 75 to 99 gives 6, and 100 gives 7.
+- **What a player sees.** The petting shows the energy it gave (the toast, from the server's reply, no wire change). A new pet starts at 50, so its first petting is
+  unchanged; each petting adds 10 mood, so a player who pets daily reaches 75 on the third day (6 energy) and 100 on the fifth (7 energy), and it stays there, since no
+  rule lowers the mood.
+- **Cost.** At most two energy a day more than today: 0.7 % of a game day's 270. It is a small reward for keeping the pet happy, not a second energy economy (ADR-081 D1).
+- **Why not applied.** It is a rule (`PetRules.PettingEnergy` becomes a function of the mood), not a data retune, so it needs an owner's decision and a test that
+  pins the bands. The forage (D2) is unchanged.

@@ -1,3 +1,5 @@
+@using System
+@using System.Linq
 @using Nosum.Wasm.ViewModels.Building
 @using Nosum.Wasm.ViewModels.Pets
 @inherits ObservingComponent<CarpenterViewModel>
@@ -14,44 +16,56 @@
             {
                 BuildingOrder b = order;
                 <GameRow Class="center carpenter-row">
-                    <span>@order.Name</span>
-                    <span class="carpenter-cost">@order.CostText</span>
+                    <div class="carpenter-what">
+                        <span>@order.Name</span>
+                        <span class="carpenter-cost">@order.CostText</span>
+                    </div>
                     <GameButton Text="@Vm.Text("Carpenter_Order")" Disabled="@(!order.CanOrder)" OnClick="@(() => Vm.OrderAsync(b))" />
                 </GameRow>
             }
         </GameSection>
-        @if (ShowAnimals)
+        @if (ShowAnimals && Vm.Status.Length > 0)
         {
-            @* The result of the last purchase sits above the animal section, not under the offers: at 1280 x 720 the bottom of this tab is out of view (docs/design/critique-animals-pets.md, finding 6). *@
-            @if (Vm.Status.Length > 0)
-            {
-                <GameNotice Kind="@(Vm.StatusIsGood ? "ok" : "error")" Text="@Vm.Status" />
-            }
-
-            <GameSection Title="@Vm.Text("Carpenter_Animals")">
-                @{
-                    IReadOnlyList<AnimalOffer> offers = Vm.Offers;
-                }
-                @if (offers.Count == 0)
-                {
-                    <p class="carpenter-line">@Vm.Text("Carpenter_NoHome")</p>
-                }
-                else
-                {
-                    <GameField Label="@Vm.Text("Carpenter_Name")" Hint="@Vm.Text("Carpenter_NameHint")">
-                        <GameInput Value="@Vm.AnimalName" ValueChanged="@(v => Vm.AnimalName = v)" Label="@Vm.Text("Carpenter_Name")" MaxLength="16" />
-                    </GameField>
-                    @foreach (AnimalOffer offer in offers)
-                    {
-                        AnimalOffer a = offer;
-                        <GameRow Class="center carpenter-row">
-                            <span>@offer.Title</span>
-                            <GameButton Text="@offer.BuyLabel" Disabled="@(!offer.CanBuy)" OnClick="@(() => Vm.BuyAnimalAsync(a))" />
-                        </GameRow>
-                    }
-                }
-            </GameSection>
+            <GameNotice Kind="@(Vm.StatusIsGood ? "ok" : "error")" Text="@Vm.Status" />
         }
+    }
+    else if (Section == CarpenterTab.Animals && ShowAnimals)
+    {
+        @* The animals have their own tab, so the Build page fits 1280 x 720 without an inner scroll (docs/adr/ADR-107 D2). The result of the last purchase sits above the section. *@
+        @if (Vm.Status.Length > 0)
+        {
+            <GameNotice Kind="@(Vm.StatusIsGood ? "ok" : "error")" Text="@Vm.Status" />
+        }
+
+        <GameSection Title="@Vm.Text("Carpenter_Animals")">
+            @{
+                IReadOnlyList<AnimalOffer> offers = Vm.Offers;
+            }
+            @if (offers.Count == 0)
+            {
+                <p class="carpenter-line">@Vm.Text("Carpenter_NoHome")</p>
+            }
+            else
+            {
+                <GameField Label="@Vm.Text("Carpenter_Name")" Hint="@Vm.Text("Carpenter_NameHint")">
+                    <GameInput Value="@Vm.AnimalName" ValueChanged="@(v => Vm.AnimalName = v)" Label="@Vm.Text("Carpenter_Name")" MaxLength="16" />
+                </GameField>
+                @* One group per building: its name and fullness once, then the species it houses as buy buttons that wrap (docs/adr/ADR-107 D2). *@
+                @foreach (IGrouping<Guid, AnimalOffer> home in offers.GroupBy(o => o.BuildingId))
+                {
+                    <div class="carpenter-home">
+                        <p class="carpenter-line">@home.First().Title</p>
+                        <div class="carpenter-buy">
+                            @foreach (AnimalOffer offer in home)
+                            {
+                                AnimalOffer a = offer;
+                                <GameButton Text="@offer.BuyLabel" Disabled="@(!offer.CanBuy)" OnClick="@(() => Vm.BuyAnimalAsync(a))" />
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </GameSection>
     }
     else if (Section == CarpenterTab.Pets)
     {
@@ -98,7 +112,7 @@
 </div>
 
 @code {
-    /// <summary>The tab shown: the buildings (with the animals when <see cref="ShowAnimals"/>) or the pets.</summary>
+    /// <summary>The tab shown: the buildings, the animals (when <see cref="ShowAnimals"/>) or the pets.</summary>
     [Parameter] public CarpenterTab Section { get; set; } = CarpenterTab.Buildings;
 
     /// <summary>Whether the animal section shows. The carpenter's Buy page leaves it out: with the buildings it would not fit a 1280×720 panel, and the Build page has it (ADR-080 D5).</summary>
