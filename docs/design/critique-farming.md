@@ -71,8 +71,13 @@ water part to one swing per line, but the harvest still needs one press per tile
 
 ## The QA hook
 
-- `tests/browser/farm-feel-capture.cjs` calls `window.nosumQa.teleport`, which does not exist in master's source. The tester build exposes only
-  `DevTools.Grant` and `DevTools.AdvanceClock` (`wasm/Nosum.Wasm/Game/DevTools.cs`), so that script fails before its first capture. Update or retire it.
+- Round two (backlog item 8): `window.nosumQa` (`wasm/Nosum.Wasm/Game/QaEntry.cs`) exposes `grant`, `advanceClock`, `teleport`, `season`, `levelUp`,
+  `fishingBite`, `allocatedBytes`, `springReset` and `teleportToMonster`. Every member the browser scripts call exists; the earlier note that
+  `teleport` was missing was out of date. `tests/browser/farm-feel-capture.cjs` runs on master (12 frames). `season-fix-capture.cjs` was fixed to click
+  only a visible button at 390 px. The non-farming scripts were not run. No script was retired.
+- Round two captures: `docs/qa/farming-round2/before` (master) and `docs/qa/farming-round2/after` (this branch), vi and en at 1280x720, from
+  `tests/browser/farm-round2-capture.cjs`. In the after frames the unripe line reads "Not ready, 1 day left" in en; the vi unripe frame has no line, and
+  no frame shows the harvest-with-item-in-hand line (the toast had likely faded). Re-check those two before trusting them.
 
 ## Changes in this pass (ADR-088, protocol 29)
 
