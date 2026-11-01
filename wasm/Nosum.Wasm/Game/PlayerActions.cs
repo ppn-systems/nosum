@@ -17,6 +17,7 @@ using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
 using Nosum.Wasm.Socket.Node;
+using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels;
@@ -42,6 +43,7 @@ internal sealed partial class PlayerActions
     private readonly GameAudio? _audio;
     private readonly CombatChannel? _combat;
     private readonly CalendarChannel? _calendar;
+    private readonly PlaceableChannel? _placeables;
     private GameCalendar? _rules;
     private int _dragTileX;
     private int _dragTileY;
@@ -62,7 +64,8 @@ internal sealed partial class PlayerActions
     /// <param name="combat">Sends monster attacks and potion drinking; <see langword="null"/> when combat is not wired.</param>
     /// <param name="calendar">The server calendar, so withered crops do not block eating or drinking potions.</param>
     /// <param name="nodes">The map's resource nodes, so a gathering swing knows what it gave experience for (docs/adr/ADR-089 D5); <see langword="null"/> for none.</param>
-    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null, BuildingChannel? buildings = null, GameAudio? audio = null, CombatChannel? combat = null, CalendarChannel? calendar = null, NodeChannel? nodes = null)
+    /// <param name="placeables">The placed pieces, so the growth stage the mouse names counts a sprinkler beside the tile (docs/adr/ADR-104 D2); <see langword="null"/> for none.</param>
+    public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null, BuildingChannel? buildings = null, GameAudio? audio = null, CombatChannel? combat = null, CalendarChannel? calendar = null, NodeChannel? nodes = null, PlaceableChannel? placeables = null)
     {
         ArgumentNullException.ThrowIfNull(farm);
         ArgumentNullException.ThrowIfNull(inventory);
@@ -75,6 +78,7 @@ internal sealed partial class PlayerActions
         _buildings = buildings;
         _audio = audio;
         _combat = combat;
+        _placeables = placeables;
         if (_combat is not null)
         {
             _combat.SkillCompleted += this.OnSkillCompleted;
@@ -382,6 +386,12 @@ internal sealed partial class PlayerActions
             return;
         }
 
+        // The scythe works the tile a press lands on, once: a press dragged over a row does not harvest on the way or refuse every bare tile (docs/adr/ADR-104 D1).
+        if (_dragging && this.HeldTool() == ToolKind.Scythe)
+        {
+            return;
+        }
+
         if ((_dragging && tileX == _dragTileX && tileY == _dragTileY) || !FarmRules.InReach(feetX, feetY, tileX, tileY, tileSize))
         {
             return;
@@ -408,7 +418,7 @@ internal sealed partial class PlayerActions
 
     // The items a drag works a tile with: seeds, a hoe and a watering can.
     private static bool IsFarmTool(int itemId)
-        => ItemCatalog.TryGet(itemId, out ItemDefinition? item) && (item.Kind == ItemKind.Seed || (item.Kind == ItemKind.Tool && item.Tool is ToolKind.Hoe or ToolKind.WateringCan));
+        => ItemCatalog.TryGet(itemId, out ItemDefinition? item) && ToolRules.PointerWorksTile(item.Kind, item.Tool);
 
     // The crop under the mouse: its growth stage, reported only when the tile or the stage changes (backlog item 4). A live crop only; a withered one has
     // no stage to name. Sprinklers beside the tile are not counted here, so a crop a sprinkler waters may show the stage one day behind.
@@ -436,7 +446,8 @@ internal sealed partial class PlayerActions
                 return false;
             }
 
-            stage = FarmRules.StageAt(tile, nowMs, rules, _outdoors);
+            // A sprinkler beside the tile waters it from the day after it was placed, so the stage the mouse names is the server's (docs/adr/ADR-104 D2).
+            stage = FarmRules.StageAt(tile, nowMs, rules, _outdoors, _placeables?.SprinklerWateredSinceMs(tileX, tileY));
             stageCount = crop.StageCount;
             return stage >= 0;
         }
@@ -503,6 +514,8 @@ internal sealed partial class PlayerActions
             {
                 ToolKind.Hoe => FarmRules.Till(true, current, nowMs, rules, out _) == FarmVerdict.Ok,
                 ToolKind.WateringCan => !withered && FarmRules.WaterVerdict(current, nowMs, rules, _outdoors) == FarmVerdict.Ok,
+                // The scythe cuts a withered crop (ADR-018); a ripe one was answered above, an unripe one is refused by the server with its days left.
+                ToolKind.Scythe => withered,
                 _ => false,
             };
         }

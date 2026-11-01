@@ -237,7 +237,9 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
 
     private void OnPlaceCompleted(PlaceStatus status)
     {
-        if (this.TextOf(status) is { } text)
+        // A piece that was set down says so (docs/adr/ADR-104 D3); a refusal keeps its own line.
+        string? text = status == PlaceStatus.Ok ? _text["Place_Done"].Value : this.TextOf(status);
+        if (text is not null)
         {
             this.Show(text);
         }

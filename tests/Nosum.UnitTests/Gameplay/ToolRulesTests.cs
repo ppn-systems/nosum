@@ -137,4 +137,18 @@ public sealed class ToolRulesTests
 
         ys.Should().Equal(4, 5, 6, 7, 8);
     }
+
+    [Theory]
+    [InlineData(ItemKind.Seed, ToolKind.None, true)]
+    [InlineData(ItemKind.Tool, ToolKind.Hoe, true)]
+    [InlineData(ItemKind.Tool, ToolKind.WateringCan, true)]
+    [InlineData(ItemKind.Tool, ToolKind.Scythe, true)]
+    [InlineData(ItemKind.Tool, ToolKind.Axe, false)]
+    [InlineData(ItemKind.Tool, ToolKind.Pickaxe, false)]
+    [InlineData(ItemKind.Placeable, ToolKind.None, false)]
+    public void PointerWorksTile_IsTheSetOfItemsAPressCanUse(ItemKind kind, ToolKind tool, bool expected)
+    {
+        // A tap or a drag works the tile in front with these; the scythe is one of them, so its tap reaches the server (docs/adr/ADR-104 D1).
+        ToolRules.PointerWorksTile(kind, tool).Should().Be(expected);
+    }
 }

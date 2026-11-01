@@ -155,3 +155,38 @@ No wire change: protocol 32 stays. The tests: `PointerPixelTests`, `FarmHarvestN
 2. Finding 2 and 3: the message line and the hint over the work area (layout, owner).
 3. Finding 5: check that drag-to-sow covers a line of three, and make it the taught way to plant.
 4. Finding 4: the growth stage readable without hover (a sprite or a label on the tile).
+
+## Round four addendum (ADR-104)
+
+Replayed on `claude/farming-round4` (from master `b60835ed`), 1280x720 and 390x844 (a width-override test copy, the product still gates phones at
+1024 px), vi and en. Captures and grades: `docs/qa/farming-round4/` (README there). Script: `tests/browser/farm-round4-capture.cjs`; drag check:
+`tests/browser/farm-round4-drag-probe.cjs`.
+
+**Played:** till and sow by tap on two tiles, a sprinkler placed west of one of them, a can tap on that tile the next day (the sprinkler has watered it),
+the scythe TAP on the same tile the day after (unripe), two parsnips sold at the shipping bin, and a drag of the hoe and then the seeds over a line of
+three. Not played: a ripe harvest by tap with the scythe, the scythe drag, the coin pop.
+
+### Findings and what changed
+
+1. **The scythe tap on an unripe crop was silent. Root cause found.** A tap goes through `PlayerActions.DragSow`, which returned before any use when the
+   held item was not a seed, a hoe or a can. The scythe was not one of them, so every scythe tap, ripe or not, sent no request. The round-three note
+   read this as a missing reply; it was the client gate. Fixed: `ToolRules.PointerWorksTile` names the four pointer tools, the scythe works one tile
+   per press (ADR-104 D1). Before/after: `before/en-05` silent, `after/en-05` "Not ready, 2 days left".
+2. **The hover stage ignored a sprinkler** (round-three finding 4's note, backlog item 4). The hover now passes the sprinkler time to `StageAt`, the
+   rule the server uses (ADR-104 D2).
+3. **A placed piece was silent.** "Placed." / "Đã đặt xuống." on success; refusals keep their own line (ADR-104 D3).
+4. **Checked, no change needed:** the sprinkler waters the crop beside it (master too: "The soil is already wet today."); the shipping bin sells the stack
+   ("Sold for 80 coins."); drag-to-sow covers a line of three ("Seeds planted. ×3", seeds 18 to 15). The bin check needed a longer walk in the
+   script (120 ms only turned the farmer; 400 ms crossed the tile), which is a script fault, not a game one.
+5. **Drag-to-sow covers a line of three (round-three finding 5, first half).** Yes. Whether the first-run hint teaches the drag is copy and quest text,
+   an owner decision: the hint says "Plant a seed on tilled soil" and does not name the drag.
+
+### Still open, ranked by how much play it would change
+
+1. Finding 2 and 3 (round three): the message line holds the hover stage, a hint and two toasts at once, and the first-run hint covers the work area.
+   Layout, owner decision.
+2. Finding 4 (round one, round three): the growth stage is readable only on hover; a sprite or label on the tile is an art decision.
+3. Round-three finding 5, second half: teach the drag in the first-run hint (copy, owner decision).
+4. Phones: the device gate (round-one finding 8) is still open; the owner decides whether the 390x844 layout ships.
+5. A scythe drag over a row works one tile per press (ADR-104 D1); a player who wants a harvest along a row uses the wide key (R) or repeats taps.
+   Not played in a frame this round.
