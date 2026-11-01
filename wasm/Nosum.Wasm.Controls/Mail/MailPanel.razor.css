@@ -9,8 +9,9 @@
     gap: calc(var(--u) * 2);
 }
 
+/* The title, its badges and the expiry share one line when they fit; on the 480 px window they wrap, and the expiry never runs off the panel. */
 .mail-list ::deep .mail-head {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: center;
 }
 
