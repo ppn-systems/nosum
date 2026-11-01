@@ -73,7 +73,7 @@ public sealed class MineViewModelTests
     [Fact]
     public void Offers_AreForTheBestTierCarried_IronBarsForTheSecondUpgrade_AndNothingForIronTools()
     {
-        Smith smith = Smith.Create([(ItemCatalog.Hoe, 1), (ItemCatalog.CopperHoe, 1), (ItemCatalog.IronAxe, 1), (ItemCatalog.CopperPickaxe, 1), (ItemCatalog.IronBar, 7)], coins: 6_000);
+        Smith smith = Smith.Create([(ItemCatalog.Hoe, 1), (ItemCatalog.CopperHoe, 1), (ItemCatalog.IronAxe, 1), (ItemCatalog.CopperPickaxe, 1), (ItemCatalog.IronBar, 7)], coins: 8_000);
 
         IReadOnlyList<UpgradeOfferDisplay> offers = smith.Vm.Offers;
 
