@@ -62,7 +62,9 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     private string _search = string.Empty;
     private int _sellSlot = -1;
     private MarketListingRequest? _pendingListing;
+    private MarketListingRequest? _lastListed;
     private int _historyItemId;
+    private MarketSort _sort = MarketSort.Newest;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="market">The market channel.</param>
@@ -97,6 +99,9 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
 
     /// <summary>Gets the search text.</summary>
     public string Search => _search;
+
+    /// <summary>Gets the order of the browse page (newest first, or by unit price).</summary>
+    public MarketSort Sort => _sort;
 
     /// <summary>Gets or sets the quantity typed in the sell form.</summary>
     public string SellQuantityText { get; set; } = "1";
@@ -298,7 +303,45 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
 
     /// <summary>Loads a browse page.</summary>
     /// <param name="page">Zero-based page.</param>
-    public void GoToPage(int page) => _market.Browse(Math.Max(0, page), _searchIds);
+    public void GoToPage(int page) => _market.Browse(Math.Max(0, page), _searchIds, _sort);
+
+    /// <summary>Gets the tabs that choose the order of the browse page: newest, lowest or highest unit price (docs/adr/ADR-013 amendment 2026-11-01).</summary>
+    public IReadOnlyList<(int Id, string Label)> SortTabs =>
+    [
+        ((int)MarketSort.Newest, this.Text("Market_Sort_Newest")),
+        ((int)MarketSort.UnitPriceLowest, this.Text("Market_Sort_UnitLowest")),
+        ((int)MarketSort.UnitPriceHighest, this.Text("Market_Sort_UnitHighest")),
+    ];
+
+    /// <summary>Changes the order of the browse page and shows its first page in that order.</summary>
+    /// <param name="sort">The order.</param>
+    public void SetSort(MarketSort sort)
+    {
+        _sort = sort;
+        this.GoToPage(0);
+    }
+
+    /// <summary>Chooses an order by the id of its tab (see <see cref="SortTabs"/>); an unknown id reads as newest first.</summary>
+    /// <param name="tabId">The tab's id.</param>
+    public void ChooseSort(int tabId) => this.SetSort(tabId is >= 0 and <= (int)MarketSort.UnitPriceHighest ? (MarketSort)tabId : MarketSort.Newest);
+
+    /// <summary>
+    /// Gets the line that tells the seller what the shipping bin pays for the picked stack, shown until a price is typed (then the fee line takes its place, so the
+    /// sell form never needs a second line of text); an empty string when the bin does not buy it.
+    /// </summary>
+    public string BinHint
+    {
+        get
+        {
+            if (this.SellItem is not { } item || !ShippingPrices.TryGetSellPrice(item.ItemId, out int each) || this.FeeSummary.Length > 0)
+            {
+                return string.Empty;
+            }
+
+            int quantity = int.TryParse(this.SellQuantityText, NumberStyles.None, CultureInfo.InvariantCulture, out int typed) && typed > 0 ? typed : 1;
+            return this.Text("Market_BinHint", Number(each), Number((long)each * quantity));
+        }
+    }
 
     /// <summary>Buys a listing.</summary>
     /// <param name="listingId">The listing.</param>
@@ -388,6 +431,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
             return;
         }
 
+        _lastListed = new MarketListingRequest(item.Index, item.ItemId, item.Name, quantity, price);
         _market.Create(item.Index, item.ItemId, quantity, price);
     }
 
@@ -401,6 +445,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
 
         _pendingListing = null;
         this.ClearStatus();
+        _lastListed = request;
         _market.Create(request.Slot, request.ItemId, request.Quantity, request.Price);
     }
 
@@ -434,7 +479,10 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
         List<ListingDisplay> rows = new(page.Listings.Count);
         foreach (ListingInfo listing in page.Listings)
         {
-            rows.Add(new ListingDisplay(listing.Id, _describer.Describe(0, listing.ItemId, listing.Quantity), Number(listing.Price), listing.IsMine, this.Text("Market_Seller", _names.Display(listing.SellerNickname))));
+            string price = listing.Quantity > 1
+                ? this.Text("Market_Price_Each", Number(listing.Price), Number(listing.Price / listing.Quantity))
+                : this.Text("Market_Price", Number(listing.Price));
+            rows.Add(new ListingDisplay(listing.Id, _describer.Describe(0, listing.ItemId, listing.Quantity), price, listing.IsMine, this.Text("Market_Seller", _names.Display(listing.SellerNickname))));
         }
 
         return rows;
@@ -445,21 +493,31 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
         _ = earned;
         if (status == MarketStatus.Ok)
         {
-            this.SetStatus(this.Text("Market_Done_" + action), good: true);
+            if (action == MarketAction.Create && _lastListed is { } listed)
+            {
+                // What was listed, and what the seller gets when it sells: the fee is the server's rule (CoinRules), shown, never decided here.
+                this.SetStatus(this.Text("Market_Done_CreateDetail", listed.Quantity, listed.ItemName, Number(listed.Price), Number(CoinRules.SellerProceeds(listed.Price)), CoinRules.MarketFeePercent), good: true);
+            }
+            else
+            {
+                this.SetStatus(this.Text("Market_Done_" + action), good: true);
+            }
+
             if (action == MarketAction.Create)
             {
                 _sellSlot = -1;
                 _historyItemId = 0;
                 this.SellPriceText = string.Empty;
+                _lastListed = null;
             }
 
             _market.LoadMine();
-            _market.Browse(_market.Browsed.Page, _searchIds);
+            _market.Browse(_market.Browsed.Page, _searchIds, _sort);
         }
         else
         {
             this.SetStatus(this.Text("Market_Status_" + status));
-            _market.Browse(_market.Browsed.Page, _searchIds);
+            _market.Browse(_market.Browsed.Page, _searchIds, _sort);
         }
     }
 }

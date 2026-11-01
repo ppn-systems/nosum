@@ -140,6 +140,12 @@
   <data name="Market_Shipped" xml:space="preserve"><value>Sold for {0} coins.</value></data>
   <data name="Toast_Repeat" xml:space="preserve"><value>{0} ×{1}</value></data>
   <data name="Market_Done_Create" xml:space="preserve"><value>Listed for sale.</value></data>
+  <data name="Market_Sort_Newest" xml:space="preserve"><value>Newest</value></data>
+  <data name="Market_Sort_UnitLowest" xml:space="preserve"><value>Cheapest each</value></data>
+  <data name="Market_Sort_UnitHighest" xml:space="preserve"><value>Priciest each</value></data>
+  <data name="Market_Price_Each" xml:space="preserve"><value>{0} coins ({1} each)</value></data>
+  <data name="Market_BinHint" xml:space="preserve"><value>The shipping bin pays {0} coins each, {1} for this stack.</value></data>
+  <data name="Market_Done_CreateDetail" xml:space="preserve"><value>Listed {0} × {1} for {2} coins. You receive {3} coins when it sells, after the {4}% fee.</value></data>
   <data name="Market_Done_Buy" xml:space="preserve"><value>Bought.</value></data>
   <data name="Market_Done_Cancel" xml:space="preserve"><value>Withdrawn to your inventory.</value></data>
   <data name="Market_Done_Ship" xml:space="preserve"><value>Sold.</value></data>
@@ -258,6 +264,8 @@
   <data name="Coop_Deposit" xml:space="preserve"><value>Deposit</value></data>
   <data name="Coop_DepositHint" xml:space="preserve"><value>Pick an item in the warehouse to take, or a slot of your inventory to deposit.</value></data>
   <data name="Coop_Log_Heading" xml:space="preserve"><value>Warehouse log</value></data>
+  <data name="Coop_Contrib_Row" xml:space="preserve"><value>{0} deposited</value></data>
+  <data name="Coop_Contrib_Window" xml:space="preserve"><value>Counts cover the recent log ({0} entries).</value></data>
   <data name="Coop_Log_Deposit" xml:space="preserve"><value>{0} - {1} deposited {2} {3}</value></data>
   <data name="Coop_Log_Withdraw" xml:space="preserve"><value>{0} - {1} withdrew {2} {3}</value></data>
   <data name="Coop_Status_Ok" xml:space="preserve"><value>Done.</value></data>
@@ -450,6 +458,8 @@
   <data name="Touch_UseLabel" xml:space="preserve"><value>Use the held item</value></data>
   <data name="Touch_Run" xml:space="preserve"><value>Run</value></data>
   <data name="Touch_RunLabel" xml:space="preserve"><value>Toggle running (costs energy)</value></data>
+  <data name="Touch_Chat" xml:space="preserve"><value>Chat</value></data>
+  <data name="Touch_ChatLabel" xml:space="preserve"><value>Open the chat line</value></data>
   <data name="Action_MoveUp" xml:space="preserve"><value>Walk up</value></data>
   <data name="Action_MoveDown" xml:space="preserve"><value>Walk down</value></data>
   <data name="Action_MoveLeft" xml:space="preserve"><value>Walk left</value></data>
@@ -589,6 +599,7 @@
   <data name="Friends_Map_coop" xml:space="preserve"><value>the coop</value></data>
   <data name="Friends_Map_barn" xml:space="preserve"><value>the barn</value></data>
   <data name="Friends_Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Friends_VisitFarm" xml:space="preserve"><value>Visit farm</value></data>
   <data name="Friends_Incoming_Heading" xml:space="preserve"><value>Friend requests</value></data>
   <data name="Friends_Accept" xml:space="preserve"><value>Accept</value></data>
   <data name="Friends_Decline" xml:space="preserve"><value>Decline</value></data>

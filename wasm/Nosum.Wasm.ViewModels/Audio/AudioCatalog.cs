@@ -23,12 +23,44 @@ public enum AudioKind
     Track = 2,
 }
 
-/// <summary>One audio file the client loads at start (docs/adr/ADR-039).</summary>
+/// <summary>One audio file the client loads at start (docs/adr/ADR-039, mix in docs/adr/ADR-090).</summary>
 /// <param name="Kind">What it is.</param>
 /// <param name="Id">The id the frame's audio commands use (unique within its kind).</param>
 /// <param name="File">The file name under <see cref="AudioCatalog.Folder"/>.</param>
 /// <param name="MinIntervalSeconds">How soon the same sound may play again; 0 for no limit.</param>
-public sealed record AudioFile(AudioKind Kind, int Id, string File, double MinIntervalSeconds = 0);
+/// <param name="MeasuredDbfs">The file's measured level: RMS over its active samples, in dBFS (<c>tools/measure_audio.py</c>).</param>
+/// <param name="TargetDbfs">The level the mix wants the file at, from <see cref="AudioMix"/>.</param>
+public sealed record AudioFile(AudioKind Kind, int Id, string File, double MinIntervalSeconds, double MeasuredDbfs, double TargetDbfs)
+{
+    /// <summary>Gets the gain the browser applies once at load to bring the file to its target, in decibels.</summary>
+    public double GainDb => TargetDbfs - MeasuredDbfs;
+}
+
+/// <summary>
+/// The mix table (docs/adr/ADR-090): one target level per class of sound, so the footsteps, the tools, the interface and the music sit in a known
+/// range. Each file is measured, and the browser applies its gain once when it loads (<c>audio.js</c>); per-cue volumes (the hooks) still scale on top.
+/// The levels are RMS over the active part of a file, in dBFS, before the bus gains of the settings.
+/// </summary>
+public static class AudioMix
+{
+    /// <summary>Music tracks: the bed of the game.</summary>
+    public const double Music = -16.0;
+
+    /// <summary>Tools, harvest, planting, pick-ups, coins, doors, combat and food: the cues the player acts on.</summary>
+    public const double Action = -16.0;
+
+    /// <summary>Stingers and rare cues (level up, combo finisher, doorbell, mail, craft, thunder): heard over the music when they play.</summary>
+    public const double Stinger = -16.0;
+
+    /// <summary>Footsteps: felt under the tools, and about five decibels under the music at full volume.</summary>
+    public const double Footstep = -18.0;
+
+    /// <summary>Interface clicks, panel open and close: short and quiet.</summary>
+    public const double Interface = -18.0;
+
+    /// <summary>The rain loop: a bed at the music's level (it plays at 55 for rain, about 5 dB under the music, or 85 for a storm, about 1 dB under).</summary>
+    public const double Ambience = -16.0;
+}
 
 /// <summary>The sound effect ids (docs/adr/ADR-039 D3).</summary>
 public static class SoundIds
@@ -183,41 +215,41 @@ public static class AudioCatalog
     /// <summary>Gets every file the client loads: the sounds, the rain loop, then the eight music tracks (one per <see cref="MusicTrackIds.For"/>).</summary>
     public static IReadOnlyList<AudioFile> Files { get; } =
     [
-        new(AudioKind.Sound, SoundIds.ToolHoe, "tool_hoe.wav", 0.1),
-        new(AudioKind.Sound, SoundIds.ToolWater, "tool_water.wav", 0.1),
-        new(AudioKind.Sound, SoundIds.ToolAxe, "tool_axe.wav", 0.1),
-        new(AudioKind.Sound, SoundIds.ToolPickaxe, "tool_pickaxe.wav", 0.1),
-        new(AudioKind.Sound, SoundIds.ToolScythe, "tool_scythe.wav", 0.1),
-        new(AudioKind.Sound, SoundIds.Plant, "plant.wav", 0.1),
-        new(AudioKind.Sound, SoundIds.Harvest, "harvest.wav", 0.1),
-        new(AudioKind.Sound, SoundIds.Pickup, "pickup.wav", 0.06),
-        new(AudioKind.Sound, SoundIds.Coin, "coin.wav", 0.12),
-        new(AudioKind.Sound, SoundIds.Door, "door.wav", 0.5),
-        new(AudioKind.Sound, SoundIds.UiClick, "ui_click.wav"),
-        new(AudioKind.Sound, SoundIds.UiOpen, "ui_open.wav", 0.12),
-        new(AudioKind.Sound, SoundIds.UiClose, "ui_close.wav", 0.12),
-        new(AudioKind.Sound, SoundIds.Footstep, "footstep.wav", 0.2),
-        new(AudioKind.Sound, SoundIds.SwordSlash, "sword_slash.wav", 0.08),
-        new(AudioKind.Sound, SoundIds.StaffCast, "staff_cast.wav", 0.1),
-        new(AudioKind.Sound, SoundIds.MonsterHit, "monster_hit.wav", 0.1),
-        new(AudioKind.Sound, SoundIds.MonsterDefeat, "monster_defeat.wav", 0.1),
-        new(AudioKind.Sound, SoundIds.PotionDrink, "potion_drink.wav", 0.1),
-        new(AudioKind.Sound, SoundIds.LevelUp, "level_up.wav", 0.2),
-        new(AudioKind.Sound, SoundIds.ComboFinisher, "combo_finisher.wav", 0.25),
-        new(AudioKind.Sound, SoundIds.Thunder, "thunder.wav", 1),
-        new(AudioKind.Sound, SoundIds.Craft, "craft.wav", 0.15),
-        new(AudioKind.Sound, SoundIds.Eat, "eat.wav", 0.2),
-        new(AudioKind.Sound, SoundIds.Doorbell, "doorbell.wav", 1.5),
-        new(AudioKind.Sound, SoundIds.MailChime, "mail_chime.wav", 1.5),
-        new(AudioKind.Loop, LoopIds.Rain, "rain_loop.wav"),
-        new(AudioKind.Track, MusicTrackIds.For(Season.Spring, false), "music_spring_day.wav"),
-        new(AudioKind.Track, MusicTrackIds.For(Season.Spring, true), "music_spring_night.wav"),
-        new(AudioKind.Track, MusicTrackIds.For(Season.Summer, false), "music_summer_day.wav"),
-        new(AudioKind.Track, MusicTrackIds.For(Season.Summer, true), "music_summer_night.wav"),
-        new(AudioKind.Track, MusicTrackIds.For(Season.Fall, false), "music_fall_day.wav"),
-        new(AudioKind.Track, MusicTrackIds.For(Season.Fall, true), "music_fall_night.wav"),
-        new(AudioKind.Track, MusicTrackIds.For(Season.Winter, false), "music_winter_day.wav"),
-        new(AudioKind.Track, MusicTrackIds.For(Season.Winter, true), "music_winter_night.wav"),
+        new(AudioKind.Sound, SoundIds.ToolHoe, "tool_hoe.wav", 0.1, -14.2, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.ToolWater, "tool_water.wav", 0.1, -18.3, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.ToolAxe, "tool_axe.wav", 0.1, -15.2, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.ToolPickaxe, "tool_pickaxe.wav", 0.1, -18.2, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.ToolScythe, "tool_scythe.wav", 0.1, -17.9, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.Plant, "plant.wav", 0.1, -17.6, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.Harvest, "harvest.wav", 0.1, -13.3, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.Pickup, "pickup.wav", 0.06, -14.7, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.Coin, "coin.wav", 0.12, -14.9, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.Door, "door.wav", 0.5, -17.8, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.UiClick, "ui_click.wav", 0, -18.2, AudioMix.Interface),
+        new(AudioKind.Sound, SoundIds.UiOpen, "ui_open.wav", 0.12, -18.0, AudioMix.Interface),
+        new(AudioKind.Sound, SoundIds.UiClose, "ui_close.wav", 0.12, -18.1, AudioMix.Interface),
+        new(AudioKind.Sound, SoundIds.Footstep, "footstep.wav", 0.2, -21.8, AudioMix.Footstep),
+        new(AudioKind.Sound, SoundIds.SwordSlash, "sword_slash.wav", 0.08, -16.0, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.StaffCast, "staff_cast.wav", 0.1, -16.8, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.MonsterHit, "monster_hit.wav", 0.1, -14.1, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.MonsterDefeat, "monster_defeat.wav", 0.1, -14.3, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.PotionDrink, "potion_drink.wav", 0.1, -14.4, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.LevelUp, "level_up.wav", 0.2, -12.3, AudioMix.Stinger),
+        new(AudioKind.Sound, SoundIds.ComboFinisher, "combo_finisher.wav", 0.25, -13.3, AudioMix.Stinger),
+        new(AudioKind.Sound, SoundIds.Thunder, "thunder.wav", 1, -12.9, AudioMix.Stinger),
+        new(AudioKind.Sound, SoundIds.Craft, "craft.wav", 0.15, -16.5, AudioMix.Stinger),
+        new(AudioKind.Sound, SoundIds.Eat, "eat.wav", 0.2, -19.6, AudioMix.Action),
+        new(AudioKind.Sound, SoundIds.Doorbell, "doorbell.wav", 1.5, -13.3, AudioMix.Stinger),
+        new(AudioKind.Sound, SoundIds.MailChime, "mail_chime.wav", 1.5, -15.6, AudioMix.Stinger),
+        new(AudioKind.Loop, LoopIds.Rain, "rain_loop.wav", 0, -15.5, AudioMix.Ambience),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Spring, false), "music_spring_day.wav", 0, -14.5, AudioMix.Music),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Spring, true), "music_spring_night.wav", 0, -15.4, AudioMix.Music),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Summer, false), "music_summer_day.wav", 0, -13.6, AudioMix.Music),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Summer, true), "music_summer_night.wav", 0, -16.1, AudioMix.Music),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Fall, false), "music_fall_day.wav", 0, -15.3, AudioMix.Music),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Fall, true), "music_fall_night.wav", 0, -15.7, AudioMix.Music),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Winter, false), "music_winter_day.wav", 0, -15.8, AudioMix.Music),
+        new(AudioKind.Track, MusicTrackIds.For(Season.Winter, true), "music_winter_night.wav", 0, -15.3, AudioMix.Music),
     ];
 
     /// <summary>Returns the sound a tool makes when swung.</summary>
