@@ -337,6 +337,9 @@
   <data name="Journal_Unknown" xml:space="preserve"><value>???</value></data>
   <data name="Journal_Undiscovered" xml:space="preserve"><value>Not obtained yet</value></data>
   <data name="Journal_Tip" xml:space="preserve"><value>{0}&#10;Obtained: {1}&#10;First: {2}</value></data>
+  <data name="Journal_Filter_All" xml:space="preserve"><value>All</value></data>
+  <data name="Journal_Filter_Found" xml:space="preserve"><value>Found</value></data>
+  <data name="Journal_Filter_Missing" xml:space="preserve"><value>Missing</value></data>
   <data name="Profile_Current" xml:space="preserve"><value>Current nickname: {0}</value></data>
   <data name="Profile_NewLabel" xml:space="preserve"><value>New nickname</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Change nickname</value></data>

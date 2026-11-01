@@ -49,6 +49,49 @@ public sealed class QuestTrackerViewModelTests
     }
 
     [Fact]
+    public void Tip_ActiveQuest_IsTheOneLineOnWhatToDoAndWhere()
+    {
+        using CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => Log(QuestState.Active, 0, 0));
+        using QuestChannel channel = new(socket);
+        using QuestTrackerViewModel vm = new(channel, Localizer<Catalogue>(), Localizer<Language>());
+
+        channel.Load();
+
+        vm.Tip.Should().Be("Plant a seed on tilled soil, water it, wait for it to grow and harvest it.");
+    }
+
+    [Fact]
+    public void Tip_CompletedQuest_IsEmpty()
+    {
+        using CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => Log(QuestState.Completed, 1, 1));
+        using QuestChannel channel = new(socket);
+        using QuestTrackerViewModel vm = new(channel, Localizer<Catalogue>(), Localizer<Language>());
+
+        channel.Load();
+
+        vm.IsCompleted.Should().BeTrue();
+        vm.Tip.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Tip_EveryQuest_HasTextInBothLanguages()
+    {
+        foreach (QuestDefinition quest in QuestCatalog.All)
+        {
+            foreach (string culture in new[] { "vi", "en" })
+            {
+                using CultureScope scope = new(culture);
+                LocalizedString tip = Localizer<Catalogue>()["Quest_" + quest.Key + "_Tip"];
+                tip.ResourceNotFound.Should().BeFalse($"quest {quest.Key} needs a tip in {culture}");
+            }
+        }
+    }
+
+    [Fact]
     public void PushedUpdate_Completion_ShowsTheBannerInVietnamese()
     {
         using CultureScope scope = new("vi");
