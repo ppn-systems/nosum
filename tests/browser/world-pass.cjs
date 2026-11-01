@@ -279,7 +279,7 @@ async function runOne(browser, locale, vpName, report) {
   });
   await step('farm: sprinkler (place, E)', async () => {
     await hold('KeyS', 120);
-    await selectItem(/sprinkler|máy tưới/i);
+    await selectItem(/sprinkler|vòi tưới|máy tưới/i);
     await page.keyboard.press('KeyE');
     await wait(700);
     return { status: 'captured', notes: 'sprinkler placed beside the crop? check the screenshot' };
