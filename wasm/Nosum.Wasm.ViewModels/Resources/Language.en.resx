@@ -836,7 +836,7 @@
   <data name="Carpenter_NoHome" xml:space="preserve"><value>No finished coop or barn with room yet.</value></data>
   <data name="Carpenter_Home" xml:space="preserve"><value>{0} ({1}/{2})</value></data>
   <data name="Carpenter_BuyAnimal" xml:space="preserve"><value>Buy {0} · {1} coins</value></data>
-  <data name="Building_coop_Name" xml:space="preserve"><value>Coop</value></data>
+  <data name="Building_coop_Name" xml:space="preserve"><value>Poultry coop</value></data>
   <data name="Building_barn_Name" xml:space="preserve"><value>Barn</value></data>
   <data name="Animal_chicken_Name" xml:space="preserve"><value>Chicken</value></data>
   <data name="Animal_cow_Name" xml:space="preserve"><value>Cow</value></data>
@@ -976,7 +976,7 @@
   <data name="Npc_blacksmith_Line_16" xml:space="preserve"><value>Midday is noisy in here. Don't let the hammering startle you.</value></data>
   <data name="Npc_carpenter_Name" xml:space="preserve"><value>Lam</value></data>
   <data name="Npc_carpenter_Role" xml:space="preserve"><value>Carpenter</value></data>
-  <data name="Npc_carpenter_Line_01" xml:space="preserve"><value>Ah, you're here. Coops, barns, I can build them all.</value></data>
+  <data name="Npc_carpenter_Line_01" xml:space="preserve"><value>Ah, you're here. Poultry coops, barns, I can build them all.</value></data>
   <data name="Npc_carpenter_Line_02" xml:space="preserve"><value>Chickens need hay every evening, and so do cows. Don't let them go hungry.</value></data>
   <data name="Npc_carpenter_Line_03" xml:space="preserve"><value>A building takes a few days, but built well it lasts a lifetime.</value></data>
   <data name="Npc_carpenter_Line_04" xml:space="preserve"><value>Good timber, solid stone. I'm glad of a chat with you too.</value></data>
@@ -1250,6 +1250,7 @@
   <data name="Carpenter_PetHave" xml:space="preserve"><value>You already have a pet. Give it back before you buy another.</value></data>
   <data name="Carpenter_Tab_Goods" xml:space="preserve"><value>Goods</value></data>
   <data name="Carpenter_Tab_Buildings" xml:space="preserve"><value>Buildings</value></data>
+  <data name="Carpenter_Tab_Animals" xml:space="preserve"><value>Animals</value></data>
   <data name="Pet_Choose" xml:space="preserve"><value>Choose</value></data>
   <data name="Pet_NameStep" xml:space="preserve"><value>Name your {0}</value></data>
   <data name="Pet_NameNext" xml:space="preserve"><value>Next</value></data>

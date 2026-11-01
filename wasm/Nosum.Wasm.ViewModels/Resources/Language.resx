@@ -836,8 +836,8 @@
   <data name="Carpenter_NoHome" xml:space="preserve"><value>Chưa có chuồng nào xây xong còn chỗ trống.</value></data>
   <data name="Carpenter_Home" xml:space="preserve"><value>{0} ({1}/{2})</value></data>
   <data name="Carpenter_BuyAnimal" xml:space="preserve"><value>Mua {0} · {1} xu</value></data>
-  <data name="Building_coop_Name" xml:space="preserve"><value>Chuồng gà</value></data>
-  <data name="Building_barn_Name" xml:space="preserve"><value>Chuồng bò</value></data>
+  <data name="Building_coop_Name" xml:space="preserve"><value>Chuồng gia cầm</value></data>
+  <data name="Building_barn_Name" xml:space="preserve"><value>Chuồng gia súc</value></data>
   <data name="Animal_chicken_Name" xml:space="preserve"><value>Gà</value></data>
   <data name="Animal_cow_Name" xml:space="preserve"><value>Bò</value></data>
   <data name="Building_Done_Commission" xml:space="preserve"><value>Đã có bản vẽ trong túi. Hãy đặt nó xuống đất.</value></data>
@@ -976,7 +976,7 @@
   <data name="Npc_blacksmith_Line_16" xml:space="preserve"><value>Trưa nay ồn quá, đừng để tiếng búa làm bạn giật mình nhé.</value></data>
   <data name="Npc_carpenter_Name" xml:space="preserve"><value>Bác Lâm</value></data>
   <data name="Npc_carpenter_Role" xml:space="preserve"><value>Thợ mộc</value></data>
-  <data name="Npc_carpenter_Line_01" xml:space="preserve"><value>À, bạn đến rồi. Chuồng gà, chuồng bò, bác dựng được hết.</value></data>
+  <data name="Npc_carpenter_Line_01" xml:space="preserve"><value>À, bạn đến rồi. Chuồng gia cầm, chuồng gia súc, bác dựng được hết.</value></data>
   <data name="Npc_carpenter_Line_02" xml:space="preserve"><value>Gà cần cỏ khô mỗi tối, bò cũng vậy. Đừng để chúng đói.</value></data>
   <data name="Npc_carpenter_Line_03" xml:space="preserve"><value>Dựng nhà mất vài ngày, nhưng làm chắc thì dùng cả đời.</value></data>
   <data name="Npc_carpenter_Line_04" xml:space="preserve"><value>Gỗ tốt, đá chắc. Được nói chuyện với bạn thế này, bác cũng vui.</value></data>
@@ -1250,6 +1250,7 @@
   <data name="Carpenter_PetHave" xml:space="preserve"><value>Bạn đã có thú cưng. Hãy trả lại trước khi mua con khác.</value></data>
   <data name="Carpenter_Tab_Goods" xml:space="preserve"><value>Hàng hóa</value></data>
   <data name="Carpenter_Tab_Buildings" xml:space="preserve"><value>Chuồng trại</value></data>
+  <data name="Carpenter_Tab_Animals" xml:space="preserve"><value>Vật nuôi</value></data>
   <data name="Pet_Choose" xml:space="preserve"><value>Chọn</value></data>
   <data name="Pet_NameStep" xml:space="preserve"><value>Đặt tên cho {0}</value></data>
   <data name="Pet_NameNext" xml:space="preserve"><value>Tiếp</value></data>

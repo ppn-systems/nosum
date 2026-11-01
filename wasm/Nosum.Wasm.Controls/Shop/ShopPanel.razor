@@ -137,6 +137,11 @@
         }
 
         tabs.Add(((int)CarpenterTab.Buildings, Carpenter!.Text("Carpenter_Tab_Buildings")));
+        if (ShowAnimals)
+        {
+            tabs.Add(((int)CarpenterTab.Animals, Carpenter!.Text("Carpenter_Tab_Animals")));
+        }
+
         tabs.Add(((int)CarpenterTab.Pets, Carpenter!.Text("Carpenter_Pets")));
         return tabs;
     }

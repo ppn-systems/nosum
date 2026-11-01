@@ -97,12 +97,12 @@ public sealed class CarpenterViewModelTests
         using (CultureScope scope = new("en"))
         {
             BuildingOrder coop = vm.Orders.Single(o => o.Kind == BuildingKind.Coop);
-            (coop.Name, coop.CostText).Should().Be(("Coop", "4,000 coins · 300 wood · 100 stone"));
+            (coop.Name, coop.CostText).Should().Be(("Poultry coop", "4,000 coins · 300 wood · 100 stone"));
         }
 
         using (CultureScope scope = new("vi"))
         {
-            vm.Orders.Single(o => o.Kind == BuildingKind.Barn).Name.Should().Be("Chuồng bò");
+            vm.Orders.Single(o => o.Kind == BuildingKind.Barn).Name.Should().Be("Chuồng gia súc");
         }
     }
 
@@ -142,12 +142,39 @@ public sealed class CarpenterViewModelTests
         // The barn is still being built and the other coop is full: only this coop's two species are offered.
         AnimalOffer[] offers = vm.Offers.ToArray();
         offers.Should().HaveCount(2, "a coop takes chickens and ducks");
-        offers.Should().OnlyContain(o => o.BuildingId == s_coop && o.Title == "Coop (3/4)");
+        offers.Should().OnlyContain(o => o.BuildingId == s_coop && o.Title == "Poultry coop (3/4)");
 
         AnimalOffer offer = offers.Single(o => o.Kind == AnimalKind.Chicken);
-        offer.BuyLabel.Should().Be("Buy Chicken · 800 coins");
+        offer.BuyLabel.Should().Be("Buy Chicken · 950 coins");
         offer.CanBuy.Should().BeTrue();
         offers.Should().Contain(o => o.Kind == AnimalKind.Duck && !o.CanBuy, "a duck costs 1 100 and the wallet holds 1 000");
+    }
+
+    [Fact]
+    public void Offers_NameTheBuildingEachAnimalLivesIn_InBothLanguages()
+    {
+        // A duck and a chicken share the coop; a cow, goat, sheep and pig share the barn. Each row names the building it goes to,
+        // in both languages (docs/adr/ADR-107 D1). "Chuồng gà" (the chicken coop) was the coop's name, so the ducks read as chickens.
+        (CarpenterViewModel vm, FakeGameSocket socket, BuildingChannel buildings) = Create(10_000);
+        Guid barn = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        ListMine(
+            socket,
+            buildings,
+            new BuildingRow { Id = s_coop, ObjectId = 1, Kind = (byte)BuildingKind.Coop, MapId = "farm", Capacity = 4 },
+            new BuildingRow { Id = barn, ObjectId = 2, Kind = (byte)BuildingKind.Barn, MapId = "farm", Capacity = 4 });
+
+        using (CultureScope scope = new("vi"))
+        {
+            vm.Offers.Where(o => o.Kind is AnimalKind.Chicken or AnimalKind.Duck).Should().OnlyContain(o => o.Title.StartsWith("Chuồng gia cầm (", StringComparison.Ordinal));
+            vm.Offers.Where(o => o.Kind is AnimalKind.Cow or AnimalKind.Goat or AnimalKind.Sheep or AnimalKind.Pig).Should().OnlyContain(o => o.Title.StartsWith("Chuồng gia súc (", StringComparison.Ordinal));
+            vm.Offers.Should().OnlyContain(o => !o.Title.Contains("Chuồng gà ", StringComparison.Ordinal));
+        }
+
+        using (CultureScope scope = new("en"))
+        {
+            vm.Offers.Where(o => o.Kind is AnimalKind.Chicken or AnimalKind.Duck).Should().OnlyContain(o => o.Title.StartsWith("Poultry coop (", StringComparison.Ordinal));
+            vm.Offers.Where(o => o.Kind is AnimalKind.Cow or AnimalKind.Goat or AnimalKind.Sheep or AnimalKind.Pig).Should().OnlyContain(o => o.Title.StartsWith("Barn (", StringComparison.Ordinal));
+        }
     }
 
     [Fact]
@@ -156,7 +183,7 @@ public sealed class CarpenterViewModelTests
         (CarpenterViewModel vm, FakeGameSocket socket, BuildingChannel buildings) = Create(799);
         ListMine(socket, buildings, new BuildingRow { Id = s_coop, ObjectId = 1, Kind = (byte)BuildingKind.Coop, MapId = "farm", Capacity = 4 });
 
-        vm.Offers.Should().OnlyContain(o => !o.CanBuy, "neither a chicken (800) nor a duck (1 100) is affordable with 799 coins");
+        vm.Offers.Should().OnlyContain(o => !o.CanBuy, "neither a chicken (950) nor a duck (1 100) is affordable with 799 coins");
     }
 
     [Fact]
