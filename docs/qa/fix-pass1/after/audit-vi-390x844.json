@@ -38,50 +38,50 @@
     "locale": "vi",
     "viewport": "390x844",
     "feature": "panel: Túi đồ [I]",
-    "status": "FAIL",
-    "notes": "locator.click: Timeout 5000ms exceeded."
+    "status": "n/a",
+    "notes": "phone: column panel, collapsed into no door (not in the Menu window); not measured"
   },
   {
     "locale": "vi",
     "viewport": "390x844",
     "feature": "panel: Chế tạo",
-    "status": "FAIL",
-    "notes": "locator.click: Timeout 5000ms exceeded."
+    "status": "n/a",
+    "notes": "phone: column panel, collapsed into no door (not in the Menu window); not measured"
   },
   {
     "locale": "vi",
     "viewport": "390x844",
     "feature": "panel: Giao dịch [T]",
-    "status": "FAIL",
-    "notes": "locator.click: Timeout 5000ms exceeded."
+    "status": "n/a",
+    "notes": "phone: column panel, collapsed into no door (not in the Menu window); not measured"
   },
   {
     "locale": "vi",
     "viewport": "390x844",
     "feature": "panel: Bạn bè",
-    "status": "FAIL",
-    "notes": "locator.click: Timeout 5000ms exceeded."
+    "status": "n/a",
+    "notes": "phone: column panel, collapsed into no door (not in the Menu window); not measured"
   },
   {
     "locale": "vi",
     "viewport": "390x844",
     "feature": "panel: Kỹ năng",
-    "status": "FAIL",
-    "notes": "locator.click: Timeout 5000ms exceeded."
+    "status": "n/a",
+    "notes": "phone: column panel, collapsed into no door (not in the Menu window); not measured"
   },
   {
     "locale": "vi",
     "viewport": "390x844",
     "feature": "panel: Bản đồ thế giới [Tab]",
-    "status": "FAIL",
-    "notes": "locator.click: Timeout 5000ms exceeded."
+    "status": "n/a",
+    "notes": "phone: column panel, collapsed into no door (not in the Menu window); not measured"
   },
   {
     "locale": "vi",
     "viewport": "390x844",
     "feature": "panel: Sổ sưu tập [J]",
-    "status": "FAIL",
-    "notes": "locator.click: Timeout 5000ms exceeded."
+    "status": "n/a",
+    "notes": "phone: column panel, collapsed into no door (not in the Menu window); not measured"
   },
   {
     "locale": "vi",
