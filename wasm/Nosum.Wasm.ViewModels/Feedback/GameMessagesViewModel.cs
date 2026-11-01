@@ -54,6 +54,7 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
         _text = text;
         farm.UseCompleted += this.OnUseCompleted;
         placeables.Completed += this.OnPlaceCompleted;
+        placeables.PickUpCompleted += this.OnPickUpCompleted;
         inventory.Refused += this.Show;
     }
 
@@ -124,6 +125,7 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
     {
         _farm.UseCompleted -= this.OnUseCompleted;
         _placeables.Completed -= this.OnPlaceCompleted;
+        _placeables.PickUpCompleted -= this.OnPickUpCompleted;
         _inventory.Refused -= this.Show;
         if (_market is not null)
         {
@@ -191,6 +193,15 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
         if (this.TextOf(status) is { } text)
         {
             this.Show(text);
+        }
+    }
+
+    // A piece taken back into the bag is confirmed, with the way back: nothing is spent, so the piece can be placed again.
+    private void OnPickUpCompleted(PlaceStatus status)
+    {
+        if (status == PlaceStatus.Ok)
+        {
+            this.Show(_text["Place_Stowed"].Value);
         }
     }
 

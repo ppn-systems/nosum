@@ -54,6 +54,9 @@ public sealed class PlaceableChannel : IDisposable
     /// <summary>Raised when the server answered a place, move or pick-up request. May run on any thread.</summary>
     public event Action<PlaceStatus>? Completed;
 
+    /// <summary>Raised when the server answered a pick-up request, so the game can confirm a piece went into the bag. May run on any thread.</summary>
+    public event Action<PlaceStatus>? PickUpCompleted;
+
     /// <summary>Raised when the mirror was loaded or changed. May run on any thread.</summary>
     public event Action? Changed;
 
@@ -198,6 +201,7 @@ public sealed class PlaceableChannel : IDisposable
             request.Value.ObjectId = objectId;
             PlaceResult result = await _socket.RequestAsync<PlaceResult>(request.Value).ConfigureAwait(false);
             this.Completed?.Invoke(result.Status);
+            this.PickUpCompleted?.Invoke(result.Status);
         }
         catch (Exception)
         {
