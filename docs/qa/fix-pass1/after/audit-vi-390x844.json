@@ -1,0 +1,100 @@
+[
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "HUD",
+    "status": "captured",
+    "notes": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "movement (WASD)",
+    "status": "captured",
+    "notes": "screenshot only; position is not read back (no test hook)"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Thư",
+    "status": "pass",
+    "notes": "box [8,120,374,133]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Cài đặt",
+    "status": "pass",
+    "notes": "box [8,120,374,252]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Bản đồ nhỏ: bấm để mở bản đồ thế giới",
+    "status": "pass",
+    "notes": "box [8,120,374,356]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Túi đồ [I]",
+    "status": "FAIL",
+    "notes": "locator.click: Timeout 5000ms exceeded."
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Chế tạo",
+    "status": "FAIL",
+    "notes": "locator.click: Timeout 5000ms exceeded."
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Giao dịch [T]",
+    "status": "FAIL",
+    "notes": "locator.click: Timeout 5000ms exceeded."
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Bạn bè",
+    "status": "FAIL",
+    "notes": "locator.click: Timeout 5000ms exceeded."
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Kỹ năng",
+    "status": "FAIL",
+    "notes": "locator.click: Timeout 5000ms exceeded."
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Bản đồ thế giới [Tab]",
+    "status": "FAIL",
+    "notes": "locator.click: Timeout 5000ms exceeded."
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Sổ sưu tập [J]",
+    "status": "FAIL",
+    "notes": "locator.click: Timeout 5000ms exceeded."
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: Menu",
+    "status": "pass",
+    "notes": "box [8,120,374,146]"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "console / page errors",
+    "status": "pass",
+    "notes": "none"
+  }
+]
