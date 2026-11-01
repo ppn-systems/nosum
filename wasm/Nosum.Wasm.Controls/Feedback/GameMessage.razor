@@ -1,7 +1,8 @@
 @inherits ObservingComponent<GameMessagesViewModel>
 
-@* A short line above the hotbar that says why the server refused an action; it goes away by itself. *@
-@if (Vm.Message is { } message)
+@* The toast line above the hotbar: up to two toasts, the newest last. Each goes away by itself after three seconds, fading out over the last part
+   (docs/design/ui-standard.md section 5). The line sits in the bottom-centre region, so it never covers the hotbar or the touch controls. *@
+@foreach (GameToast toast in Vm.Toasts)
 {
-    <GamePanel Class="hud toast game-message" Role="status" Title="">@message</GamePanel>
+    <GamePanel @key="toast.Id" Class="hud toast game-message" Role="status" Title="">@toast.Text</GamePanel>
 }
