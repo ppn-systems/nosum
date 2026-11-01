@@ -106,6 +106,31 @@ public sealed record ClientSettings
         return text.ToString();
     }
 
+    /// <summary>Reads only the language the player saved on this browser, so the start-up can tell "saved" from "never chosen".</summary>
+    /// <param name="text">The stored text, or <see langword="null"/> when nothing was stored (or storage is blocked).</param>
+    /// <returns>The saved language, or <see langword="null"/> when no valid language was saved.</returns>
+    public static GameLanguage? StoredLanguage(string? text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return null;
+        }
+
+        foreach (string line in text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            int at = line.IndexOf('=', StringComparison.Ordinal);
+            if (at <= 0 || !string.Equals(line[..at], "lang", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            string value = line[(at + 1)..].Trim();
+            return TryInt(value, out int lang) && Enum.IsDefined((GameLanguage)lang) ? (GameLanguage)lang : null;
+        }
+
+        return null;
+    }
+
     /// <summary>Reads settings written by <see cref="Serialize"/>; a missing, unknown or out-of-range entry keeps its default.</summary>
     /// <param name="text">The stored text, or <see langword="null"/> when nothing was stored (or storage is blocked).</param>
     /// <returns>The settings.</returns>

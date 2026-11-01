@@ -1,0 +1,100 @@
+[
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "settings: language English",
+    "status": "pass",
+    "notes": "switched in Settings > General"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "HUD",
+    "status": "captured",
+    "notes": ""
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "movement (WASD)",
+    "status": "captured",
+    "notes": "screenshot only; position is not read back (no test hook)"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Mail",
+    "status": "pass",
+    "notes": "box [400,96,480,192]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Settings",
+    "status": "pass",
+    "notes": "box [400,96,480,371]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Inventory [I]",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 421/415"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Crafting",
+    "status": "pass",
+    "notes": "box [310,96,660,574]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Trade [T]",
+    "status": "pass",
+    "notes": "box [400,96,480,192]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Friends",
+    "status": "pass",
+    "notes": "box [400,96,480,362]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Skills",
+    "status": "pass",
+    "notes": "box [310,96,660,580]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: World map [Tab]",
+    "status": "FAIL",
+    "notes": "scroll menu-page-body 869/525"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Journal [J]",
+    "status": "pass",
+    "notes": "box [310,96,660,481]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "panel: Menu",
+    "status": "pass",
+    "notes": "box [490,96,300,345]"
+  },
+  {
+    "locale": "en",
+    "viewport": "1280x720",
+    "feature": "console / page errors",
+    "status": "pass",
+    "notes": "none"
+  }
+]

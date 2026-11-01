@@ -233,8 +233,8 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     public SkillDisplay CombatSkill => this.Describe("Skill_Combat", _combat?.CombatXp ?? 0);
 
     /// <summary>Gets the localized Monster Bestiary &amp; Hunting Log entries (docs/adr/ADR-059).</summary>
-    /// <summary>The monsters on one page of the bestiary: whole entries, two to a page, so the page fits the panel without a scroll.</summary>
-    public const int BestiaryPerPage = 2;
+    /// <summary>The monsters on one page of the bestiary: one whole entry (its stats, drops, progress and title) to a page, so the page fits the panel at 1280×720 and up.</summary>
+    public const int BestiaryPerPage = 1;
 
     /// <summary>Gets the zero-based page of the bestiary.</summary>
     public int BestiaryPage { get; private set; }
