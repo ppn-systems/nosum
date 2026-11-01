@@ -26,13 +26,22 @@ const wantedLocales = (process.env.LOCALES || 'en').split(',').map((s) => s.trim
 const wantedViewports = (process.env.VIEWPORTS || '1280x720,390x844').split(',').map((s) => s.trim()).filter(Boolean);
 
 // Map id and a tile that the game's arrival rule moves to a walkable tile near (gameplay/Nosum.Gameplay/Maps; the town road and the beach row are from world-pass).
-const MAPS = [
+// MAPS env overrides the list, as "id:x,y;id:x,y" or "id:x,y:tag;..." (the tag names the frame, so one map can be shot from several tiles; round 2
+// adds deeper mine floors and the farm's exits: docs/qa/world-ambience-round2).
+const DEFAULT_MAPS = [
   { id: 'farm', tile: [46, 18] },
   { id: 'town', tile: [39, 2] },
   { id: 'beach', tile: [39, 43] },
   { id: 'forest', tile: [20, 20] },
   { id: 'mine1', tile: [5, 5] },
 ];
+const MAPS = process.env.MAPS
+  ? process.env.MAPS.split(';').map((entry) => {
+      const [id, xy, tag] = entry.split(':');
+      const [x, y] = xy.split(',').map(Number);
+      return { id, tile: [x, y], tag: tag || id };
+    })
+  : DEFAULT_MAPS;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -83,11 +92,15 @@ async function runOne(browser, locale, vpName, report) {
     // The window opens before the teleport, so the door sound and the new map's music or loop start are in it. Loops that were already playing do not restart.
     const before = await page.evaluate(() => window.__sounds.length);
     await page.evaluate(([id, x, y]) => window.nosumQa.teleport(id, x, y), [map.id, map.tile[0], map.tile[1]]);
-    await sleep(6000);
+    // Mid-fade frame: the map change fades out (0.2 s) and back in (0.25 s, MapScene), so 120 ms after the teleport is the dark part of the change.
+    await sleep(120);
+    const fadeFile = path.join(dir, `${SCENARIO}-${map.tag}-fade.png`);
+    await page.screenshot({ path: fadeFile });
+    await sleep(5880);
     const sounds = await page.evaluate((from) => window.__sounds.slice(from), before);
-    const file = path.join(dir, `${SCENARIO}-${map.id}.png`);
+    const file = path.join(dir, `${SCENARIO}-${map.tag}.png`);
     await page.screenshot({ path: file });
-    report.push({ scenario: SCENARIO, locale, viewport: vpName, map: map.id, calendar: await calendarText(page), audioStartsInWindow: sounds.length, audioStarts: sounds.map((s) => `${s.loop ? 'loop' : 'once'} ${s.dur}s`), file: path.relative(REPO, file) });
+    report.push({ scenario: SCENARIO, locale, viewport: vpName, map: map.id, tag: map.tag, calendar: await calendarText(page), audioStartsInWindow: sounds.length, audioStarts: sounds.map((s) => `${s.loop ? 'loop' : 'once'} ${s.dur}s`), file: path.relative(REPO, file), fadeFile: path.relative(REPO, fadeFile) });
   }
 
   if (errors.length) report.push({ scenario: SCENARIO, locale, viewport: vpName, errors: errors.slice(0, 10) });

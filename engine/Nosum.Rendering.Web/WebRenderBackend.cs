@@ -66,8 +66,9 @@ public sealed partial class WebRenderBackend : IRenderBackend
     /// <param name="kind">0 for a one-shot sound, 1 for an ambient loop, 2 for a music track.</param>
     /// <param name="id">The sound, loop or track id used by the audio commands of the frame.</param>
     /// <param name="url">File URL.</param>
+    /// <param name="gainDb">The gain the file gets once, when it is decoded, in decibels (the mix table, docs/adr/ADR-090); 0 for none.</param>
     /// <returns>A task that completes when the file is decoded (<see langword="true"/>) or was skipped (<see langword="false"/>).</returns>
-    public static Task<bool> LoadAudioAsync(int kind, int id, string url) => LoadAudio(kind, id, url);
+    public static Task<bool> LoadAudioAsync(int kind, int id, string url, double gainDb = 0) => LoadAudio(kind, id, url, gainDb);
 
     /// <summary>Sets the music and sound effect gains from the settings; call when the player changes them (never from the frame).</summary>
     /// <param name="musicGain">Music gain, 0 to 1 (<see cref="VolumeCurve"/>, 0 when muted).</param>
@@ -91,7 +92,7 @@ public sealed partial class WebRenderBackend : IRenderBackend
     private static partial void RegisterLabel(int id, string text, int style);
 
     [JSImport("loadAudio", ModuleName)]
-    private static partial Task<bool> LoadAudio(int kind, int id, string url);
+    private static partial Task<bool> LoadAudio(int kind, int id, string url, double gainDb);
 
     [JSImport("setAudioLevels", ModuleName)]
     private static partial void SetAudioLevels(double musicGain, double soundGain);

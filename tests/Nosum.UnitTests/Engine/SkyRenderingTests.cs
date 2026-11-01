@@ -183,6 +183,31 @@ public sealed class SkyRenderingTests
     }
 
     [Fact]
+    public void Precipitation_Snow_NearFlakesAreTwoPixelsSquareAndFarOnesOne()
+    {
+        // A near flake (depth above one half) is 2x2 so it reads on grass; a far one stays 1x1 (docs/adr/ADR-027 amendment, round 2).
+        PrecipitationLayer snow = new();
+        RenderCommandBuffer draws = new(PrecipitationLayer.Capacity * 2);
+        draws.Begin(2);
+        snow.Update(Precipitation.Snow, 0.016, 416, 234);
+        snow.Draw(Precipitation.Snow, draws);
+
+        int[] ints = Ints(draws);
+        int sizes = 0;
+        for (int i = 0; i < draws.Count; i++)
+        {
+            int p = RenderCommandBuffer.HeaderInts + (i * RenderCommandBuffer.IntsPerCommand);
+            int width = ints[p + 3];
+            int height = ints[p + 4];
+            width.Should().Be(height, "snow flakes are squares");
+            width.Should().BeOneOf(1, 2);
+            sizes |= width == 2 ? 2 : 1;
+        }
+
+        sizes.Should().Be(3, "the snow has both near (2 px) and far (1 px) flakes");
+    }
+
+    [Fact]
     public void Precipitation_StormIsDenserThanRainAndRainThanSnow()
     {
         PrecipitationLayer storm = new(), rain = new(), snow = new();

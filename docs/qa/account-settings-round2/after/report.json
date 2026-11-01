@@ -1,0 +1,170 @@
+[
+  {
+    "tag": "1280x720-en",
+    "check": "profile-tile-lines",
+    "lines": 1,
+    "width": 60
+  },
+  {
+    "tag": "1280x720-en",
+    "check": "delete-asks-first",
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-en",
+    "check": "keep-keeps-the-mail",
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-en",
+    "check": "sound-effects-label-lines",
+    "lines": 1,
+    "width": 120
+  },
+  {
+    "tag": "1280x720-en",
+    "check": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "1920x1080-vi",
+    "check": "profile-tile-lines",
+    "lines": 1,
+    "width": 75
+  },
+  {
+    "tag": "1920x1080-vi",
+    "check": "delete-asks-first",
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-vi",
+    "check": "keep-keeps-the-mail",
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-vi",
+    "check": "sound-effects-label-lines",
+    "lines": 1,
+    "width": 120
+  },
+  {
+    "tag": "1920x1080-vi",
+    "check": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "1920x1080-en",
+    "check": "profile-tile-lines",
+    "lines": 1,
+    "width": 90
+  },
+  {
+    "tag": "1920x1080-en",
+    "check": "delete-asks-first",
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-en",
+    "check": "keep-keeps-the-mail",
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-en",
+    "check": "sound-effects-label-lines",
+    "lines": 1,
+    "width": 180
+  },
+  {
+    "tag": "1920x1080-en",
+    "check": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "390x844-vi",
+    "check": "profile-tile-lines",
+    "lines": 1,
+    "width": 28
+  },
+  {
+    "tag": "390x844-vi",
+    "check": "delete-asks-first",
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-vi",
+    "check": "keep-keeps-the-mail",
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-vi",
+    "check": "sound-effects-label-lines",
+    "lines": 1,
+    "width": 45
+  },
+  {
+    "tag": "390x844-vi",
+    "check": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "390x844-en",
+    "check": "profile-tile-lines",
+    "lines": 1,
+    "width": 34
+  },
+  {
+    "tag": "390x844-en",
+    "check": "delete-asks-first",
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-en",
+    "check": "keep-keeps-the-mail",
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-en",
+    "check": "sound-effects-label-lines",
+    "lines": 1,
+    "width": 67
+  },
+  {
+    "tag": "390x844-en",
+    "check": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "1280x720-vi",
+    "check": "profile-tile-lines",
+    "lines": 1,
+    "width": 50
+  },
+  {
+    "tag": "1280x720-vi",
+    "check": "delete-asks-first",
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-vi",
+    "check": "keep-keeps-the-mail",
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-vi",
+    "check": "sound-effects-label-lines",
+    "lines": 1,
+    "width": 80
+  },
+  {
+    "tag": "1280x720-vi",
+    "check": "page-errors",
+    "count": 0,
+    "first": []
+  }
+]

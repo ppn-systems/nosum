@@ -47,6 +47,7 @@ public sealed class PlacementViewModel : IObservableViewModel
     private bool _ghostShown;
     private PlaceStatus _ghostStatus = PlaceStatus.Ok;
     private bool _confirmingBuild;
+    private bool _stowMissed;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="catalogue">Item names.</param>
@@ -103,13 +104,18 @@ public sealed class PlacementViewModel : IObservableViewModel
     public bool ConfirmingBuild => _confirmingBuild;
 
     /// <summary>
-    /// Gets the one line the panel shows under the key strip: the confirmation for a building, else the reason the ghost is invalid, else nothing.
-    /// Every line is a resource string, so it follows the language.
+    /// Gets the one line the panel shows under the key strip: "nothing to stow" after a stow press with no piece in front, else the confirmation
+    /// for a building, else the reason the ghost is invalid, else nothing. Every line is a resource string, so it follows the language.
     /// </summary>
     public string? NoticeText
     {
         get
         {
+            if (_stowMissed)
+            {
+                return _text["Placement_NothingToStow"].Value;
+            }
+
             if (!_ghostShown)
             {
                 return null;
@@ -124,8 +130,22 @@ public sealed class PlacementViewModel : IObservableViewModel
         }
     }
 
-    /// <summary>Gets whether <see cref="NoticeText"/> is a warning (the ghost is invalid) rather than a confirmation request.</summary>
-    public bool NoticeIsError => !_confirmingBuild && _ghostStatus != PlaceStatus.Ok;
+    /// <summary>Gets whether <see cref="NoticeText"/> is a warning (the ghost is invalid) rather than a confirmation request or a note.</summary>
+    public bool NoticeIsError => !_stowMissed && !_confirmingBuild && _ghostStatus != PlaceStatus.Ok;
+
+    /// <summary>Gets whether the strip is showing "nothing in front to stow" (<see cref="NoticeText"/>); the game loop clears it after a moment.</summary>
+    public bool StowMissed => _stowMissed;
+
+    /// <summary>Shows or clears the "nothing in front to stow" line; the game loop calls it each frame with the time left on the note.</summary>
+    /// <param name="shown">Whether the line is shown.</param>
+    public void SetStowMissed(bool shown)
+    {
+        if (_stowMissed != shown)
+        {
+            _stowMissed = shown;
+            this.Changed?.Invoke();
+        }
+    }
 
     /// <summary>Asks the game to do something, as a key press would. May be called from any thread.</summary>
     /// <param name="request">What to do.</param>

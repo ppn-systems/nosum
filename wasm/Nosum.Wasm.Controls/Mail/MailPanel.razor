@@ -60,7 +60,7 @@
                             }
                             @if (mail.CanDelete)
                             {
-                                <GameButton Variant="danger" Text="@Vm.Text("Mail_Delete")" OnClick="@(() => Vm.Delete(mailId))" />
+                                <GameButton Variant="danger" Text="@Vm.Text("Mail_Delete")" OnClick="@(() => Vm.AskDelete(mailId))" />
                             }
                         </GameRow>
                     }
