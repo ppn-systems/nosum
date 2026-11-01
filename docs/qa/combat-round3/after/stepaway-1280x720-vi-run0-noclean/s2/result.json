@@ -1,0 +1,213 @@
+{
+  "mode": "stepaway",
+  "size": "1280x720",
+  "locale": "vi-VN",
+  "attempts": [
+    {
+      "attempt": 1,
+      "key": "ArrowUp",
+      "control": {
+        "hpBefore": 92,
+        "hpAfter": 84,
+        "landedAtRelMs": 0
+      },
+      "pressOffsetMs": 1155,
+      "hpBeforeStep": 76,
+      "hpEnd": 63,
+      "hitsAfterStep": 2,
+      "hitsAfterStepDetail": [
+        {
+          "atRelMs": 1498,
+          "from": 76,
+          "to": 68
+        },
+        {
+          "atRelMs": 1508,
+          "from": 68,
+          "to": 63
+        }
+      ],
+      "success": false
+    },
+    {
+      "attempt": 2,
+      "key": "ArrowLeft",
+      "control": {
+        "hpBefore": 82,
+        "hpAfter": 80,
+        "landedAtRelMs": 0
+      },
+      "pressOffsetMs": 1160,
+      "hpBeforeStep": 72,
+      "hpEnd": 65,
+      "hitsAfterStep": 2,
+      "hitsAfterStepDetail": [
+        {
+          "atRelMs": 1493,
+          "from": 72,
+          "to": 70
+        },
+        {
+          "atRelMs": 1892,
+          "from": 70,
+          "to": 57
+        }
+      ],
+      "success": false
+    },
+    {
+      "attempt": 3,
+      "key": "ArrowDown",
+      "control": {
+        "hpBefore": 82,
+        "hpAfter": 80,
+        "landedAtRelMs": 0
+      },
+      "pressOffsetMs": 1159,
+      "hpBeforeStep": 72,
+      "hpEnd": 54,
+      "hitsAfterStep": 3,
+      "hitsAfterStepDetail": [
+        {
+          "atRelMs": 1496,
+          "from": 72,
+          "to": 70
+        },
+        {
+          "atRelMs": 1899,
+          "from": 70,
+          "to": 62
+        },
+        {
+          "atRelMs": 1913,
+          "from": 62,
+          "to": 54
+        }
+      ],
+      "success": false
+    },
+    {
+      "attempt": 4,
+      "key": "ArrowRight",
+      "control": {
+        "hpBefore": 92,
+        "hpAfter": 84,
+        "landedAtRelMs": 0
+      },
+      "pressOffsetMs": 1159,
+      "hpBeforeStep": 84,
+      "hpEnd": 76,
+      "hitsAfterStep": 1,
+      "hitsAfterStepDetail": [
+        {
+          "atRelMs": 1500,
+          "from": 84,
+          "to": 76
+        }
+      ],
+      "success": false
+    },
+    {
+      "attempt": 5,
+      "key": "ArrowUp",
+      "control": {
+        "hpBefore": 62,
+        "hpAfter": 60,
+        "landedAtRelMs": 0
+      },
+      "pressOffsetMs": 1159,
+      "hpBeforeStep": 52,
+      "hpEnd": 42,
+      "hitsAfterStep": 2,
+      "hitsAfterStepDetail": [
+        {
+          "atRelMs": 1500,
+          "from": 52,
+          "to": 50
+        },
+        {
+          "atRelMs": 1898,
+          "from": 50,
+          "to": 42
+        }
+      ],
+      "success": false
+    },
+    {
+      "attempt": 6,
+      "key": "ArrowLeft",
+      "control": {
+        "hpBefore": 81,
+        "hpAfter": 78,
+        "landedAtRelMs": 0
+      },
+      "pressOffsetMs": 1157,
+      "hpBeforeStep": 70,
+      "hpEnd": 51,
+      "hitsAfterStep": 3,
+      "hitsAfterStepDetail": [
+        {
+          "atRelMs": 1497,
+          "from": 70,
+          "to": 67
+        },
+        {
+          "atRelMs": 1907,
+          "from": 67,
+          "to": 59
+        },
+        {
+          "atRelMs": 1911,
+          "from": 59,
+          "to": 51
+        }
+      ],
+      "success": false
+    },
+    {
+      "attempt": 7,
+      "key": "ArrowDown",
+      "control": {
+        "hpBefore": 100,
+        "hpAfter": 92,
+        "landedAtRelMs": 0
+      },
+      "pressOffsetMs": 1155,
+      "hpBeforeStep": 92,
+      "hpEnd": 84,
+      "hitsAfterStep": 1,
+      "hitsAfterStepDetail": [
+        {
+          "atRelMs": 1500,
+          "from": 92,
+          "to": 84
+        }
+      ],
+      "success": false
+    },
+    {
+      "attempt": 8,
+      "key": "ArrowRight",
+      "control": {
+        "hpBefore": 72,
+        "hpAfter": 64,
+        "landedAtRelMs": 0
+      },
+      "pressOffsetMs": 1164,
+      "hpBeforeStep": 62,
+      "hpEnd": 54,
+      "hitsAfterStep": 1,
+      "hitsAfterStepDetail": [
+        {
+          "atRelMs": 1509,
+          "from": 62,
+          "to": 54
+        }
+      ],
+      "success": false
+    }
+  ],
+  "successfulAttempts": 0,
+  "attemptsUsed": 8,
+  "errors": []
+}

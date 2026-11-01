@@ -83,6 +83,7 @@ internal sealed partial class SocialClient : IAsyncDisposable
             }),
             session.On<LookChanged>(p => this.Looks.Add(Copy(p.Look))),
             session.On<MoveCorrection>(p => this.Corrections.Add(new MoveCorrection { Sequence = p.Sequence, Reason = p.Reason, X = p.X, Y = p.Y })),
+            session.On<StrikeTelegraph>(p => this.Telegraphs.Add((p.MonsterId, p.DelayMs))),
             session.On<TradeInvite>(p => this.Invites.Add(p.FromPlayerId)),
             session.On<TradeState>(p => this.TradeStates.Add(new TradeCopy(
                 p.OtherPlayerId,
@@ -125,6 +126,9 @@ internal sealed partial class SocialClient : IAsyncDisposable
     public Inbox<MoveCorrection> Corrections { get; } = new();
 
     public Inbox<uint> Invites { get; } = new();
+
+    /// <summary>The monster strike wind-ups pushed to this player (docs/adr/ADR-097): the monster and the wind-up length in milliseconds.</summary>
+    public Inbox<(int MonsterId, int DelayMs)> Telegraphs { get; } = new();
 
     public Inbox<TradeCopy> TradeStates { get; } = new();
 

@@ -31,13 +31,14 @@ async function bannerText(page) {
 }
 
 async function openSkills(page) {
-  const direct = page.locator('[aria-label="Kỹ năng"]').first();
-  if ((await direct.count()) === 0) {
+  // A narrow screen keeps the skills button in the DOM but hidden under the Menu button, so match visible buttons only.
+  const skills = '[aria-label="Kỹ năng"]:visible';
+  if ((await page.locator(skills).count()) === 0) {
     // Narrow layouts keep the skills under the Menu button (docs/design/ui-standard.md section 6).
     await page.getByRole('button', { name: /^(Menu|Thực đơn)$/ }).first().click();
     await page.waitForTimeout(400);
   }
-  await page.locator('[aria-label="Kỹ năng"], button:has-text("Kỹ năng")').first().click();
+  await page.locator(skills).first().click();
   await page.waitForSelector('.skill-row', { timeout: 10000 });
   await page.waitForTimeout(500);
 }

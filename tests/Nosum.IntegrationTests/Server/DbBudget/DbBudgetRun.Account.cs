@@ -74,7 +74,10 @@ public sealed partial class DbBudgetRun
         await _rig.MeasureAsync("Player", PlayerOpCode.JoinMap, "JoinMap", "first join, no saved place", async () => await fresh.JoinAsync(Program.FarmMapId));
         await _rig.Counter.SettleAsync(System.TimeSpan.FromMilliseconds(150), _rig.Timeout);
 
-        // Leaving: the connection drops and the place is saved.
+        // Leaving: the connection drops and the place is saved. The save starts from the copy of the player's state row that the server holds; whether that
+        // copy is still held when the socket closes depends on timing (a run that found it gone read the row first: one extra SELECT). A player who has been
+        // playing holds it, so the scenario loads it first and measures the leave itself.
+        _ = await BudgetRig.Service<Nosum.Abstractions.Accounts.IPlayerStateService>().LoadAsync(fresh.AccountId, _rig.Timeout);
         await _rig.MeasureAsync("Connection", null, "Disconnect", "joined player, socket closed", async () =>
         {
             await fresh.DisposeAsync();
@@ -108,6 +111,9 @@ public sealed partial class DbBudgetRun
 
         // A guest turning into a registered player by linking a Google identity.
         BudgetPlayer guestPlayer = await _rig.SignedInGuestAsync();
+        // The guest's friends and requests are held as a playing guest holds them. Whether they still are when the link arrives depends on timing (a session-end
+        // handler runs off the closing path, and a run that found them gone read the friendships first: one extra SELECT), so they are loaded here first.
+        _ = await BudgetRig.Service<Nosum.Infrastructure.Friends.FriendFacts>().GetAsync(guestPlayer.AccountId, _rig.Timeout);
         string upNick = this.NextNickname();
         using (LinkExternalIdentity link = new() { Provider = ExternalProvider.Google, IdToken = FakeExternalTokenVerifier.Token(ExternalProvider.Google, Guid.NewGuid().ToString("N")), Nickname = upNick })
         {

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Microsoft.Extensions.Localization;
 using Nosum.Contracts.Market;
 using Nosum.Gameplay.Economy;
@@ -44,6 +45,11 @@ public sealed record ListingDisplay(Guid Id, SlotDisplay Item, string PriceText,
 /// <param name="Price">The total price asked, in coins.</param>
 public sealed record MarketListingRequest(int Slot, int ItemId, string ItemName, int Quantity, long Price);
 
+/// <summary>A purchase the buyer has been asked to confirm: a listing of at least <see cref="MarketViewModel.LargePurchase"/> coins.</summary>
+/// <param name="ListingId">The listing.</param>
+/// <param name="Question">The question the confirm box asks: what, how many and the price, already localized.</param>
+public sealed record MarketPurchaseRequest(Guid ListingId, string Question);
+
 /// <summary>
 /// View model of the market panel: browse with a search box and pages, list a stack from the inventory with a price (showing the fee
 /// the server will take), and the player's own listings. Every outcome is the server's; this class only asks and shows.
@@ -52,6 +58,9 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
 {
     /// <summary>From this many units, a listing waits for the seller's confirm: a big sale is easy to make by mistake.</summary>
     public const int LargeListing = 10;
+
+    /// <summary>From this many coins, a purchase waits for the buyer's confirm (docs/adr/ADR-013 amendment A10, the buy side of <see cref="LargeListing"/>).</summary>
+    public const long LargePurchase = 1_000;
 
     private readonly MarketChannel _market;
     private readonly InventoryViewModel _inventory;
@@ -63,6 +72,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     private int _sellSlot = -1;
     private MarketListingRequest? _pendingListing;
     private MarketListingRequest? _lastListed;
+    private MarketPurchaseRequest? _pendingPurchase;
     private int _historyItemId;
     private MarketSort _sort = MarketSort.Newest;
 
@@ -343,9 +353,51 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
         }
     }
 
-    /// <summary>Buys a listing.</summary>
+    /// <summary>
+    /// Buys a listing. A purchase of <see cref="LargePurchase"/> coins or more waits for the buyer's confirm first; a smaller one is sent at once.
+    /// The server prices and checks the purchase either way.
+    /// </summary>
     /// <param name="listingId">The listing.</param>
-    public void Buy(Guid listingId) => _market.Buy(listingId);
+    public void Buy(Guid listingId)
+    {
+        ListingInfo found = _market.Browsed.Listings.FirstOrDefault(l => l.Id == listingId);
+        if (found.Id != listingId || found.Price < LargePurchase)
+        {
+            _market.Buy(listingId);
+            return;
+        }
+
+        string name = _describer.Describe(0, found.ItemId, found.Quantity).Name;
+        _pendingPurchase = new MarketPurchaseRequest(listingId, this.Text("Market_BuyConfirm_Text", name, found.Quantity.ToString(CultureInfo.InvariantCulture), Number(found.Price)));
+        this.Raise();
+    }
+
+    /// <summary>Gets the purchase waiting for the buyer's confirm, or <see langword="null"/> when none does.</summary>
+    public MarketPurchaseRequest? PendingPurchase => _pendingPurchase;
+
+    /// <summary>Buys the listing the buyer confirmed.</summary>
+    public void ConfirmPurchase()
+    {
+        if (_pendingPurchase is not { } request)
+        {
+            return;
+        }
+
+        _pendingPurchase = null;
+        _market.Buy(request.ListingId);
+    }
+
+    /// <summary>Drops the large purchase waiting for confirmation; nothing is bought.</summary>
+    public void CancelPurchase()
+    {
+        if (_pendingPurchase is null)
+        {
+            return;
+        }
+
+        _pendingPurchase = null;
+        this.Raise();
+    }
 
     /// <summary>Withdraws one of the player's own listings.</summary>
     /// <param name="listingId">The listing.</param>

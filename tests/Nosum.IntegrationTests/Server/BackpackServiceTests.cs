@@ -68,7 +68,7 @@ public sealed class BackpackServiceTests : IClassFixture<PostgresFixture>
 
         BackpackView view = await _backpack.UpgradeAsync(_connection);
 
-        view.Should().Be(new BackpackView(BackpackStatus.Ok, 45, 54, 1_500));
+        view.Should().Be(new BackpackView(BackpackStatus.Ok, 45, 54, 1_000));
         (await _transfers.GetBalanceAsync(player)).Should().Be(0);
         _inventory.Forget(player);
         (await _inventory.GetAsync(player)).Capacity.Should().Be(45, "the size is saved, not only held in memory");
@@ -155,7 +155,7 @@ public sealed class BackpackServiceTests : IClassFixture<PostgresFixture>
         BackpackView view = await _backpack.UpgradeAsync(_connection);
 
         view.Should().Be(new BackpackView(BackpackStatus.MaxSize, 54, 0, 0));
-        (await _transfers.GetBalanceAsync(player)).Should().Be(10_000 - 600 - 1_500);
+        (await _transfers.GetBalanceAsync(player)).Should().Be(10_000 - 600 - 1_000);
     }
 
     [Fact]

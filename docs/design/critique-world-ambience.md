@@ -143,3 +143,54 @@ Captures and numbers: [`docs/qa/world-ambience-round2/`](../qa/world-ambience-ro
 - **Coverage now:** fall (`fall-noon-sun`, Fall Day 5), mine floors 1, 6, 15, 25 and 35 (the four biomes), and the exits
   east, south and north of the farm. Still not covered: the other buildings, a full game day, touch play.
 - **Listening** is still not possible here; the levels come from measurement.
+
+## 7. Round 3
+
+Captures and numbers: [`docs/qa/world-ambience-round3/`](../qa/world-ambience-round3/README.md). Rule: [ADR-095](../adr/ADR-095-world-labels-clear-the-hud-and-touch-controls.md).
+Round 3 took the first open item of the round-2 list (section 6), the world labels at the bottom edge, and the north exit label that touched the
+player's name tag. Changes:
+
+- **Labels clear the bottom band and the touch controls** (ADR-095 D1, D3). The bottom-centre HUD region ends 12 px above the edge at 1280 × 720; the
+  strip under it is now part of the HUD. The phone's stick and buttons are HUD rectangles too: on `before/en/390x844/fall-noon-sun-mine15.png` the
+  trap and shrine labels sat under Chat, Run and Use.
+- **Stacked labels keep a gap** (ADR-095 D4). "↑ Backwoods" no longer touches the name tag at the farm's north exit; at the top edge a label goes
+  below the other, not above it.
+- **Winter snow and hazards at 390 × 844.** Snow graded, not changed. Hazard labels: the stacking gap covers the touching case; the final frames
+  show them clear of the touch buttons.
+
+Still open at the end of round 3 (round 4 fixed the likely cause of the stray "S", section 8, not confirmed in a live frame): a stray "S" before some labels on mine floor 35 (cause not known, in before and after); the minimap's unpainted cells, the exit
+beacon's strength and the listening levels (section 5, owner calls).
+
+## 8. Round 4
+
+Captures and numbers: [`docs/qa/world-ambience-round4/`](../qa/world-ambience-round4/README.md). Changes:
+
+- **The stray letter (round 3's open item).** Labels were stacked off the placed labels and then fitted off the HUD, and the HUD fit does not see the
+  placed labels, so a label moved beside a HUD rectangle could land on a label already drawn. `placeLabel` (ADR-095 D6) runs the two in order and
+  stacks once more when the fit lands on a label. Reproduced and tested in node (`label-fit.test.mjs`, three new cases). The frame does not show the
+  same label before and after (separate runs), so the reproduction is the proof, not the picture.
+- **Audio listening proxy (ADR-090 amendment).** Measured the cues at their gains, the hook volumes and the bus, against the music. Footsteps were
+  5.1 dB under the music by active RMS, and a 70 ms click reads quieter than that, so the footstep target moves from −18.0 to −16.5 (3.6 dB under).
+  Interface and tools are unchanged (the interface click is 2 dB under, and the tools are level with the music). Numbers and method:
+  [`audio-proxy.md`](../qa/world-ambience-round4/audio-proxy.md); script `tools/listening_proxy.py`.
+
+Still open, for the owner: the listening pass itself (the proxy is a measurement, not a hearing), the minimap's unpainted cells (a palette call),
+and the exit beacon's strength (a design call). Not changed in round 4: both are decisions about what the game should look like, not faults.
+
+## 9. Round 5
+
+Captures and checks: [`docs/qa/world-ambience-round5/`](../qa/world-ambience-round5/README.md). Rule: [ADR-098](../adr/ADR-098-label-scope-and-the-round-five-check.md).
+
+- **The stray letter, in a live frame.** Round 4 left it unconfirmed. Round 5 captured mine floor 35 on the build with #309 (English and Vietnamese, 1280 × 720,
+  a x4 crop of the view's centre). **No stray letter appeared in the frames taken.** That is absence in a few frames, not proof: the letter depends on which
+  labels overlap at that moment, and no before build was captured, so the fix is neither confirmed nor refuted. Still open.
+- **A fault found while reading the placement code.** `renderer.js` used `LABEL_EDGE` (the quest arrow, ADR-096 D2) without importing it, after #309 narrowed
+  the import. The first off-screen quest waypoint on its map would throw in the frame. Fixed: the import is restored, the dead copy of the fit rules is
+  removed, and a static test guards the names (`tests/browser/label-fit/renderer-scope.test.mjs`). Found by reading, not by a live frame.
+- **Vietnamese, same tile.** Two monsters of the same name stack a label each ("HUYẾT THỆ" twice, one above the other). Two monsters, two labels; not a fault in
+  placement, and not changed.
+- **Not done this round:** the next critique item is one of the owner calls in section 5 and section 8 (minimap void colour, exit beacon strength, the
+  listening pass). Changing any of them is a design decision, so none was made here.
+
+Still open for the owner: the stray letter's live confirmation (needs a before build at the same clock and tile), the listening pass, the minimap's
+unpainted cells and the exit beacon's strength.

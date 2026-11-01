@@ -1,0 +1,13 @@
+@using Nosum.Wasm.Controls
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.ViewModels.Market
+@inherits ObservingComponent<MarketViewModel>
+
+@* The confirm box of a large purchase on the market (docs/adr/ADR-013 amendment A10): a centre confirm in the HUD overlay, with what, how many and the price.
+   Only Yes buys; the server prices and checks the purchase. *@
+@if (Vm.PendingPurchase is { } request)
+{
+    <ConfirmDialog Title="@Vm.Text("Market_BuyConfirm_Title")" Message="@request.Question"
+                   ConfirmText="@Vm.Text("Shop_Confirm_Yes")" CancelText="@Vm.Text("Shop_Confirm_No")"
+                   OnConfirm="@(() => Vm.ConfirmPurchase())" OnCancel="@(() => Vm.CancelPurchase())" />
+}

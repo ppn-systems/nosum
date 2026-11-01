@@ -147,6 +147,12 @@ internal static partial class GameLoop
     /// <summary>Raised with a resource key when a skill press is refused on the client, so the player is told why (docs/adr/ADR-056 D5).</summary>
     public static event Action<string>? SkillPressRefused;
 
+    /// <summary>Raised when the action key harvests a ripe crop with another item in hand (docs/adr/ADR-097 backlog item 3); the message line says so.</summary>
+    public static event Action? ActionKeyHarvested;
+
+    /// <summary>Raised when the crop under the mouse changes: the zero-based growth stage and the stage count, or (-1, 0) for none (backlog item 4).</summary>
+    public static event Action<int, int>? CropHovered;
+
     /// <summary>Connects MMORPG combat and monsters to the game (docs/adr/ADR-045). Call before <see cref="StartAsync"/>.</summary>
     /// <param name="combat">The combat channel.</param>
     /// <param name="text">Localized UI strings for world combat labels.</param>
@@ -297,6 +303,8 @@ internal static partial class GameLoop
         PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests, s_buildings, s_audio, s_combat, s_calendar, s_nodes) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         actions?.SkillPressRefused += key => SkillPressRefused?.Invoke(key);
+        actions?.ActionKeyHarvested += () => ActionKeyHarvested?.Invoke();
+        actions?.CropHovered += (stage, count) => CropHovered?.Invoke(stage, count);
         actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
         actions?.CounterLeft += counterId => CounterLeft?.Invoke(counterId);
         actions?.ElevatorRequested += () => ElevatorRequested?.Invoke();
@@ -483,6 +491,14 @@ internal static partial class GameLoop
     /// use key is held down (hold-to-repeat, backlog item 5). Other bits are zero.</param>
     [JSExport]
     internal static void Frame(double timeMs, int keys, int width, int height, int pointerX, int pointerY, int pointerHeld)
+    {
+        long allocationStart = FrameAllocations.Start();
+        FrameWork(timeMs, keys, width, height, pointerX, pointerY, pointerHeld);
+        FrameAllocations.End(allocationStart);
+    }
+
+    // The frame's work, one call a frame: it allocates nothing when idle (docs/adr/ADR-099 D1).
+    private static void FrameWork(double timeMs, int keys, int width, int height, int pointerX, int pointerY, int pointerHeld)
     {
         if (s_scene is null || width <= 0 || height <= 0)
         {

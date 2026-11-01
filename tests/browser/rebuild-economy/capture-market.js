@@ -34,8 +34,8 @@ const LISTINGS = [
 
 // Labels per language (Language.resx). Sort labels exist only once the sort control is built; the script skips the step otherwise.
 const T = LANG_CODE === 'en'
-  ? { sell: 'Sell', browse: 'Browse', list: 'List for sale', buy: 'Buy', quantity: 'Quantity', sortLow: 'Cheapest each', sortHigh: 'Priciest each', npcSell: 'Sell' }
-  : { sell: 'Bán', browse: 'Mua', list: 'Đăng bán', buy: 'Mua', quantity: 'Số lượng', sortLow: 'Rẻ nhất/món', sortHigh: 'Đắt nhất/món', npcSell: 'Bán' };
+  ? { sell: 'Sell', browse: 'Browse', list: 'List for sale', buy: 'Buy', quantity: 'Quantity', sortLow: 'Cheapest each', sortHigh: 'Priciest each', npcSell: 'Sell', confirm: 'Confirm' }
+  : { sell: 'Bán', browse: 'Mua', list: 'Đăng bán', buy: 'Mua', quantity: 'Số lượng', sortLow: 'Rẻ nhất/món', sortHigh: 'Đắt nhất/món', npcSell: 'Bán', confirm: 'Xác nhận' };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = (...a) => console.log('[market-capture]', ...a);
@@ -140,6 +140,31 @@ async function run() {
       await shot(buyer, dir, 'buyer-browse-sorted', report);
     } else {
       await skip(report, 'buyer-browse-sorted', 'no sort control in this build');
+    }
+
+    // Large purchase (ADR-013 A10, round 2): opt-in with LARGE_BUY=1, after the browse shots so the rows above match the before set.
+    // The seller lists nine for 1,500 (nine is below the seller's own confirm, ten), the buyer buys it and sees the confirm box.
+    if (process.env.LARGE_BUY === '1') {
+      await seller.evaluate((item) => window.nosumQa.grant(item, 9, 0), PARSNIP);
+      await sleep(400);
+      // The granted parsnips land in a free slot, not in the slot the first stacks used: pick the parsnip by its name.
+      await seller.locator('.item-grid button', { has: seller.locator('.quantity', { hasText: /^9$/ }) }).first().click();
+      await sleep(300);
+      await seller.locator('.sell-form input').nth(0).fill('9');
+      await seller.locator('.sell-form input').nth(1).fill('1500');
+      await sleep(200);
+      await seller.getByRole('button', { name: T.list, exact: true }).click();
+      await sleep(1200);
+      // Choosing a sort asks the server for the page again, so the new listing is in it; priciest each puts it first.
+      await buyer.getByRole('button', { name: T.sortHigh, exact: true }).first().click();
+      await sleep(800);
+      const big = buyer.locator('.listing-row', { hasText: /1[.,]500/ }).getByRole('button', { name: T.buy, exact: true });
+      await big.first().click();
+      await sleep(600);
+      await shot(buyer, dir, 'buyer-buy-confirm', report);
+      await buyer.getByRole('button', { name: T.confirm, exact: true }).first().click();
+      await sleep(1200);
+      await shot(buyer, dir, 'buyer-bought-large', report);
     }
 
     // Buyer's own sell form, a price typed: the fee line and, once built, the bin price hint.

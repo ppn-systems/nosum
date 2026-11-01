@@ -11,7 +11,7 @@ public sealed class BackpackRulesTests
 {
     [Theory]
     [InlineData(36, 45, 600)]
-    [InlineData(45, 54, 1_500)]
+    [InlineData(45, 54, 1_000)]
     public void TryNext_EachSizeGrowsOneRowForItsPrice(int current, int capacity, int coins)
     {
         BackpackRules.TryNext(current, out BackpackQuote quote).Should().BeTrue();
