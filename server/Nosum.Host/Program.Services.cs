@@ -121,7 +121,7 @@ internal static partial class Program
 
     // Services are registered before the builder so [Inject] fields of the handlers resolve them.
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000", Justification = "The player, trade and co-op services live as long as the process; the snapshot loop ends by itself when the last player leaves.")]
-    private static void RegisterServices(TimeProvider systemClock, bool development)
+    private static void RegisterServices(TimeProvider systemClock, bool development, ServerSeams? seams)
     {
         // Development: every service reads the time through a clock the dev tools can move forward (docs/adr/ADR-021 D7).
         DevTimeProvider? devClock = development ? new DevTimeProvider(systemClock) : null;
@@ -287,7 +287,7 @@ internal static partial class Program
         ChunkStreamer streamer = new(presence, publisher, looks, [placeables, farm, nodes, groundItems]);
         // Running spends energy in the background (docs/adr/ADR-085 D2).
         RunEnergyService runEnergy = new(inventory, progress);
-        PlayerService players = new(presence, presence, streamer, maps, states, new InstanceWorld(placeables, nodes, buildingDirectory), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems, buildingDirectory, communityUnlocks, inventory, runEnergy);
+        PlayerService players = new(seams?.WrapPresence?.Invoke(presence) ?? presence, presence, streamer, maps, seams?.WrapStates?.Invoke(states) ?? states, new InstanceWorld(placeables, nodes, buildingDirectory), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems, buildingDirectory, communityUnlocks, inventory, runEnergy);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
         // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1, ADR-045 D2, ADR-049 D3).
