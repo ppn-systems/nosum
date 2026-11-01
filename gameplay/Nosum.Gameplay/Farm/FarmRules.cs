@@ -15,8 +15,11 @@ namespace Nosum.Gameplay.Farm;
 /// </summary>
 public static class FarmRules
 {
-    /// <summary>Chance, in percent, that tilled soil without a crop reverts to untilled at the end of a dry game day.</summary>
-    public const int RevertChancePercent = 30;
+    /// <summary>Game days in a row bare tilled soil may stay dry before it reverts to untilled (docs/adr/ADR-021 D7, amended 2026-10-31).</summary>
+    public const int DryDaysToRevert = 3;
+
+    /// <summary>Game days in a row a planted crop may go unwatered before it withers (docs/adr/ADR-021 D7, amended 2026-10-31).</summary>
+    public const int DryDaysToWither = 2;
 
     /// <summary>Chance, in percent, that a harvest of an outdoor crop on a rainy day, or the day after rain, yields one more unit (docs/adr/ADR-027 D8).</summary>
     public const int BonusHarvestChancePercent = 20;
@@ -74,7 +77,9 @@ public static class FarmRules
     /// <param name="calendar">The server calendar.</param>
     /// <param name="next">The planted tile when allowed.</param>
     /// <returns>The verdict.</returns>
-    public static FarmVerdict Plant(FarmTile? current, int cropId, long nowMs, GameCalendar calendar, out FarmTile next)
+    /// <param name="outdoors">Whether the tile is outdoors, where rain waters it.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands.</param>
+    public static FarmVerdict Plant(FarmTile? current, int cropId, long nowMs, GameCalendar calendar, out FarmTile next, bool outdoors = true, long? sprinklerSinceMs = null)
     {
         ArgumentNullException.ThrowIfNull(calendar);
 
@@ -84,7 +89,7 @@ public static class FarmRules
             return FarmVerdict.NotTilled;
         }
 
-        if (tile.HasCrop && !IsWithered(tile, nowMs, calendar))
+        if (tile.HasCrop && !IsWithered(tile, nowMs, calendar, outdoors, sprinklerSinceMs))
         {
             return FarmVerdict.HasCrop;
         }
@@ -126,6 +131,12 @@ public static class FarmRules
             return FarmVerdict.NotTilled;
         }
 
+        // A dead crop is not revived by water; refusing keeps its wither a fixed fact of the past (docs/adr/ADR-021 D7, amended).
+        if (tile.HasCrop && IsWithered(tile, nowMs, calendar, outdoors, sprinklerSinceMs))
+        {
+            return FarmVerdict.Withered;
+        }
+
         int today = calendar.DayNumberAt(nowMs);
         next = tile with { GrowthDays = tile.HasCrop ? GrowthDaysAt(tile, nowMs, calendar, outdoors, sprinklerSinceMs) : 0, WateredDay = today };
         return FarmVerdict.Ok;
@@ -147,13 +158,15 @@ public static class FarmRules
     /// <param name="current">The tile now, or <see langword="null"/> when untilled.</param>
     /// <param name="nowMs">Server time, Unix milliseconds.</param>
     /// <param name="calendar">The server calendar.</param>
+    /// <param name="outdoors">Whether the tile is outdoors, where rain waters it.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands.</param>
     /// <returns>The verdict.</returns>
-    public static FarmVerdict Clear(FarmTile? current, long nowMs, GameCalendar calendar)
+    public static FarmVerdict Clear(FarmTile? current, long nowMs, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
     {
         ArgumentNullException.ThrowIfNull(calendar);
         return current is not { } tile
             ? FarmVerdict.NotTilled
-            : tile.HasCrop && !IsWithered(tile, nowMs, calendar)
+            : tile.HasCrop && !IsWithered(tile, nowMs, calendar, outdoors, sprinklerSinceMs)
                 ? FarmVerdict.HasCrop
                 : FarmVerdict.Ok;
     }
@@ -166,8 +179,10 @@ public static class FarmRules
     /// <param name="nowMs">Server time, Unix milliseconds.</param>
     /// <param name="calendar">The server calendar.</param>
     /// <param name="next">The tilled bare soil left behind when allowed.</param>
+    /// <param name="outdoors">Whether the tile is outdoors, where rain waters it.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands.</param>
     /// <returns>The verdict: <see cref="FarmVerdict.NothingToDo"/> when no withered crop stands there.</returns>
-    public static FarmVerdict CutWithered(FarmTile? current, long nowMs, GameCalendar calendar, out FarmTile next)
+    public static FarmVerdict CutWithered(FarmTile? current, long nowMs, GameCalendar calendar, out FarmTile next, bool outdoors = true, long? sprinklerSinceMs = null)
     {
         ArgumentNullException.ThrowIfNull(calendar);
 
@@ -177,7 +192,7 @@ public static class FarmRules
             return FarmVerdict.NotTilled;
         }
 
-        if (!IsWithered(tile, nowMs, calendar))
+        if (!IsWithered(tile, nowMs, calendar, outdoors, sprinklerSinceMs))
         {
             return FarmVerdict.NothingToDo;
         }
@@ -215,7 +230,7 @@ public static class FarmRules
             return FarmVerdict.NothingToDo;
         }
 
-        if (IsWithered(tile, nowMs, calendar))
+        if (IsWithered(tile, nowMs, calendar, outdoors, sprinklerSinceMs))
         {
             return FarmVerdict.Withered;
         }
@@ -319,23 +334,19 @@ public static class FarmRules
         => tile.HasCrop && CropCatalog.TryGet(tile.CropId, out CropDefinition? crop) && GrowthDaysAt(tile, nowMs, calendar, outdoors, sprinklerSinceMs) >= crop.TotalGrowthDays;
 
     /// <summary>
-    /// Returns whether bare tilled soil has reverted to untilled: each game day that ended while the soil held no crop and was not watered
-    /// has a <see cref="RevertChancePercent"/> chance of undoing the tilling (docs/adr/ADR-021 D7). The day the soil was tilled or its crop
-    /// harvested, and each day it was watered, do not count. The roll is a pure hash of the instance, the tile and the day, so it needs no stored
-    /// random state, gives the same answer wherever and whenever it is asked, and never reverses. Soil with a crop never reverts.
+    /// Returns whether bare tilled soil has reverted to untilled: <see cref="DryDaysToRevert"/> game days in a row ended without water after the
+    /// tilling or the last watering (docs/adr/ADR-021 D7, amended 2026-10-31). A watered day is not dry: hand watering, rain outdoors and a sprinkler
+    /// beside the tile all restart the run. The day the soil was tilled or its crop harvested is a day of grace. Soil with a crop never reverts.
+    /// The answer depends only on the stored days, the calendar and the weather, so reads and the day sweep agree, and it never reverses.
     /// </summary>
     /// <param name="tile">The tile.</param>
-    /// <param name="instanceKey">The key of the map instance (<c>MapInstance.Key</c>) the tile is in.</param>
-    /// <param name="tileX">Tile x.</param>
-    /// <param name="tileY">Tile y.</param>
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
     /// <param name="calendar">The server calendar.</param>
-    /// <param name="outdoors">Whether the tile is outdoors: a rainy day then counts as watered and does not roll.</param>
-    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands. It waters the game days after the day it was placed (<c>SprinklerRules</c>).</param>
+    /// <param name="outdoors">Whether the tile is outdoors: a rainy day then counts as watered.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands.</param>
     /// <returns><see langword="true"/> when the tile is no longer tilled.</returns>
-    public static bool IsReverted(in FarmTile tile, string instanceKey, int tileX, int tileY, long nowMs, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
+    public static bool IsReverted(in FarmTile tile, long nowMs, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
     {
-        ArgumentNullException.ThrowIfNull(instanceKey);
         ArgumentNullException.ThrowIfNull(calendar);
 
         if (tile.HasCrop)
@@ -343,31 +354,24 @@ public static class FarmRules
             return false;
         }
 
-        int today = calendar.DayNumberAt(nowMs);
-        for (int day = Math.Max(tile.TendedDay, tile.WateredDay) + 1; day < today; day++)
+        return HasDryRun(tile, Math.Max(tile.TendedDay, tile.WateredDay), calendar.DayNumberAt(nowMs), DryDaysToRevert, calendar, outdoors, sprinklerSinceMs);
+    }
+
+    // True when `length` game days in a row ended after `afterDay` and before `today` were all dry. A dry day is one nobody watered by hand and that
+    // neither rained (outdoors) nor was sprinkled; the run restarts at every watered day.
+    private static bool HasDryRun(in FarmTile tile, int afterDay, int today, int length, GameCalendar calendar, bool outdoors, long? sprinklerSinceMs)
+    {
+        int run = 0;
+        for (int day = Math.Max(afterDay, 0) + 1; day < today; day++)
         {
-            if (!IsWateredOn(tile, day, calendar, outdoors, sprinklerSinceMs) && RevertRoll(instanceKey, tileX, tileY, day) < RevertChancePercent)
+            run = IsWateredOn(tile, day, calendar, outdoors, sprinklerSinceMs) ? 0 : run + 1;
+            if (run >= length)
             {
                 return true;
             }
         }
 
         return false;
-    }
-
-    /// <summary>Returns the deterministic roll, 0 to 99, that decides whether a dry tile reverts at the end of a day.</summary>
-    /// <param name="instanceKey">The key of the map instance.</param>
-    /// <param name="tileX">Tile x.</param>
-    /// <param name="tileY">Tile y.</param>
-    /// <param name="dayNumber">The day that ended.</param>
-    /// <returns>A number from 0 to 99, evenly spread.</returns>
-    public static int RevertRoll(string instanceKey, int tileX, int tileY, int dayNumber)
-    {
-        unchecked
-        {
-            ulong hash = Mix(TileHash(instanceKey, tileX, tileY) ^ ((ulong)(uint)dayNumber * 0x9E3779B97F4A7C15UL));
-            return (int)(hash % 100UL);
-        }
     }
 
     /// <summary>
@@ -395,7 +399,7 @@ public static class FarmRules
         return rainy && BonusRoll(instanceKey, tileX, tileY, today) < BonusHarvestChancePercent;
     }
 
-    // 0 to 99, the roll behind IsBonusHarvest; salted so it never matches RevertRoll for the same tile and day.
+    // 0 to 99, the roll behind IsBonusHarvest; its own salt keeps it apart from any other roll on the same tile and day.
     private static int BonusRoll(string instanceKey, int tileX, int tileY, int dayNumber)
     {
         unchecked
@@ -423,19 +427,131 @@ public static class FarmRules
     }
 
     /// <summary>
-    /// Returns whether a tile's crop has withered: it was planted in a season it grows in, and the first later season it does not grow in
-    /// has begun (docs/adr/ADR-018). Computed from the planting time alone, so no tick is needed and it never reverses; a mature crop
-    /// that was not harvested in time withers too.
+    /// Returns whether a tile's crop has withered (docs/adr/ADR-018, docs/adr/ADR-021 D7 amended 2026-10-31). Two causes, both fixed facts of the past
+    /// so that no tick is needed and it never reverses: the first later season the crop does not grow in has begun while the crop was not ripe, or
+    /// <see cref="DryDaysToWither"/> game days in a row ended after the planting or the last hand watering without rain or a sprinkler, before the crop
+    /// ripened. A ripe crop (<see cref="IsMature"/>) waiting for its harvest is kept through both: later dry days do not dry it out, and the season change
+    /// does not wither it (docs/adr/ADR-018 D4, amended: a ripe crop waits for the player). Ripeness is judged at the instant of the season change, so a
+    /// crop that was not ripe then stays withered even if rain ripens it later. Watering a withered crop is refused, so the dry run cannot be erased
+    /// afterwards.
     /// </summary>
     /// <param name="tile">The tile.</param>
     /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
     /// <param name="calendar">The server calendar.</param>
+    /// <param name="outdoors">Whether the tile is outdoors, where rain waters it.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands.</param>
     /// <returns><see langword="true"/> when a withered crop stands on the tile.</returns>
-    public static bool IsWithered(in FarmTile tile, long nowMs, GameCalendar calendar)
+    public static bool IsWithered(in FarmTile tile, long nowMs, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
     {
         ArgumentNullException.ThrowIfNull(calendar);
 
-        return tile.HasCrop && CropCatalog.TryGet(tile.CropId, out CropDefinition? crop) && nowMs >= calendar.WitherAtMs(tile.PlantedAtMs, crop.Seasons);
+        if (!tile.HasCrop || !CropCatalog.TryGet(tile.CropId, out CropDefinition? crop))
+        {
+            return false;
+        }
+
+        // The season change withers a crop that is not ripe when it comes (ADR-018 D4). Ripeness is read at that instant: a ripe crop never withers
+        // from the season, and a crop unripe then stays withered for good, whatever the rain does afterwards.
+        long witherAtMs = calendar.WitherAtMs(tile.PlantedAtMs, crop.Seasons);
+        if (nowMs >= witherAtMs && !IsMature(tile, witherAtMs, calendar, outdoors, sprinklerSinceMs))
+        {
+            return true;
+        }
+
+        WalkCrop(tile, crop, calendar.DayNumberAt(nowMs), calendar, outdoors, sprinklerSinceMs, out bool withered, out _, out _);
+        return withered;
+    }
+
+    /// <summary>
+    /// Returns whether one more dry game day would wither a crop or revert bare soil, so the tile is thirsty: the soil is not wet today, and the dry
+    /// run that ends yesterday is one day short of the limit. A ripe crop is never at risk. The caller excludes a crop already withered by the season
+    /// (<see cref="IsWithered"/> covers the dry run itself, and the server's withered flag covers the season).
+    /// </summary>
+    /// <param name="tile">The tile.</param>
+    /// <param name="nowMs">Time to evaluate at, Unix milliseconds.</param>
+    /// <param name="calendar">The server calendar.</param>
+    /// <param name="outdoors">Whether the tile is outdoors, where rain waters it.</param>
+    /// <param name="sprinklerSinceMs">When a sprinkler beside the tile was placed, Unix milliseconds; null when none stands.</param>
+    /// <returns><see langword="true"/> when the tile needs water today or it will wither or revert at the day's end.</returns>
+    public static bool IsAtRisk(in FarmTile tile, long nowMs, GameCalendar calendar, bool outdoors = true, long? sprinklerSinceMs = null)
+    {
+        ArgumentNullException.ThrowIfNull(calendar);
+
+        if (IsWet(tile, nowMs, calendar, outdoors, sprinklerSinceMs))
+        {
+            return false;
+        }
+
+        int today = calendar.DayNumberAt(nowMs);
+        if (tile.HasCrop)
+        {
+            if (!CropCatalog.TryGet(tile.CropId, out CropDefinition? crop))
+            {
+                return false;
+            }
+
+            WalkCrop(tile, crop, today, calendar, outdoors, sprinklerSinceMs, out bool withered, out int dryDays, out bool ripe);
+            return !withered && !ripe && dryDays == DryDaysToWither - 1;
+        }
+
+        if (IsReverted(tile, nowMs, calendar, outdoors, sprinklerSinceMs))
+        {
+            return false;
+        }
+
+        int afterDay = Math.Max(tile.TendedDay, tile.WateredDay);
+        return TrailingDryDays(tile, afterDay, today, DryDaysToRevert, calendar, outdoors, sprinklerSinceMs) == DryDaysToRevert - 1;
+    }
+
+    // Walks the game days a crop has been growing since its last hand watering (or its planting), counting growth the way GrowthDaysAt does, and reports
+    // whether a dry run has withered it before it ripened, the dry days in a row that end yesterday, and whether it has ripened. Stops at the first answer
+    // that cannot change: a wither, or the ripening (a later dry day cannot undo either).
+    private static void WalkCrop(in FarmTile tile, CropDefinition crop, int today, GameCalendar calendar, bool outdoors, long? sprinklerSinceMs, out bool withered, out int dryDays, out bool ripe)
+    {
+        int planted = calendar.DayNumberAt(tile.PlantedAtMs);
+        int after = Math.Max(tile.WateredDay, planted);
+        int growth = tile.WateredDay > 0 ? tile.GrowthDays : 0;
+        int run = 0;
+        withered = false;
+        ripe = false;
+        for (int day = tile.WateredDay > 0 ? tile.WateredDay : planted; day < today; day++)
+        {
+            if (day == tile.WateredDay || IsWateredOn(tile, day, calendar, outdoors, sprinklerSinceMs))
+            {
+                growth = Math.Min(crop.TotalGrowthDays, growth + 1);
+                run = 0;
+            }
+            else if (day > after)
+            {
+                run++;
+            }
+
+            ripe = growth >= crop.TotalGrowthDays;
+            if (ripe || run >= DryDaysToWither)
+            {
+                withered = !ripe;
+                break;
+            }
+        }
+
+        dryDays = run;
+    }
+
+    // The dry game days in a row that end yesterday, counted back to the day after afterDay and stopping at limit.
+    private static int TrailingDryDays(in FarmTile tile, int afterDay, int today, int limit, GameCalendar calendar, bool outdoors, long? sprinklerSinceMs)
+    {
+        int run = 0;
+        for (int day = today - 1; day > Math.Max(afterDay, 0) && run < limit; day--)
+        {
+            if (IsWateredOn(tile, day, calendar, outdoors, sprinklerSinceMs))
+            {
+                break;
+            }
+
+            run++;
+        }
+
+        return run;
     }
 
     /// <summary>Returns whether the soil is wet at a moment: it was watered during the current game day, or it rains on it.</summary>

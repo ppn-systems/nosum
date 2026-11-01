@@ -40,10 +40,10 @@
                 </GameRow>
             }
             @* One craft, a fixed batch, and the most the items and the bag allow: the same three counts for every recipe. *@
-            <GameRow>
+            <GameRow Class="craft-actions">
                 <GameButton Text="@Vm.CraftLabel" Disabled="@(!Vm.CanCraftOne)" OnClick="@Vm.CraftOne" />
-                <GameButton Variant="plain" Text="@Vm.CraftManyLabel" Disabled="@(!Vm.CanCraftBatch)" OnClick="@Vm.CraftBatch" />
-                <GameButton Variant="plain" Text="@Vm.CraftMaxLabel" Disabled="@(!Vm.CanCraftMax)" OnClick="@Vm.CraftMax" />
+                <GameButton Variant="secondary" Text="@Vm.CraftManyLabel" Disabled="@(!Vm.CanCraftBatch)" OnClick="@Vm.CraftBatch" />
+                <GameButton Variant="secondary" Text="@Vm.CraftMaxLabel" Disabled="@(!Vm.CanCraftMax)" OnClick="@Vm.CraftMax" />
             </GameRow>
         </GameSection>
     </GameStack>

@@ -36,4 +36,7 @@ internal static partial class BrowserSettings
 
     [JSImport("prefersReducedMotion", ModuleName)]
     public static partial bool PrefersReducedMotion();
+
+    [JSImport("isNarrowScreen", ModuleName)]
+    public static partial bool IsNarrowScreen();
 }

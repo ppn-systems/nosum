@@ -1,95 +1,17 @@
-/* The fishing banner and the catch card: layout only, in UI pixels. Colours and frames come from the shared controls and the theme. */
-.fishing-banner {
-    width: calc(var(--u) * 120);
-    max-width: 100%;
-}
-
-.fishing-banner p {
-    margin: 0;
-}
-
-.fishing-message,
-.fishing-note {
-    text-align: center;
-}
-
-.fishing-press {
-    margin-top: calc(var(--u) * 2);
-    text-align: center;
-}
-
-/* The catch card: pops in, holds for a moment, then flies down into the hotbar and fades. It stays in the page with opacity 0 until the next cast;
-   reduced motion (data-motion="reduced", set by the settings) turns the animation off and the card stays put. */
-.fishing-card {
-    --rarity: #b8c0cc;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: calc(var(--u) * 2);
-    width: calc(var(--u) * 96);
-    max-width: 100%;
-    margin-bottom: calc(var(--u) * 3);
-    padding: calc(var(--u) * 3);
-    border: calc(var(--u) * 1) solid var(--rarity);
-    background: #2a2233;
-    color: #f4efe4;
-    image-rendering: pixelated;
-    animation: fishing-card-pop 280ms ease-out both, fishing-card-fly 800ms ease-in 2600ms forwards;
+/* The fishing status line: one line of text in a toast plaque (GamePanel hud toast). */
+.fishing-status {
+    max-width: calc(var(--u) * 180);
+    /* Takes no clicks, so a click on the water under it still casts or reels in (docs/adr/ADR-078 D9). */
     pointer-events: none;
-}
-
-.fishing-card.rarity-uncommon {
-    --rarity: #6ccf5a;
-}
-
-.fishing-card.rarity-rare {
-    --rarity: #5aa9ff;
-}
-
-.fishing-card.rarity-legendary {
-    --rarity: #ffc64a;
-}
-
-.fishing-card-title,
-.fishing-card-rarity {
-    margin: 0;
     text-align: center;
 }
 
-.fishing-card-rarity {
-    color: var(--rarity);
+.fishing-status strong {
+    font-weight: 400;
+    color: var(--nosum-heading);
 }
 
-.fishing-card-body {
-    display: flex;
-    align-items: center;
-    gap: calc(var(--u) * 3);
-}
-
-.fishing-card-text p {
-    margin: 0;
-}
-
-@keyframes fishing-card-pop {
-    from {
-        opacity: 0;
-        transform: scale(0.6);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-@keyframes fishing-card-fly {
-    from {
-        opacity: 1;
-        transform: translate(0, 0) scale(1);
-    }
-
-    to {
-        opacity: 0;
-        transform: translate(calc(var(--u) * 40), calc(var(--u) * 60)) scale(0.4);
-    }
+.fishing-status span {
+    margin-left: calc(var(--u) * 2);
+    color: var(--nosum-ink-soft);
 }

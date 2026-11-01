@@ -80,7 +80,9 @@ public sealed class RequestWireTests : IClassFixture<PostgresFixture>, IAsyncLif
         (await farmer.GrantAsync(request.ItemId, request.Quantity + 2, 0, ct)).Should().BeTrue();
         (await farmer.DeliverRequestAsync(board.Day, request.Slot, ct)).Should().Be((RequestStatus.Ok, paid, early));
         (await farmer.CountAsync(request.ItemId, ct)).Should().Be(2);
-        (await farmer.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins + paid);
+        // The first request filled also completes the tutorial step fill_request, which pays its reward (docs/adr/ADR-036 D2).
+        long stepReward = Nosum.Gameplay.Quests.QuestCatalog.All.Single(q => q.Id == Nosum.Gameplay.Quests.QuestCatalog.FillRequest).RewardCoins;
+        (await farmer.CoinsAsync(ct)).Should().Be(CoinRules.StartingCoins + paid + stepReward);
 
         // The second time on the same day is refused and the board says so.
         (await farmer.DeliverRequestAsync(board.Day, request.Slot, ct)).Should().Be((RequestStatus.AlreadyFilled, 0L, false));

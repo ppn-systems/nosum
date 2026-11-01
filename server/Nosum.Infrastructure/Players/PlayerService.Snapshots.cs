@@ -18,7 +18,11 @@ namespace Nosum.Infrastructure.Players;
 
 public sealed partial class PlayerService
 {
+    /// <summary>The send deadline of a viewer when none is given (docs/adr/ADR-087 D2).</summary>
+    public static readonly TimeSpan DefaultViewerSendDeadline = TimeSpan.FromMilliseconds(250);
+
     private readonly TimeSpan _snapshotInterval;
+    private readonly TimeSpan _viewerSendDeadline;
     private readonly CancellationTokenSource _stop = new();
     private readonly List<string> _mapIds = [];
     private readonly List<PlayerPresence> _players = [];
@@ -293,28 +297,46 @@ public sealed partial class PlayerService
             }
         }
 
+        // One deadline for everything this viewer is owed this tick (docs/adr/ADR-087 D2): a viewer that does not take it in time
+        // is disconnected, so the tick waits for one stalled client at most once and never again for the same connection.
+        using CancellationTokenSource deadline = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
+        deadline.CancelAfter(_viewerSendDeadline);
+        CancellationToken sendToken = deadline.Token;
         try
         {
             for (int i = 0; i < _despawns.Count; i++)
             {
-                await _streamer.SendDespawnAsync(viewerPlayer, _despawns[i], _stop.Token).ConfigureAwait(false);
+                await _streamer.SendDespawnAsync(viewerPlayer, _despawns[i], sendToken).ConfigureAwait(false);
             }
 
             for (int i = 0; i < _spawns.Count; i++)
             {
                 try
                 {
-                    await _streamer.SendSpawnAsync(viewerPlayer, _spawns[i], _stop.Token).ConfigureAwait(false);
+                    await _streamer.SendSpawnAsync(viewerPlayer, _spawns[i], sendToken).ConfigureAwait(false);
                 }
-                catch (Exception) when (!_stop.IsCancellationRequested)
+                catch (Exception) when (!sendToken.IsCancellationRequested)
                 {
                     // The look could not be read: forget the player so the next tick shows them again.
                     _ = viewer.Shown.Remove(_spawns[i].PlayerId);
                 }
             }
 
-            await _presence.SendAsync(connection, snapshot, _stop.Token).ConfigureAwait(false);
+            await _presence.SendAsync(connection, snapshot, sendToken).ConfigureAwait(false);
             _tickBytes += snapshot.Length;
+        }
+        catch (OperationCanceledException) when (deadline.IsCancellationRequested && !_stop.IsCancellationRequested)
+        {
+            // The viewer missed its deadline: drop the connection. Its close event then removes the player from presence.
+            viewer.Closed = true;
+            try
+            {
+                connection.Disconnect("snapshot send deadline exceeded");
+            }
+            catch (Exception)
+            {
+                // Already closing: the close event cleans it up.
+            }
         }
         catch (Exception) when (!_stop.IsCancellationRequested)
         {

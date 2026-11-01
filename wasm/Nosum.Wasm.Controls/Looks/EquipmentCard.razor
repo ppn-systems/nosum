@@ -29,12 +29,15 @@
         yield return worn[2];
         yield return worn[0];
         yield return worn[1];
+        yield return worn[3];
     }
 
-    private static string GhostOf(int slot) => slot switch { 3 => "glyph-hat", 1 => "glyph-shirt", _ => "glyph-pants" };
+    private static string GhostOf(int slot) => slot switch { 3 => "glyph-hat", 1 => "glyph-shirt", 4 => "glyph-feet", _ => "glyph-pants" };
 
     private static int WearSlotOf(int itemId) => itemId switch
     {
+        // Boots (docs/adr/ADR-084) come first: their ids sit inside the clothing range the shirts use.
+        >= 408 and <= 411 => 4,
         >= 400 and < 420 => 1,
         >= 420 and < 440 => 2,
         >= 440 and < 460 or 518 => 3,

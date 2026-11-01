@@ -5,14 +5,20 @@ using System;
 using System.Globalization;
 using System.Linq;
 using FluentAssertions;
+using Nosum.Contracts.Mine.S2C;
+using Nosum.Contracts.Quest;
+using Nosum.Contracts.Quest.S2C;
 using Nosum.Contracts.Season.S2C;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Community;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Npcs;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Shops;
 using Nosum.Gameplay.Weather;
 using Nosum.Wasm.Socket.Calendar;
+using Nosum.Wasm.Socket.Mine;
+using Nosum.Wasm.Socket.Quest;
 using Nosum.Wasm.ViewModels;
 using Nosum.Wasm.ViewModels.Npc;
 using Nosum.Wasm.ViewModels.Resources;
@@ -30,7 +36,22 @@ namespace Nosum.UnitTests.Wasm;
 public sealed class NpcDialogViewModelTests
 {
     // Reduced motion by default, so a line is whole at once; the typewriter tests turn it off.
-    private static NpcDialogViewModel Create(bool reduceMotion = true) => new(WasmTestSupport.Localizer<Language>(), new CalendarChannel(new FakeGameSocket()), Settings(reduceMotion));
+    private static NpcDialogViewModel Create(bool reduceMotion = true) => CreateWith(new CalendarChannel(new FakeGameSocket()), reduceMotion);
+
+    private static NpcDialogViewModel CreateWith(CalendarChannel calendar, bool reduceMotion = true, QuestChannel? quests = null, MineChannel? mine = null)
+        => new(
+            WasmTestSupport.Localizer<Language>(),
+            calendar,
+            quests ?? new QuestChannel(new FakeGameSocket()),
+            mine ?? new MineChannel(new FakeGameSocket()),
+            Settings(reduceMotion));
+
+    // The line of a merchant's conversation at a slot, for a farmer who has finished no quest and whose calendar is not known yet.
+    private static string LineOf(NpcDialogViewModel vm, string npcId, int slot)
+    {
+        NpcDefinition npc = NpcCatalog.TryGet(npcId, out NpcDefinition? found) ? found! : throw new InvalidOperationException(npcId);
+        return vm.Text(NpcGreeting.KeyFor(npc, NpcLineContext.Of(0, null, null, null, newcomer: true, harvested: false, deepMiner: false), slot, _ => true));
+    }
 
     private static SettingsViewModel Settings(bool reduceMotion) => new(WasmTestSupport.Text(), new FixedStore(reduceMotion ? "calm=1" : "calm=0"));
 
@@ -68,7 +89,7 @@ public sealed class NpcDialogViewModelTests
 
         vm.IsRevealing.Should().BeFalse();
         vm.PortraitTalking.Should().BeFalse();
-        vm.Line.Should().Be(vm.Text("Npc_seed_keeper_Greeting"));
+        vm.Line.Should().Be(LineOf(vm, "seed_keeper", 0));
         vm.Choices.Should().NotBeEmpty();
     }
 
@@ -81,7 +102,7 @@ public sealed class NpcDialogViewModelTests
         vm.Interact(ShopCatalog.SeedShop);
 
         vm.IsRevealing.Should().BeFalse();
-        vm.Line.Should().Be(vm.Text("Npc_seed_keeper_Greeting"));
+        vm.Line.Should().Be(LineOf(vm, "seed_keeper", 0));
         vm.Choices.Should().NotBeEmpty();
     }
 
@@ -100,7 +121,7 @@ public sealed class NpcDialogViewModelTests
     }
 
     [Fact]
-    public void Line_OnARainySpringDayWithTheCalendarKnown_SaysTheRainGreeting()
+    public void Line_OnARainySpringDayWithTheCalendarKnown_SaysALineForTheWeatherAndHour()
     {
         using CultureScope scope = new("en");
         GameCalendar calendar = GameCalendar.Default;
@@ -123,11 +144,18 @@ public sealed class NpcDialogViewModelTests
         });
         CalendarChannel channel = new(socket);
         channel.Load();
-        NpcDialogViewModel vm = new(WasmTestSupport.Localizer<Language>(), channel, Settings(reduceMotion: true));
+        NpcDialogViewModel vm = CreateWith(channel);
+        long now = calendar.DayStartMs(rainyDay) + (calendar.DayLengthMs / 2);
+        NpcDefinition seed = NpcCatalog.TryGet("seed_keeper", out NpcDefinition? found) ? found! : throw new InvalidOperationException();
+        string expected = vm.Text(NpcGreeting.KeyFor(
+            seed,
+            NpcLineContext.Of(calendar.DayNumberAt(now), Season.Spring, WeatherKind.Rain, calendar.At(now).Hour, newcomer: true, harvested: false, deepMiner: false),
+            0,
+            _ => true));
 
         vm.Interact(ShopCatalog.SeedShop).Should().BeTrue();
 
-        vm.Line.Should().Be(vm.Text("Npc_seed_keeper_Greeting_Rain"));
+        vm.Line.Should().Be(expected);
     }
 
     [Fact]
@@ -144,7 +172,7 @@ public sealed class NpcDialogViewModelTests
         vm.Npc!.Id.Should().Be("seed_keeper");
         vm.Name.Should().Be("Mai");
         vm.Role.Should().Be("Seed shopkeeper");
-        vm.Line.Should().Be(vm.Text("Npc_seed_keeper_Greeting"));
+        vm.Line.Should().Be(LineOf(vm, "seed_keeper", 0));
         vm.PortraitUrl.Should().Be("assets/sprites/npcs/seed_keeper_portrait.png");
         vm.Page.Should().Be(NpcPage.None);
         vm.Panel.Should().Be(PanelKind.None, "the box is not a page of the menu");
@@ -188,6 +216,9 @@ public sealed class NpcDialogViewModelTests
     [InlineData(MarketRules.MarketCounterId, NpcActions.Buy, NpcPage.MarketBuy, PanelKind.Market)]
     [InlineData(MarketRules.MarketCounterId, NpcActions.Sell, NpcPage.MarketSell, PanelKind.Market)]
     [InlineData(CommunityGoalCatalog.BoardCounterId, NpcActions.Goals, NpcPage.Goals, PanelKind.Goals)]
+    [InlineData(CommunityGoalCatalog.BoardCounterId, NpcActions.Coop, NpcPage.Coop, PanelKind.Coop)]
+    [InlineData(ShopCatalog.ClothingShop, NpcActions.Wardrobe, NpcPage.Wardrobe, PanelKind.Wardrobe)]
+    [InlineData(ShopCatalog.ClothingShop, NpcActions.Backpack, NpcPage.Backpack, PanelKind.Backpack)]
     public void Choose_EachButton_OpensItsPage(int counterId, NpcActions action, NpcPage page, PanelKind panel)
     {
         NpcDialogViewModel vm = Create();
@@ -220,7 +251,7 @@ public sealed class NpcDialogViewModelTests
     [InlineData(ShopCatalog.Blacksmith, "Buy,Upgrade,Talk")]
     [InlineData(ShopCatalog.CarpenterShop, "Buy,Build,Talk")]
     [InlineData(MarketRules.MarketCounterId, "Buy,Sell,Talk")]
-    [InlineData(CommunityGoalCatalog.BoardCounterId, "Goals,Talk")]
+    [InlineData(CommunityGoalCatalog.BoardCounterId, "Goals,Coop,Talk")]
     public void Choices_AreOnlyWhatTheCounterSupports_InAFixedOrder(int counterId, string expected)
     {
         using CultureScope scope = new("en");
@@ -247,9 +278,38 @@ public sealed class NpcDialogViewModelTests
         vm.Choose(NpcActions.Talk);
 
         vm.Stage.Should().Be(NpcStage.Speaking);
-        first.Should().Be(vm.Text("Npc_blacksmith_Talk1")).And.NotBe(greeting);
-        second.Should().Be(vm.Text("Npc_blacksmith_Talk2")).And.NotBe(first);
-        vm.Line.Should().Be(first, "the lines go round");
+        greeting.Should().Be(LineOf(vm, "blacksmith", 0));
+        first.Should().Be(LineOf(vm, "blacksmith", 1)).And.NotBe(greeting);
+        second.Should().Be(LineOf(vm, "blacksmith", 2)).And.NotBe(first);
+        vm.Line.Should().Be(LineOf(vm, "blacksmith", 3), "the lines go round");
+    }
+
+    [Fact]
+    public void Line_AfterTheFirstHarvestAndTheTenthFloor_SaysTheProgressLines()
+    {
+        using CultureScope scope = new("en");
+        FakeGameSocket questSocket = new();
+        questSocket.ReplyWith(_ => FinishedFirstHarvest());
+        QuestChannel quests = new(questSocket);
+        quests.Load();
+        FakeGameSocket mineSocket = new();
+        mineSocket.ReplyWith(_ => new MineState { Deepest = NpcLineContext.DeepMinerFloor });
+        MineChannel mine = new(mineSocket);
+        mine.Load();
+        NpcDialogViewModel vm = CreateWith(new CalendarChannel(new FakeGameSocket()), quests: quests, mine: mine);
+        NpcDefinition seed = NpcCatalog.TryGet("seed_keeper", out NpcDefinition? found) ? found! : throw new InvalidOperationException();
+        string expected = vm.Text(NpcGreeting.KeyFor(seed, NpcLineContext.Of(0, null, null, null, newcomer: false, harvested: true, deepMiner: true), 0, _ => true));
+
+        vm.Interact(ShopCatalog.SeedShop).Should().BeTrue();
+
+        vm.Line.Should().Be(expected, "a farmer who harvested and reached the tenth floor is not a newcomer");
+    }
+
+    private static QuestLog FinishedFirstHarvest()
+    {
+        QuestLog log = new();
+        log.Quests.Add(new QuestRow { QuestId = QuestCatalog.FirstHarvest, State = QuestState.Completed, Progress = [1, 1] });
+        return log;
     }
 
     [Fact]

@@ -131,14 +131,15 @@ public sealed class FarmRulesTests
     }
 
     [Fact]
-    public void Water_AfterAGap_SettlesTheEarlierDayIntoTheGrowth()
+    public void Water_AfterOneDryDay_SettlesTheEarlierDayIntoTheGrowth()
     {
         FarmTile tile = WateredOn(Planted(CropCatalog.Parsnip, 1), 1);
 
-        FarmRules.Water(tile, Noon(5), s_calendar, out FarmTile next);
+        // One dry day (day 2) is not enough to wither the crop (ADR-021 D7, amended), so the watering on day 3 settles day 1.
+        FarmRules.Water(tile, Noon(3), s_calendar, out FarmTile next, outdoors: false);
 
         next.GrowthDays.Should().Be(1);
-        next.WateredDay.Should().Be(5);
+        next.WateredDay.Should().Be(3);
     }
 
     [Fact]
@@ -215,7 +216,8 @@ public sealed class FarmRulesTests
     [Fact]
     public void Harvest_WhenMature_YieldsTheCropAndLeavesSoilTendedToday()
     {
-        FarmTile ready = new(CropCatalog.Parsnip, Noon(1), s_parsnipDays, 0, 0);
+        // Watered on day 5: the crop has not gone two days dry (ADR-021 D7, amended), so it is harvested, not withered.
+        FarmTile ready = new(CropCatalog.Parsnip, Noon(1), s_parsnipDays, 5, 0);
 
         FarmVerdict verdict = FarmRules.Harvest(ready, Noon(6), s_calendar, out FarmTile next, out CropDefinition? crop);
 
@@ -230,93 +232,6 @@ public sealed class FarmRulesTests
     {
         FarmRules.Harvest(FarmTile.Bare, Noon(1), s_calendar, out _, out _).Should().Be(FarmVerdict.NothingToDo);
         FarmRules.Harvest(null, Noon(1), s_calendar, out _, out _).Should().Be(FarmVerdict.NotTilled);
-    }
-
-    [Fact]
-    public void RevertRoll_IsDeterministicAndStable()
-    {
-        FarmRules.RevertRoll("farm:abc", 3, 4, 5).Should().Be(FarmRules.RevertRoll("farm:abc", 3, 4, 5));
-        FarmRules.RevertRoll("farm:abc", 3, 4, 5).Should().Be(62, "the hash must not change between runs or releases: it decides real players' soil");
-    }
-
-    [Fact]
-    public void RevertRoll_DependsOnInstanceTileAndDay()
-    {
-        int[] baseline = [.. Enumerable.Range(1, 60).Select(d => FarmRules.RevertRoll("farm:abc", 3, 4, d))];
-
-        baseline.Should().NotEqual(Enumerable.Range(1, 60).Select(d => FarmRules.RevertRoll("farm:abd", 3, 4, d)));
-        baseline.Should().NotEqual(Enumerable.Range(1, 60).Select(d => FarmRules.RevertRoll("farm:abc", 4, 3, d)));
-        baseline.Distinct().Count().Should().BeGreaterThan(10);
-    }
-
-    [Fact]
-    public void RevertRoll_FallsBelowTheChanceAboutThirtyPercentOfTheTime()
-    {
-        const int Days = 20_000;
-        int hits = Enumerable.Range(1, Days).Count(d => FarmRules.RevertRoll("farm:abc", 7, 9, d) < FarmRules.RevertChancePercent);
-
-        hits.Should().BeInRange((int)(Days * 0.28), (int)(Days * 0.32));
-    }
-
-    private static int FirstRevertingDay(string key, int x, int y, int after)
-    {
-        for (int day = after + 1; ; day++)
-        {
-            if (FarmRules.RevertRoll(key, x, y, day) < FarmRules.RevertChancePercent)
-            {
-                return day;
-            }
-        }
-    }
-
-    [Fact]
-    public void IsReverted_BareDrySoil_RevertsWhenARollingDayEnds()
-    {
-        FarmTile tilled = FarmTile.Bare with { TendedDay = 1 };
-        int hit = FirstRevertingDay("farm:abc", 3, 4, 1);
-
-        FarmRules.IsReverted(tilled, "farm:abc", 3, 4, Midnight(1), s_calendar).Should().BeFalse("the tilling day is a day of grace");
-        FarmRules.IsReverted(tilled, "farm:abc", 3, 4, Noon(hit), s_calendar).Should().BeFalse("the rolling day has not ended yet");
-        FarmRules.IsReverted(tilled, "farm:abc", 3, 4, Midnight(hit + 1), s_calendar).Should().BeTrue();
-        FarmRules.IsReverted(tilled, "farm:abc", 3, 4, Noon(hit + 100), s_calendar).Should().BeTrue("a reverted tile stays reverted");
-    }
-
-    [Fact]
-    public void IsReverted_SameQuestionAskedTwice_GivesTheSameAnswer()
-    {
-        FarmTile tilled = FarmTile.Bare with { TendedDay = 2 };
-
-        bool first = FarmRules.IsReverted(tilled, "farm:xyz", 10, 12, Noon(40), s_calendar);
-
-        FarmRules.IsReverted(tilled, "farm:xyz", 10, 12, Noon(40), s_calendar).Should().Be(first);
-    }
-
-    [Fact]
-    public void IsReverted_SoilWateredOnTheRollingDay_SurvivesThatDay()
-    {
-        int hit = FirstRevertingDay("farm:abc", 3, 4, 1);
-        FarmTile watered = WateredOn(FarmTile.Bare with { TendedDay = 1 }, hit);
-
-        FarmRules.IsReverted(watered, "farm:abc", 3, 4, Midnight(hit + 1), s_calendar).Should().BeFalse("a watered day is not a dry day");
-    }
-
-    [Fact]
-    public void IsReverted_SoilWithACrop_NeverReverts()
-    {
-        FarmTile planted = Planted(CropCatalog.Parsnip, 1);
-
-        FarmRules.IsReverted(planted, "farm:abc", 3, 4, Noon(500), s_calendar).Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsReverted_AfterHarvest_StartsDryDaysFromTheHarvestDay()
-    {
-        FarmTile ready = new(CropCatalog.Parsnip, Noon(1), s_parsnipDays, 0, 0);
-        FarmRules.Harvest(ready, Noon(10), s_calendar, out FarmTile bare, out _);
-        int hit = FirstRevertingDay("farm:abc", 3, 4, 10);
-
-        FarmRules.IsReverted(bare, "farm:abc", 3, 4, Midnight(hit), s_calendar).Should().BeFalse();
-        FarmRules.IsReverted(bare, "farm:abc", 3, 4, Midnight(hit + 1), s_calendar).Should().BeTrue();
     }
 
     // Season boundaries, from the default calendar (docs/adr/ADR-018).
@@ -356,8 +271,9 @@ public sealed class FarmRulesTests
     public void IsWithered_CropAtTheSeasonChange_WithersExactlyWhenTheNextSeasonBegins()
     {
         // Radish: summer and fall. Planted in summer, it withers when winter begins.
-        FarmTile radish = new(CropCatalog.Radish, s_summer + 1000, 0, 0, 0);
         long winter = s_calendar.EpochMs + (3 * s_calendar.SeasonLengthMs);
+        // Watered three game days before winter, so the dry run cannot be what withers it (ADR-021 D7, amended).
+        FarmTile radish = new(CropCatalog.Radish, s_summer + 1000, 0, s_calendar.DayNumberAt(winter) - 3, 0);
 
         FarmRules.IsWithered(radish, winter - 1, s_calendar).Should().BeFalse();
         FarmRules.IsWithered(radish, winter, s_calendar).Should().BeTrue();
@@ -365,12 +281,30 @@ public sealed class FarmRulesTests
     }
 
     [Fact]
-    public void Harvest_MatureCropAfterItsSeasonEnded_IsRefusedAsWithered()
+    public void Harvest_MatureCropAfterItsSeasonEnded_StillHarvests()
     {
-        FarmTile ready = new(CropCatalog.Cauliflower, s_calendar.EpochMs + 1000, CropCatalog.All[2].TotalGrowthDays, 0, 0);
+        // Ripe before the season ends: the season change does not wither a ripe crop, it waits for its harvest (ADR-018 D4, amended).
+        int lastSummerDay = s_calendar.DayNumberAt(s_fall - 1);
+        FarmTile ready = new(CropCatalog.Cauliflower, s_calendar.EpochMs + 1000, CropCatalog.All[2].TotalGrowthDays, lastSummerDay - 1, 0);
 
         FarmRules.Harvest(ready, s_fall - 1, s_calendar, out _, out _).Should().Be(FarmVerdict.Ok, "still summer");
-        FarmRules.Harvest(ready, s_fall, s_calendar, out _, out _).Should().Be(FarmVerdict.Withered);
+        FarmRules.IsWithered(ready, s_fall, s_calendar).Should().BeFalse("a ripe crop waits for its harvest through the season change");
+        FarmRules.Harvest(ready, s_fall, s_calendar, out _, out _).Should().Be(FarmVerdict.Ok);
+    }
+
+    [Fact]
+    public void IsWithered_RipeRadishAtTheWinterChange_StaysStanding()
+    {
+        // Radish is ripe (six watered days, the last one the day before winter) when winter begins: it waits for its harvest.
+        long winter = s_calendar.EpochMs + (3 * s_calendar.SeasonLengthMs);
+        int lastDay = s_calendar.DayNumberAt(winter - 1);
+        FarmTile radish = new(CropCatalog.Radish, s_summer + 1000, 5, lastDay, 0);
+
+        FarmRules.IsWithered(radish, winter - 1, s_calendar).Should().BeFalse();
+        FarmRules.IsWithered(radish, winter, s_calendar).Should().BeFalse("a ripe crop is not withered by the season change");
+        FarmRules.IsWithered(radish, winter + (5 * s_calendar.SeasonLengthMs), s_calendar).Should().BeFalse();
+        FarmRules.Harvest(radish, winter, s_calendar, out _, out CropDefinition? harvested).Should().Be(FarmVerdict.Ok);
+        harvested!.Id.Should().Be(CropCatalog.Radish);
     }
 
     [Fact]
@@ -386,7 +320,8 @@ public sealed class FarmRulesTests
     [Fact]
     public void Plant_OverAHealthyCrop_StillHasCrop()
     {
-        FarmTile growing = new(CropCatalog.Cauliflower, s_calendar.EpochMs + 1000, 0, 0, 0);
+        // Watered the day before the last moment of spring, so it is not two dry days old (ADR-021 D7, amended).
+        FarmTile growing = new(CropCatalog.Cauliflower, s_calendar.EpochMs + 1000, 0, s_calendar.DayNumberAt(s_summer - 1) - 1, 0);
 
         FarmRules.Plant(growing, CropCatalog.Parsnip, s_summer - 1, s_calendar, out _).Should().Be(FarmVerdict.HasCrop);
     }

@@ -13,8 +13,9 @@ using Nosum.Abstractions.Economy;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Maps;
 using Nosum.Abstractions.Presence;
-using Nosum.Contracts.Building;
+using Nosum.Abstractions.Quests;
 using Nosum.Contracts.Building.S2C;
+using Nosum.Contracts.Building;
 using Nosum.Contracts.Inventory;
 using Nosum.Domain.Buildings;
 using Nosum.Domain.Coops;
@@ -26,7 +27,9 @@ using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Placeables;
 using Nosum.Gameplay.Players;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Weather;
+using Nosum.Infrastructure.Quests;
 
 namespace Nosum.Infrastructure.Buildings;
 
@@ -112,6 +115,7 @@ public sealed partial class BuildingService
 
         // The new animal appears in its room for whoever is inside.
         await this.PushAsync(building, definition, row.Id, this.NowMs(), cancellationToken).ConfigureAwait(false);
+        await _quests.TryReportAsync(player.AccountId, new QuestEvent(QuestEventKind.AnimalBought, (int)kind), cancellationToken).ConfigureAwait(false);
         return new BuildingOutcome(BuildingStatus.Ok, row.Id, 0, 0);
     }
 

@@ -24,6 +24,20 @@ public sealed class ToolPacingTests
         ToolPacing.SwingMs(tool).Should().BeGreaterThanOrEqualTo(ToolPacing.MinIntervalMs);
     }
 
+    [Theory]
+    [InlineData(ToolKind.Hoe, true)]
+    [InlineData(ToolKind.WateringCan, true)]
+    [InlineData(ToolKind.Axe, true)]
+    [InlineData(ToolKind.Pickaxe, true)]
+    [InlineData(ToolKind.Scythe, true)]
+    [InlineData(ToolKind.Sword, false)]
+    [InlineData(ToolKind.Staff, false)]
+    [InlineData(ToolKind.None, false)]
+    public void RepeatsWhileHeld_ToolKinds_OnlyFarmAndMiningToolsRepeat(ToolKind tool, bool expected)
+    {
+        ToolPacing.RepeatsWhileHeld(tool).Should().Be(expected);
+    }
+
     [Fact]
     public void SwingMs_FarmActions_FitTheRateLimitOfEightPerThreeSeconds()
     {

@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Nalix.Abstractions.Networking;
 using Nosum.Contracts.Pet;
 
 namespace Nosum.Abstractions.Pets;
@@ -25,7 +26,7 @@ public readonly record struct PetLook(byte Kind, string Name)
 public readonly record struct PetView(PetStatus Status, byte Kind, string Name, int Mood, bool PettedToday);
 
 /// <summary>
-/// The pet companion (docs/adr/ADR-075 D3-D5): adoption (a cat or a dog, named with the chat profanity mask), one petting per game day for a
+/// The pet companion (docs/adr/ADR-075 D3-D5, amended for paid pets): purchase and rehoming at the carpenter's counter (a cat or a dog, named with the chat profanity mask), one petting per game day for a
 /// mood and energy bonus. Every change is one server transaction; the cached <see cref="PetLook"/> is what LookRow carries to the other players.
 /// </summary>
 public interface IPetService
@@ -36,13 +37,27 @@ public interface IPetService
     /// <returns>The pet, or a view with kind 0 when there is none.</returns>
     Task<PetView> GetAsync(Guid playerId, CancellationToken cancellationToken = default);
 
-    /// <summary>Adopts a cat or a dog with a name. One pet at a time.</summary>
+    /// <summary>
+    /// Buys a cat or a dog at the carpenter's counter and names it (docs/adr/ADR-075 amendment). One pet at a time. The price is paid in the same
+    /// transaction as the pet row; the player must stand within reach of the counter.
+    /// </summary>
+    /// <param name="connection">The player's connection: the server's own record of where the player stands.</param>
     /// <param name="playerId">The player's account id.</param>
     /// <param name="kind">The kind code: 1 cat, 2 dog.</param>
     /// <param name="name">The name as typed; cleaned and masked, at most 12 characters.</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The outcome with the pet as it stands.</returns>
-    Task<PetView> AdoptAsync(Guid playerId, byte kind, string name, CancellationToken cancellationToken = default);
+    Task<PetView> AdoptAsync(IConnection connection, Guid playerId, byte kind, string name, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gives the pet back to the carpenter for half its price and removes it (docs/adr/ADR-075 amendment). The player must stand within reach of the
+    /// counter; the coins and the removal are one transaction.
+    /// </summary>
+    /// <param name="connection">The player's connection: the server's own record of where the player stands.</param>
+    /// <param name="playerId">The player's account id.</param>
+    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <returns>Ok with no pet, or the refusal.</returns>
+    Task<PetView> RehomeAsync(IConnection connection, Guid playerId, CancellationToken cancellationToken = default);
 
     /// <summary>Pets the player's pet: once a game day, for a mood bonus and an energy bonus.</summary>
     /// <param name="playerId">The player's account id.</param>

@@ -11,6 +11,7 @@ using Nalix.Abstractions.Networking;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Admin;
 using Nosum.Abstractions.Economy;
+using Nosum.Abstractions.Inventory;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Admin;
 using Nosum.Contracts.Common;
@@ -475,6 +476,9 @@ public sealed class AdminServiceTests : IClassFixture<PostgresFixture>
             this.Calls.Add((leg.Party, leg.ItemId, leg.Items, leg.Coins, reason));
             return Task.FromResult(this.Result);
         }
+
+        public Task<TransferStatus> ExecuteWithOperationsAsync(Guid playerId, IReadOnlyList<InventoryOperation> operations, IReadOnlyList<TransferLeg> legs, string reason, TransferEnlistment? enlist = null, CancellationToken cancellationToken = default)
+            => throw new NotSupportedException("The admin tests record single-leg transfers only.");
 
         public Task<long> GetBalanceAsync(Guid playerId, CancellationToken cancellationToken = default) => Task.FromResult(0L);
     }

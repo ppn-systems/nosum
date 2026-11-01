@@ -90,6 +90,8 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
                 new(Farmer + "pants.png", pants.SheetIndex % 10 * 192, pants.SheetIndex / 10 * 672, 16, 32, 1920, 1376, 0, 0, Tint(pants.Tint)),
                 new(Farmer + "shirts.png", shirt.SheetIndex % 16 * 8, shirt.SheetIndex / 16 * 32, 8, 8, 256, 608, 4, 15, Tint(shirt.Tint)),
                 new(Farmer + "body.png", 6 * 16, 0, 16, 32, 288, 672, 0, 0, null),
+                // Boots tier band of boots.png (96 x 384), standing frame facing down (docs/adr/ADR-084).
+                new(Farmer + "boots.png", 0, (LookPalette.BootsTier(look.FeetItemId) - 1) * 96, 16, 32, 96, 384, 0, 0, null),
                 new(Farmer + "hair.png", hair % 8 * 16, hair / 8 * 96, 16, 32, 128, 672, 0, 2, Tint(LookPalette.DyeTint(look.HairDyeId))),
             ];
             if (LookPalette.TryHat(look.HatItemId, out ClothingSprite hat))
@@ -157,6 +159,7 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
                 new WornDisplay((int)WearSlot.Shirt, this.Text("Wardrobe_Slot_Shirt"), _describer.Describe((int)WearSlot.Shirt, look.ShirtItemId, look.ShirtItemId == 0 ? 0 : 1)),
                 new WornDisplay((int)WearSlot.Pants, this.Text("Wardrobe_Slot_Pants"), _describer.Describe((int)WearSlot.Pants, look.PantsItemId, look.PantsItemId == 0 ? 0 : 1)),
                 new WornDisplay((int)WearSlot.Hat, this.Text("Wardrobe_Slot_Hat"), _describer.Describe((int)WearSlot.Hat, look.HatItemId, look.HatItemId == 0 ? 0 : 1)),
+                new WornDisplay((int)WearSlot.Feet, this.Text("Wardrobe_Slot_Feet"), _describer.Describe((int)WearSlot.Feet, look.FeetItemId, look.FeetItemId == 0 ? 0 : 1)),
             ];
         }
     }
@@ -230,10 +233,10 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
     }
 
     /// <summary>Takes the item worn in a slot off.</summary>
-    /// <param name="wearSlot">1 shirt, 2 trousers, 3 hat.</param>
+    /// <param name="wearSlot">1 shirt, 2 trousers, 3 hat, 4 feet.</param>
     public void TakeOff(int wearSlot)
     {
-        if (wearSlot is < (int)WearSlot.Shirt or > (int)WearSlot.Hat)
+        if (wearSlot is < (int)WearSlot.Shirt or > (int)WearSlot.Feet)
         {
             return;
         }

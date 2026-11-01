@@ -23,4 +23,7 @@ public sealed partial class SkillXpChanged : PacketBase<SkillXpChanged>, IPacket
 
     /// <summary>Cumulative mining experience.</summary>
     [SerializeOrder(2)] public int MiningXp { get; set; }
+
+    /// <summary>Cumulative fishing experience (docs/adr/ADR-078 amendment, protocol 23).</summary>
+    [SerializeOrder(3)] public int FishingXp { get; set; }
 }

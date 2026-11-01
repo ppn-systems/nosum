@@ -27,6 +27,10 @@ internal sealed class TextureCache
     /// <summary>Gets the number of distinct images requested so far.</summary>
     public int Count => _byUrl.Count;
 
+    /// <summary>Reserves a texture id that no image uses: a render target the backend creates on its first draw (docs/adr/ADR-086).</summary>
+    /// <returns>The id.</returns>
+    public int ReserveId() => _nextId++;
+
     /// <summary>Loads an image, or joins the load already running for it.</summary>
     /// <param name="url">Image URL; the same URL always gets the same id.</param>
     /// <returns>A task with the texture id, ready to draw once the task has completed.</returns>

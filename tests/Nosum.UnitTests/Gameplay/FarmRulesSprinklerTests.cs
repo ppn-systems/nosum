@@ -61,8 +61,8 @@ public sealed class FarmRulesSprinklerTests
         FarmTile bare = FarmTile.Bare with { TendedDay = 1 };
 
         // Without the sprinkler the same soil dries out and reverts; with it indoors, every day is watered.
-        FarmRules.IsReverted(bare, "farm:abc", 3, 4, Midnight(30), s_calendar, outdoors: false).Should().BeTrue();
-        FarmRules.IsReverted(bare, "farm:abc", 3, 4, Midnight(30), s_calendar, outdoors: false, sprinklerSinceMs: Noon(1)).Should().BeFalse();
+        FarmRules.IsReverted(bare, Midnight(30), s_calendar, outdoors: false).Should().BeTrue();
+        FarmRules.IsReverted(bare, Midnight(30), s_calendar, outdoors: false, sprinklerSinceMs: Noon(1)).Should().BeFalse();
     }
 
     [Fact]

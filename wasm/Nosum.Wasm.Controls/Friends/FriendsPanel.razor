@@ -60,13 +60,13 @@
                             Guid playerId = request.PlayerId;
                             <GameRow Class="friends-row">
                                 <span class="friends-name">@request.Label</span>
-                                <GameButton Variant="plain" Text="@Vm.Text("Friends_Withdraw")" OnClick="@(() => Vm.Remove(playerId))" />
+                                <GameButton Variant="secondary" Text="@Vm.Text("Friends_Withdraw")" OnClick="@(() => Vm.Remove(playerId))" />
                             </GameRow>
                         }
                     </div>
                 }
                 <GameRow Class="center">
-                    <GameButton Variant="plain" Active="Vm.FriendsMayVisit" aria-pressed="@(Vm.FriendsMayVisit ? "true" : "false")" Text="@(Vm.FriendsMayVisit ? Vm.Text("Friends_Visit_On") : Vm.Text("Friends_Visit_Off"))" OnClick="@(() => Vm.ToggleVisit())" />
+                    <GameButton Variant="secondary" Active="Vm.FriendsMayVisit" aria-pressed="@(Vm.FriendsMayVisit ? "true" : "false")" Text="@(Vm.FriendsMayVisit ? Vm.Text("Friends_Visit_On") : Vm.Text("Friends_Visit_Off"))" OnClick="@(() => Vm.ToggleVisit())" />
                 </GameRow>
                 <p class="friends-hint">@Vm.Text("Friends_Visit_Hint")</p>
             </GameSection>
@@ -86,7 +86,7 @@
                     string nickname = player.Nickname;
                     <GameRow Class="friends-row">
                         <span class="friends-name">@player.Label</span>
-                        <GameButton Variant="plain" Text="@Vm.Text("Friends_Unblock")" OnClick="@(() => Vm.Unblock(nickname))" />
+                        <GameButton Variant="secondary" Text="@Vm.Text("Friends_Unblock")" OnClick="@(() => Vm.Unblock(nickname))" />
                     </GameRow>
                 }
             </div>

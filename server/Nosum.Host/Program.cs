@@ -161,9 +161,10 @@ internal static partial class Program
     /// <param name="clock">The clock crops grow by and quests and audit entries are stamped with; tests pass a fake one. Defaults to the system clock.</param>
     /// <param name="development">Whether the host runs in the Development environment. Only then are the tester tools (<see cref="DevHandlers"/>) registered; Production never maps them.</param>
     /// <returns>The built, not yet activated, application.</returns>
-    internal static NetworkApplication BuildApplication(ushort webSocketPort, TimeProvider? clock = null, bool development = false)
+    /// <param name="seams">Test seams that wrap the snapshot and leave-path services (<see cref="ServerSeams"/>); production passes none.</param>
+    internal static NetworkApplication BuildApplication(ushort webSocketPort, TimeProvider? clock = null, bool development = false, ServerSeams? seams = null)
     {
-        RegisterServices(clock ?? TimeProvider.System, development);
+        RegisterServices(clock ?? TimeProvider.System, development, seams);
 
         INetworkApplicationBuilder builder = NetworkApplication.CreateBuilder()
             .UseGroups()

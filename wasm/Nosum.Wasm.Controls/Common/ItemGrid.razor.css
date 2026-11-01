@@ -1,6 +1,6 @@
 .item-grid {
     display: grid;
-    grid-template-columns: repeat(var(--item-grid-columns, 9), calc(var(--u) * 18));
+    grid-template-columns: repeat(var(--item-grid-columns, 9), var(--item-grid-slot, calc(var(--u) * 18)));
     gap: var(--u);
     justify-content: center;
 }

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Extensions.Localization;
@@ -63,6 +64,34 @@ public sealed class JournalViewModel : PanelViewModel
 
     /// <summary>Asks the server for the journal. Call when the panel opens.</summary>
     public void Open() => _channel.Load();
+
+    /// <summary>The cells on one page: five whole rows of eight.</summary>
+    public const int CellsPerPage = 40;
+
+    /// <summary>Gets the zero-based page the journal shows.</summary>
+    public int Page { get; private set; }
+
+    /// <summary>Gets the number of pages of the catalogue (at least one).</summary>
+    public static int PageCount => Math.Max(1, (Total + CellsPerPage - 1) / CellsPerPage);
+
+    /// <summary>Gets the cells on the current page.</summary>
+    public List<JournalCell> PageCells()
+    {
+        int page = Math.Min(this.Page, PageCount - 1);
+        return this.Cells().Skip(page * CellsPerPage).Take(CellsPerPage).ToList();
+    }
+
+    /// <summary>Shows another page of the journal.</summary>
+    /// <param name="page">The zero-based page; clamped to the pages there are.</param>
+    public void GoToPage(int page)
+    {
+        int next = Math.Clamp(page, 0, PageCount - 1);
+        if (next != this.Page)
+        {
+            this.Page = next;
+            this.Raise();
+        }
+    }
 
     /// <summary>Builds one cell per catalogue item, in catalogue order.</summary>
     /// <returns>The cells; <see cref="JournalCell.Discovered"/> tells whether the farmer has the item.</returns>

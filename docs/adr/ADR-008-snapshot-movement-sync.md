@@ -57,3 +57,8 @@ jitter. The server must not trust a client's position.
 ## Revisit when
 
 A map holds more than a few dozen players at once, or measured jitter makes 200 ms too short.
+
+## Amendment: footwear and the combined speed multiplier (ADR-084)
+
+The validator's `speedFactor` is the player's combined multiplier: worn boots × speed buff × running, clamped to 1.5 (`MovementSpeed.Combine`,
+docs/adr/ADR-084 D3). The budget, the slack, the corrections and the path checks are unchanged.

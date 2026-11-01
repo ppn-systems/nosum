@@ -1,0 +1,370 @@
+[
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "HUD start",
+    "status": "captured",
+    "notes": "shows: Đi lại bằng W A S D hoặc cần điều khiển bên trái. 1 2 40 3 8 4 6 5 4 6 7 8 9 Z X V",
+    "screenshot": "docs/qa/world-pass/vi/390x844/01-HUD-start.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "running + energy",
+    "status": "captured",
+    "notes": "energy bar present; read the drain from the screenshot · shows: Nhấn E để dùng vật đang cầm lên ô phía trước. 1 2 40 3 8 4 6 5 4 6 7 8 9 Z X V",
+    "screenshot": "docs/qa/world-pass/vi/390x844/02-running-energy.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "minimap toggle (M)",
+    "status": "FAIL",
+    "notes": "minimap height -1 -> -1 · shows: Nhấn E để dùng vật đang cầm lên ô phía trước. 1 2 40 3 8 4 6 5 4 6 7 8 9 Z X V",
+    "screenshot": "docs/qa/world-pass/vi/390x844/03-minimap-toggle-M.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "farm: grant seeds, sprinkler, rod",
+    "status": "captured",
+    "notes": "items arrive in the hotbar (Development grant) · shows: Nhấn E để dùng vật đang cầm lên ô phía trước. 1 2 40 3 18 4 6 5 4 6 7 8 9 Z X V",
+    "screenshot": "docs/qa/world-pass/vi/390x844/04-farm-grant-seeds-sprinkler-rod.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "farm: till (hoe, E)",
+    "status": "pass",
+    "notes": "tutorial moved on to water: tile tilled · shows: Chọn bình tưới và tưới một ô đất đã xới. Thưởng: 10 xu. 1 2 40 3 18 4 6 5 4 6 7 8 9 Z X V",
+    "screenshot": "docs/qa/world-pass/vi/390x844/05-farm-till-hoe-E.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "farm: sow (seeds, E)",
+    "status": "pass",
+    "notes": "parsnip seeds 18 -> 17 · shows: Chọn bình tưới và tưới một ô đất đã xới. Thưởng: 10 xu. 1 2 40 3 17 4 6 5 4 6 7 8 9 Z X V",
+    "screenshot": "docs/qa/world-pass/vi/390x844/06-farm-sow-seeds-E.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "farm: water (can, E)",
+    "status": "pass",
+    "notes": "watering can 40 -> 39 · shows: Gieo hạt giống lên đất đã xới, tưới nước và chờ cây lớn rồi thu hoạch. Thưởng: 40 xu. 1 2 39 3 17 4 6 5 4 6 7 8 9 Z X V",
+    "screenshot": "docs/qa/world-pass/vi/390x844/07-farm-water-can-E.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "farm: sprinkler (place, E)",
+    "status": "FAIL",
+    "notes": "no hotbar slot matches /sprinkler|máy tưới/i; slots: Cuốc | Bình tưới | Hạt củ cải vàng | Hạt củ cải đỏ | Hạt súp lơ | Rìu | Cuốc chim | Liềm | Vòi tưới",
+    "screenshot": "docs/qa/world-pass/vi/390x844/08-farm-sprinkler-place-E-fail.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "farm: advance 4 days (grow)",
+    "status": "captured",
+    "notes": "crop growth after 4 game days · shows: Gieo hạt giống lên đất đã xới, tưới nước và chờ cây lớn rồi thu hoạch. Thưởng: 40 xu. 1 cây cần tưới nước 1 2 39 3 17 4 ",
+    "screenshot": "docs/qa/world-pass/vi/390x844/09-farm-advance-4-days-grow.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "farm: harvest (E, empty hand)",
+    "status": "captured",
+    "notes": "harvest result: check the screenshot and the bag · shows: Gieo hạt giống lên đất đã xới, tưới nước và chờ cây lớn rồi thu hoạch. Thưởng: 40 xu. 1 2 39 3 17 4 6 5 4 6 7 8 9 Z X V",
+    "screenshot": "docs/qa/world-pass/vi/390x844/10-farm-harvest-E-empty-hand.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "farm: wither (no water, 10 days)",
+    "status": "captured",
+    "notes": "unwatered crop withered? check the screenshot · shows: Gieo hạt giống lên đất đã xới, tưới nước và chờ cây lớn rồi thu hoạch. Thưởng: 40 xu. 1 2 39 3 17 4 6 5 4 6 7 8 9 Z X V",
+    "screenshot": "docs/qa/world-pass/vi/390x844/11-farm-wither-no-water-10-days.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "merchant: seed shop dialog",
+    "status": "pass",
+    "notes": "merchant dialog opened · shows: Cô Mai Chủ tiệm hạt giống Gieo đúng mùa thì cây mới khỏe, trái mới to và đều. Mua Trò chuyện Tạm biệt | Chủ tiệm hạt giống Gieo đúng mùa thì cây mới khỏe, trái mới to và đều.",
+    "screenshot": "docs/qa/world-pass/vi/390x844/12-merchant-seed-shop-dialog.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "shop: seed shop buy list",
+    "status": "pass",
+    "notes": "shop list visible",
+    "screenshot": "docs/qa/world-pass/vi/390x844/13-shop-seed-shop-buy-list.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "shop: seed shop quantity stepper",
+    "status": "captured",
+    "notes": "buttons: x1, x5, Tất cả, Bớt, Thêm, Mua; x5 yes; All yes",
+    "screenshot": "docs/qa/world-pass/vi/390x844/14-shop-seed-shop-quantity-stepper.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "merchant: clothing shop dialog",
+    "status": "pass",
+    "notes": "merchant dialog opened · shows: Chị Hạnh Thợ may Vào xem thử đi, áo mới cắt vừa vặn lắm. Mua Tủ đồ Túi đồ Trò chuyện Tạm biệt | Thợ may Vào xem thử đi, áo mới cắt vừa vặn lắm.",
+    "screenshot": "docs/qa/world-pass/vi/390x844/15-merchant-clothing-shop-dialog.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "shop: clothing shop buy list",
+    "status": "pass",
+    "notes": "shop list visible",
+    "screenshot": "docs/qa/world-pass/vi/390x844/16-shop-clothing-shop-buy-list.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "shop: clothing shop quantity stepper",
+    "status": "captured",
+    "notes": "buttons: x1, x5, Tất cả, Bớt, Thêm, Mua, Trước, Sau; x5 yes; All yes",
+    "screenshot": "docs/qa/world-pass/vi/390x844/17-shop-clothing-shop-quantity-stepper.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "merchant: furniture shop dialog",
+    "status": "pass",
+    "notes": "merchant dialog opened · shows: Chú Tâm Chủ tiệm nội thất Cứ thong thả xem, món nào hợp với nhà bạn thì hãy mua. Mua Trò chuyện Tạm biệt | Chủ tiệm nội thất Cứ thong thả xem, món nào hợp với nhà bạn thì hãy mua.",
+    "screenshot": "docs/qa/world-pass/vi/390x844/18-merchant-furniture-shop-dialog.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "shop: furniture shop buy list",
+    "status": "pass",
+    "notes": "shop list visible",
+    "screenshot": "docs/qa/world-pass/vi/390x844/19-shop-furniture-shop-buy-list.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "shop: furniture shop quantity stepper",
+    "status": "captured",
+    "notes": "buttons: x1, x5, Tất cả, Bớt, Thêm, Mua, Trước, Sau; x5 yes; All yes",
+    "screenshot": "docs/qa/world-pass/vi/390x844/20-shop-furniture-shop-quantity-stepper.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "market: open",
+    "status": "captured",
+    "notes": "market listings: check the screenshot",
+    "screenshot": "docs/qa/world-pass/vi/390x844/21-market-open.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "fishing: cast (rod, E)",
+    "status": "not exercised",
+    "notes": "no water tile in reach on the scripted path; the refusal text is in the screenshot · shows: 1 2 39 3 17 4 6 5 4 6 7 8 9 Z X V",
+    "screenshot": "docs/qa/world-pass/vi/390x844/22-fishing-cast-rod-E.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "fishing: bite (QA)",
+    "status": "captured",
+    "notes": "bite banner visible · shows: 1 2 39 3 17 4 6 5 4 6 7 8 9 Z X V",
+    "screenshot": "docs/qa/world-pass/vi/390x844/23-fishing-bite-QA.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "fishing: reel in and catch card",
+    "status": "captured",
+    "notes": "no catch card (a miss or the window was lost) · shows: 1 2 39 3 17 4 6 5 4 6 7 8 9 Z X V",
+    "screenshot": "docs/qa/world-pass/vi/390x844/24-fishing-reel-in-and-catch-card.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "skills: cast Z then refused",
+    "status": "FAIL",
+    "notes": "no cooldown, toast or mana change after Z, Z (notices: 1 2 39 3 17 4 6 5 4 6 7 8 9 Z X V) · shows: 1 2 39 3 17 4 6 5 4 6 7 8 9 Z X V",
+    "screenshot": "docs/qa/world-pass/vi/390x844/25-skills-cast-Z-then-refused.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "crafting panel",
+    "status": "FAIL",
+    "notes": "locator.click: Element is not visible",
+    "screenshot": "docs/qa/world-pass/vi/390x844/26-crafting-panel-fail.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: mail",
+    "status": "captured",
+    "notes": "mail window: check the screenshot",
+    "screenshot": "docs/qa/world-pass/vi/390x844/27-panel-mail.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: friends",
+    "status": "FAIL",
+    "notes": "locator.click: Element is not visible",
+    "screenshot": "docs/qa/world-pass/vi/390x844/28-panel-friends-fail.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: skills",
+    "status": "FAIL",
+    "notes": "locator.click: Element is not visible",
+    "screenshot": "docs/qa/world-pass/vi/390x844/29-panel-skills-fail.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: crafting",
+    "status": "FAIL",
+    "notes": "locator.click: Element is not visible",
+    "screenshot": "docs/qa/world-pass/vi/390x844/30-panel-crafting-fail.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: co-op warehouse (G)",
+    "status": "captured",
+    "notes": "co-op window: check the warehouse list in the screenshot",
+    "screenshot": "docs/qa/world-pass/vi/390x844/31-panel-co-op-warehouse-G.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "panel: profile, rename (N)",
+    "status": "captured",
+    "notes": "profile window: rename control and the once-a-day note · shows: Khách giữ tên được tạo sẵn. Hãy liên kết tài khoản Google hoặc Microsoft để chọn biệt danh của riêng bạn.",
+    "screenshot": "docs/qa/world-pass/vi/390x844/32-panel-profile-rename-N.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "calendar: season passes (QA)",
+    "status": "pass",
+    "notes": "season \"Xuân\" -> \"Hè\"; banner yes · shows: MÙA MỚI Mùa Hè đã đến! | 1 2 39 3 17 4 6 5 4 6 7 8 9 Z X V",
+    "screenshot": "docs/qa/world-pass/vi/390x844/33-calendar-season-passes-QA.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "NPC dialogue (board keeper)",
+    "status": "pass",
+    "notes": "dialog line present · shows: Cô Mai Chủ tiệm hạt giống Gieo đúng mùa thì cây mới khỏe, trái mới to và đều. Mua Trò chuyện Tạm biệt | Chủ tiệm hạt giống Gieo đúng mùa thì cây mới khỏe, trái mới to và đều.",
+    "screenshot": "docs/qa/world-pass/vi/390x844/34-NPC-dialogue-board-keeper.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "level-up banner (QA)",
+    "status": "pass",
+    "notes": "banner shown · shows: THĂNG CẤP! Trồng trọt lên cấp 2! | Trồng trọt lên cấp 2! 1 2 39 3 17 4 6 5 4 6 7 8 9 Z X V Thăng cấp 2!",
+    "screenshot": "docs/qa/world-pass/vi/390x844/35-level-up-banner-QA.png"
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "animals (barn, feed, harvest)",
+    "status": "not exercised",
+    "notes": "no scripted path in this pass (see README)",
+    "screenshot": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "pets: buy at carpenter, rehome",
+    "status": "not exercised",
+    "notes": "no scripted path in this pass (see README)",
+    "screenshot": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "crafting at stations (chest, furnace)",
+    "status": "not exercised",
+    "notes": "no scripted path in this pass (see README)",
+    "screenshot": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "market: list and buy",
+    "status": "not exercised",
+    "notes": "no scripted path in this pass (see README)",
+    "screenshot": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "mail: send",
+    "status": "not exercised",
+    "notes": "no scripted path in this pass (see README)",
+    "screenshot": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "co-op warehouse deposit",
+    "status": "not exercised",
+    "notes": "no scripted path in this pass (see README)",
+    "screenshot": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "backpack upgrade",
+    "status": "not exercised",
+    "notes": "no scripted path in this pass (see README)",
+    "screenshot": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "rename scroll",
+    "status": "not exercised",
+    "notes": "no scripted path in this pass (see README)",
+    "screenshot": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "shipping bin sale",
+    "status": "not exercised",
+    "notes": "no scripted path in this pass (see README)",
+    "screenshot": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "dungeon/mine combat",
+    "status": "not exercised",
+    "notes": "no scripted path in this pass (see README)",
+    "screenshot": ""
+  },
+  {
+    "locale": "vi",
+    "viewport": "390x844",
+    "feature": "console / page errors",
+    "status": "pass",
+    "notes": "none",
+    "screenshot": ""
+  }
+]

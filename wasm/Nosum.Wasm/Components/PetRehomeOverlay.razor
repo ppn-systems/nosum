@@ -1,0 +1,12 @@
+@using Nosum.Wasm.Controls
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.ViewModels.Pets
+@inherits ObservingComponent<PetViewModel>
+
+@* The give-back question of the pet (docs/adr/ADR-075 amendment): a centre confirm box in the HUD overlay. Nothing is sent until the player says yes. *@
+@if (Vm.RehomeAsked)
+{
+    <ConfirmDialog Title="@Vm.RehomeTitle" Message="@Vm.RehomeMessage"
+                   ConfirmText="@Vm.Text("Pet_RehomeConfirm")" CancelText="@Vm.Text("Pet_RehomeCancel")"
+                   OnConfirm="@(() => Vm.ConfirmRehome())" OnCancel="@(() => Vm.CancelRehome())" />
+}

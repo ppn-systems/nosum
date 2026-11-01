@@ -34,6 +34,7 @@ internal sealed class PlacementActions
     private readonly HashSet<(int X, int Y)> _noReserved = [];
     private double _lastActionSeconds = double.NegativeInfinity;
     private int _rotation;
+    private int _lastHeldItemId;
 
     /// <summary>Initializes the actions.</summary>
     /// <param name="placed">Sends the requests.</param>
@@ -89,8 +90,16 @@ internal sealed class PlacementActions
     /// <param name="content">Optional loaded map content used to check building rules and reserved spawn/warp tiles.</param>
     public void Update(bool active, InputEdges edges, int targetX, int targetY, Facing facing, PlacedSet placedSet, WalkGrid mapGrid, double feetX, double feetY, double nowSeconds, bool alwaysShowPanel = true, MapContent? content = null)
     {
-        _view.SetActive(active && (alwaysShowPanel || this.CarryingId != 0 || PlaceableCatalog.TryGet(_inventory.SlotAt(_inventory.SelectedSlot).ItemId, out _)));
-        if (!active)
+        // Another held item shows the panel again after it was closed (PlacementViewModel.Dismiss).
+        int heldNow = _inventory.SlotAt(_inventory.SelectedSlot).ItemId;
+        if (heldNow != _lastHeldItemId)
+        {
+            _lastHeldItemId = heldNow;
+            _view.ClearDismissed();
+        }
+
+        _view.SetActive(active && (alwaysShowPanel || this.CarryingId != 0 || PlaceableCatalog.TryGet(heldNow, out _)));
+        if (!active || _view.Dismissed)
         {
             this.CarryingId = 0;
             _view.SetCarrying(0);
@@ -100,6 +109,12 @@ internal sealed class PlacementActions
         }
 
         PlacementRequests requests = _view.TakeRequests();
+        if ((requests & PlacementRequests.Cancel) != 0 && this.CarryingId != 0)
+        {
+            this.CarryingId = 0;
+            _view.SetCarrying(0);
+        }
+
         bool rotate = (edges & InputEdges.Rotate) != 0 || (requests & PlacementRequests.Rotate) != 0;
         bool grab = (edges & InputEdges.Grab) != 0 || (requests & PlacementRequests.Grab) != 0;
         bool pickUp = (edges & InputEdges.PickUp) != 0 || (requests & PlacementRequests.PickUp) != 0;

@@ -24,6 +24,9 @@
   <data name="Account_PlayAsGuest" xml:space="preserve"><value>Chơi ngay với tư cách khách</value></data>
   <data name="Account_Cancel" xml:space="preserve"><value>Hủy</value></data>
   <data name="Account_Guest" xml:space="preserve"><value>Khách</value></data>
+  <data name="Account_Continue_Title" xml:space="preserve"><value>Chào mừng trở lại</value></data>
+  <data name="Account_Continue_As" xml:space="preserve"><value>Tiếp tục với {0}</value></data>
+  <data name="Account_Continue_Forget" xml:space="preserve"><value>Đăng xuất / dùng tài khoản khác</value></data>
   <data name="Account_SignedInAs" xml:space="preserve"><value>Đã đăng nhập: {0}</value></data>
   <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Bạn muốn giữ tiến trình chơi? Hãy liên kết tài khoản Google hoặc Microsoft.</value></data>
   <data name="Account_Upgrade_Action" xml:space="preserve"><value>Liên kết tài khoản</value></data>
@@ -79,6 +82,7 @@
   <data name="Tooltip_WaterCapacity" xml:space="preserve"><value>Sức chứa nước: {0}</value></data>
   <data name="Tooltip_Energy" xml:space="preserve"><value>Hồi sức lực: +{0}</value></data>
   <data name="Tooltip_Sell" xml:space="preserve"><value>Giá bán: {0} xu</value></data>
+  <data name="Tooltip_MoveSpeed" xml:space="preserve"><value>Tốc độ đi bộ: +{0}%</value></data>
   <data name="Quest_Tracker_Heading" xml:space="preserve"><value>Nhiệm vụ</value></data>
   <data name="Quest_Progress" xml:space="preserve"><value>{0}/{1}</value></data>
   <data name="Quest_Completed" xml:space="preserve"><value>Đã hoàn thành</value></data>
@@ -131,6 +135,7 @@
   <data name="Market_FeeSummary" xml:space="preserve"><value>Phí chợ {2}%: {0} xu. Bạn nhận {1} xu.</value></data>
   <data name="Market_NoneMine" xml:space="preserve"><value>Bạn chưa đăng bán món nào.</value></data>
   <data name="Market_Shipped" xml:space="preserve"><value>Đã bán được {0} xu.</value></data>
+  <data name="Toast_Repeat" xml:space="preserve"><value>{0} ×{1}</value></data>
   <data name="Market_Done_Create" xml:space="preserve"><value>Đã đăng bán.</value></data>
   <data name="Market_Done_Buy" xml:space="preserve"><value>Đã mua.</value></data>
   <data name="Market_Done_Cancel" xml:space="preserve"><value>Đã rút hàng về túi đồ.</value></data>
@@ -164,6 +169,7 @@
   <data name="Wardrobe_Slot_Shirt" xml:space="preserve"><value>Áo</value></data>
   <data name="Wardrobe_Slot_Pants" xml:space="preserve"><value>Quần</value></data>
   <data name="Wardrobe_Slot_Hat" xml:space="preserve"><value>Mũ</value></data>
+  <data name="Wardrobe_Slot_Feet" xml:space="preserve"><value>Giày</value></data>
   <data name="Wardrobe_Worn" xml:space="preserve"><value>Đang mặc</value></data>
   <data name="Wardrobe_Bag" xml:space="preserve"><value>Trong túi</value></data>
   <data name="Wardrobe_BagEmpty" xml:space="preserve"><value>Trong túi không có đồ mặc nào.</value></data>
@@ -402,6 +408,7 @@
   <data name="Settings_ScaleValue" xml:space="preserve"><value>×{0}</value></data>
   <data name="Settings_ScaleHint" xml:space="preserve"><value>Số điểm ảnh màn hình cho mỗi điểm ảnh của thế giới. Tự động chọn theo cỡ cửa sổ.</value></data>
   <data name="Settings_ShowNames" xml:space="preserve"><value>Hiện tên trên đầu nhân vật</value></data>
+  <data name="Settings_HideMinimap" xml:space="preserve"><value>Ẩn bản đồ nhỏ (minimap) ở góc phải</value></data>
   <data name="Settings_ReduceMotion" xml:space="preserve"><value>Giảm chuyển động (không mưa, tuyết, rung lắc hay hiệu ứng đánh trúng)</value></data>
   <data name="Settings_MotionAuto" xml:space="preserve"><value>Theo cài đặt của hệ thống</value></data>
   <data name="Settings_HighContrast" xml:space="preserve"><value>Chữ tương phản cao</value></data>
@@ -433,6 +440,8 @@
   <data name="Touch_Stick" xml:space="preserve"><value>Cần điều khiển di chuyển</value></data>
   <data name="Touch_Use" xml:space="preserve"><value>Dùng</value></data>
   <data name="Touch_UseLabel" xml:space="preserve"><value>Dùng vật đang cầm</value></data>
+  <data name="Touch_Run" xml:space="preserve"><value>Chạy</value></data>
+  <data name="Touch_RunLabel" xml:space="preserve"><value>Bật/tắt chạy nhanh (tốn thể lực)</value></data>
   <data name="Action_MoveUp" xml:space="preserve"><value>Đi lên</value></data>
   <data name="Action_MoveDown" xml:space="preserve"><value>Đi xuống</value></data>
   <data name="Action_MoveLeft" xml:space="preserve"><value>Đi sang trái</value></data>
@@ -455,6 +464,7 @@
   <data name="Quest_Expand" xml:space="preserve"><value>Mở rộng</value></data>
   <data name="Inventory_TakeOffHint" xml:space="preserve"><value>Nhấn để cởi ra</value></data>
   <data name="Toolbar_Shop" xml:space="preserve"><value>Cửa hàng</value></data>
+  <data name="Toolbar_Menu" xml:space="preserve"><value>Menu</value></data>
   <data name="Placement_Strip_Cancel" xml:space="preserve"><value>Hủy</value></data>
   <data name="Farm_Status_NotYourFarm" xml:space="preserve"><value>Ở vườn của người khác, bạn chỉ được tưới cây.</value></data>
   <data name="Place_Status_NotYourPlace" xml:space="preserve"><value>Chỉ chủ nhà mới sắp đặt đồ ở đây.</value></data>
@@ -502,8 +512,17 @@
   <data name="Weather_Storm" xml:space="preserve"><value>Bão</value></data>
   <data name="Weather_Snow" xml:space="preserve"><value>Tuyết</value></data>
   <data name="Calendar_Forecast" xml:space="preserve"><value>Hôm nay: {0}. Ngày mai: {1}.</value></data>
+  <data name="Today_Title" xml:space="preserve"><value>Hôm nay</value></data>
+  <data name="Today_Tip" xml:space="preserve"><value>Xem chi tiết hôm nay</value></data>
+  <data name="Today_Date" xml:space="preserve"><value>{0}, {1}</value></data>
+  <data name="Today_Weather_Today" xml:space="preserve"><value>Thời tiết hôm nay: {0}</value></data>
+  <data name="Today_Weather_Tomorrow" xml:space="preserve"><value>Thời tiết ngày mai: {0}</value></data>
+  <data name="Today_Crops" xml:space="preserve"><value>Cây trồng mùa này: {0}</value></data>
+  <data name="Today_Crops_None" xml:space="preserve"><value>Mùa này không có cây trồng nào</value></data>
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>Cây này không trồng được vào mùa này.</value></data>
-  <data name="Farm_Status_Withered" xml:space="preserve"><value>Cây đã héo vì hết mùa. Hãy gieo hạt mới lên trên.</value></data>
+  <data name="Farm_Status_Withered" xml:space="preserve"><value>Cây đã héo vì thiếu nước hoặc hết mùa. Hãy gieo hạt mới lên trên.</value></data>
+  <data name="Farm_Thirsty_Morning" xml:space="preserve"><value>{0} cây cần tưới nước</value></data>
+  <data name="Farm_Thirsty_Morning_One" xml:space="preserve"><value>1 cây cần tưới nước</value></data>
   <data name="Shop_Status_OutOfSeason" xml:space="preserve"><value>Hạt giống này không bán vào mùa này.</value></data>
   <data name="Toolbar_Friends" xml:space="preserve"><value>Bạn bè</value></data>
   <data name="Toolbar_Mail" xml:space="preserve"><value>Thư</value></data>
@@ -660,6 +679,10 @@
   <data name="Eat_Status_EnergyFull" xml:space="preserve"><value>Bạn đang đầy sức rồi.</value></data>
   <data name="Eat_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Energy_Label" xml:space="preserve"><value>Sức lực {0} / {1}</value></data>
+  <data name="Energy_Running" xml:space="preserve"><value>Đang chạy</value></data>
+  <data name="Energy_ToolUses" xml:space="preserve"><value>Khoảng {0} lần dùng công cụ còn lại</value></data>
+  <data name="Energy_ToolUses_None" xml:space="preserve"><value>Không đủ sức để dùng thêm một lần</value></data>
+  <data name="Run_OutOfEnergy" xml:space="preserve"><value>Hết sức lực, bạn không chạy được nữa.</value></data>
   <data name="Energy_Heading" xml:space="preserve"><value>Sức lực</value></data>
   <data name="Energy_Hint" xml:space="preserve"><value>Mỗi lần dùng công cụ tốn sức (liềm thì không). Sức hồi đầy khi sang ngày mới; ăn nông sản để hồi thêm.</value></data>
   <data name="Skills_Heading" xml:space="preserve"><value>Kỹ năng</value></data>
@@ -834,44 +857,130 @@
   <data name="Npc_Leave" xml:space="preserve"><value>Tạm biệt</value></data>
   <data name="Npc_seed_keeper_Name" xml:space="preserve"><value>Cô Mai</value></data>
   <data name="Npc_seed_keeper_Role" xml:space="preserve"><value>Chủ tiệm hạt giống</value></data>
-  <data name="Npc_seed_keeper_Greeting" xml:space="preserve"><value>Chào bạn! Hạt giống mùa này tươi lắm, bạn xem thử nhé.</value></data>
-  <data name="Npc_seed_keeper_Greeting_Spring" xml:space="preserve"><value>Xuân về rồi, hạt giống mới đã đủ cả. Gieo sớm thì được mùa lớn.</value></data>
-  <data name="Npc_seed_keeper_Greeting_Rain" xml:space="preserve"><value>Mưa thế này đất mềm lắm. Gieo hạt hôm nay là hợp nhất đấy, bạn vào xem nhé!</value></data>
-  <data name="Npc_seed_keeper_Greeting_Snow" xml:space="preserve"><value>Tuyết trắng thế này thì ngoài đồng chẳng trồng được gì. Vào sưởi ấm rồi xem hạt giống mùa sau nhé.</value></data>
-  <data name="Npc_seed_keeper_Talk1" xml:space="preserve"><value>Gieo đúng mùa thì hạt nào cũng lên tốt. Trái mùa là cây héo hết đấy.</value></data>
-  <data name="Npc_seed_keeper_Talk2" xml:space="preserve"><value>Tôi bán hạt giống ở đây từ hồi bé tí. Mùi đất ẩm là mùi tôi thích nhất.</value></data>
+  <data name="Npc_seed_keeper_Line_01" xml:space="preserve"><value>Chào bạn! Hạt giống mới về rồi, cứ xem thoải mái nhé.</value></data>
+  <data name="Npc_seed_keeper_Line_02" xml:space="preserve"><value>Gieo đúng mùa thì cây mới khỏe, trái mới to và đều.</value></data>
+  <data name="Npc_seed_keeper_Line_03" xml:space="preserve"><value>Mùi đất ẩm là mùi tôi thích nhất đấy.</value></data>
+  <data name="Npc_seed_keeper_Line_04" xml:space="preserve"><value>Ghé quầy tôi trước khi ra ruộng nhé, cần gì cũng có.</value></data>
+  <data name="Npc_seed_keeper_Line_05" xml:space="preserve"><value>Xuân về rồi, hạt đậu và củ cải vừa nhập về đấy.</value></data>
+  <data name="Npc_seed_keeper_Line_06" xml:space="preserve"><value>Hè nắng gắt, cà chua và dưa đang lên rất đẹp.</value></data>
+  <data name="Npc_seed_keeper_Line_07" xml:space="preserve"><value>Thu sang rồi, bí ngô và khoai lang là lúc đẹp nhất để trồng.</value></data>
+  <data name="Npc_seed_keeper_Line_08" xml:space="preserve"><value>Đông lạnh, ngoài ruộng nghỉ ngơi. Vào uống trà cho ấm đã.</value></data>
+  <data name="Npc_seed_keeper_Line_09" xml:space="preserve"><value>Mưa cả ngày, đất mềm lắm. Hôm nay gieo hạt là hợp nhất.</value></data>
+  <data name="Npc_seed_keeper_Line_10" xml:space="preserve"><value>Tuyết trắng phủ kín cả đồng rồi. Vào đây xem hạt giống mùa sau cho đỡ buồn.</value></data>
+  <data name="Npc_seed_keeper_Line_11" xml:space="preserve"><value>Sáng sớm ra ruộng là hợp nhất, sương còn đọng trên lá.</value></data>
+  <data name="Npc_seed_keeper_Line_12" xml:space="preserve"><value>Trời sắp tối rồi, nhớ tưới cây trước khi nghỉ nhé.</value></data>
+  <data name="Npc_seed_keeper_Line_13" xml:space="preserve"><value>Chào mừng bạn đến làng! Tôi là Mai, có gì cần cứ hỏi tôi.</value></data>
+  <data name="Npc_seed_keeper_Line_14" xml:space="preserve"><value>Vụ mùa đầu tiên của bạn đẹp quá. Lần sau thử trồng loại khác xem.</value></data>
+  <data name="Npc_seed_keeper_Line_15" xml:space="preserve"><value>Sáng xuân mát lắm, gieo hạt lúc này cây sẽ mọc nhanh.</value></data>
+  <data name="Npc_seed_keeper_Line_16" xml:space="preserve"><value>Trưa hè nóng, nhớ mang theo nước khi ra đồng.</value></data>
   <data name="Npc_tailor_Name" xml:space="preserve"><value>Chị Hạnh</value></data>
   <data name="Npc_tailor_Role" xml:space="preserve"><value>Thợ may</value></data>
-  <data name="Npc_tailor_Greeting" xml:space="preserve"><value>Mời bạn vào xem! Áo mới, mũ mới, vừa vặn cả.</value></data>
-  <data name="Npc_tailor_Greeting_Rain" xml:space="preserve"><value>Ướt hết áo rồi phải không! Áo mưa mới của tôi về đúng lúc, bạn vào thử nhé.</value></data>
-  <data name="Npc_tailor_Greeting_Snow" xml:space="preserve"><value>Lạnh cắt da thế này, khoác thêm áo ấm đi bạn. Áo len mới về, vừa vặn cả.</value></data>
-  <data name="Npc_tailor_Talk1" xml:space="preserve"><value>Ra đồng thì nên đội mũ rơm cho đỡ nắng, bạn nhé.</value></data>
-  <data name="Npc_tailor_Talk2" xml:space="preserve"><value>Tôi may từng đường kim mũi chỉ, bền lắm. Mặc đi cày cũng không sờn.</value></data>
+  <data name="Npc_tailor_Line_01" xml:space="preserve"><value>Vào xem thử đi, áo mới cắt vừa vặn lắm.</value></data>
+  <data name="Npc_tailor_Line_02" xml:space="preserve"><value>Quần vải này làm việc ngoài đồng vẫn bền, cứ yên tâm.</value></data>
+  <data name="Npc_tailor_Line_03" xml:space="preserve"><value>Mỗi đường kim tôi đều tự tay khâu, nên mặc lâu không sứt chỉ.</value></data>
+  <data name="Npc_tailor_Line_04" xml:space="preserve"><value>Thử đồ rồi hãy mua nhé, vừa người thì mặc mới thoải mái.</value></data>
+  <data name="Npc_tailor_Line_05" xml:space="preserve"><value>Xuân về, mũ rơm mới lên kệ rồi đấy. Đội đi gieo hạt rất mát.</value></data>
+  <data name="Npc_tailor_Line_06" xml:space="preserve"><value>Nắng hè gắt, đội mũ rơm vào cho đỡ cháy da.</value></data>
+  <data name="Npc_tailor_Line_07" xml:space="preserve"><value>Trời se lạnh rồi, mũ nỉ mới về đấy, ghé thử nhé.</value></data>
+  <data name="Npc_tailor_Line_08" xml:space="preserve"><value>Đông rét thế này, khoác áo len vào, đừng để cảm lạnh nhé.</value></data>
+  <data name="Npc_tailor_Line_09" xml:space="preserve"><value>Ướt hết rồi phải không? Vào đây tránh mưa và xem áo mới đi.</value></data>
+  <data name="Npc_tailor_Line_10" xml:space="preserve"><value>Tuyết lạnh buốt thế này, tôi vừa may xong chiếc áo len dày cho bạn.</value></data>
+  <data name="Npc_tailor_Line_11" xml:space="preserve"><value>Buổi sáng yên tĩnh, tôi thích ngồi may áo vào giờ này.</value></data>
+  <data name="Npc_tailor_Line_12" xml:space="preserve"><value>Tối rồi, đèn tiệm tôi sáng đến khuya, bạn cứ ghé nhé.</value></data>
+  <data name="Npc_tailor_Line_13" xml:space="preserve"><value>Chào bạn! Tôi là Hạnh. Thử đồ thoải mái, không ai ép mua đâu.</value></data>
+  <data name="Npc_tailor_Line_14" xml:space="preserve"><value>Ruộng có mùa thì cũng nên ăn mặc cho đẹp một chút nhé.</value></data>
+  <data name="Npc_tailor_Line_15" xml:space="preserve"><value>Sáng xuân mát, mặc áo sơ mi nhẹ đi làm là hợp nhất.</value></data>
+  <data name="Npc_tailor_Line_16" xml:space="preserve"><value>Trưa hè nóng, chọn vải thoáng mà mặc cho dễ chịu.</value></data>
   <data name="Npc_furnisher_Name" xml:space="preserve"><value>Chú Tâm</value></data>
   <data name="Npc_furnisher_Role" xml:space="preserve"><value>Chủ tiệm nội thất</value></data>
-  <data name="Npc_furnisher_Greeting" xml:space="preserve"><value>Chào bạn! Nhà đẹp thì làm việc mới vui. Xem ghế bàn nào.</value></data>
-  <data name="Npc_furnisher_Talk1" xml:space="preserve"><value>Một chiếc đèn và một chậu cây là căn phòng khác hẳn ngay.</value></data>
-  <data name="Npc_furnisher_Talk2" xml:space="preserve"><value>Đồ gỗ sồi nhà tôi dùng mấy chục năm chưa hỏng.</value></data>
+  <data name="Npc_furnisher_Line_01" xml:space="preserve"><value>Chào bạn! Nhà đẹp thì làm việc cũng thấy vui hơn.</value></data>
+  <data name="Npc_furnisher_Line_02" xml:space="preserve"><value>Đồ gỗ sồi nhà tôi dùng mấy chục năm vẫn chưa nứt.</value></data>
+  <data name="Npc_furnisher_Line_03" xml:space="preserve"><value>Một chiếc đèn và một chậu cây là căn phòng khác hẳn ngay.</value></data>
+  <data name="Npc_furnisher_Line_04" xml:space="preserve"><value>Cứ thong thả xem, món nào hợp với nhà bạn thì hãy mua.</value></data>
+  <data name="Npc_furnisher_Line_05" xml:space="preserve"><value>Xuân về, thùng hoa đang được nhiều người ưa chuộng lắm.</value></data>
+  <data name="Npc_furnisher_Line_06" xml:space="preserve"><value>Hè về rồi, nhà nào cũng cần một chiếc ghế mát để nghỉ chân.</value></data>
+  <data name="Npc_furnisher_Line_07" xml:space="preserve"><value>Thu sang, trang trí bí ngô trước cửa nhìn ấm áp lắm.</value></data>
+  <data name="Npc_furnisher_Line_08" xml:space="preserve"><value>Đông lạnh, một tấm thảm và chiếc ghế dài giữ ấm cả nhà.</value></data>
+  <data name="Npc_furnisher_Line_09" xml:space="preserve"><value>Mưa thế này, ngồi trong nhà với ghế dài và ngọn đèn là dễ chịu nhất.</value></data>
+  <data name="Npc_furnisher_Line_10" xml:space="preserve"><value>Tuyết rơi rồi, vòng hoa mùa đông trước cửa báo hiệu một mùa ấm áp.</value></data>
+  <data name="Npc_furnisher_Line_11" xml:space="preserve"><value>Buổi sáng, cửa sổ đón nắng là đẹp nhất đấy.</value></data>
+  <data name="Npc_furnisher_Line_12" xml:space="preserve"><value>Tối đến, đèn bàn làm căn nhà ấm hẳn lên.</value></data>
+  <data name="Npc_furnisher_Line_13" xml:space="preserve"><value>Chào mừng bạn! Tôi là Tâm. Nhà mới thì bắt đầu từ một chiếc ghế cũng được.</value></data>
+  <data name="Npc_furnisher_Line_14" xml:space="preserve"><value>Làm ăn khá rồi đấy. Thử sắm cho nhà một món đẹp đi.</value></data>
+  <data name="Npc_furnisher_Line_15" xml:space="preserve"><value>Sáng xuân ngồi cạnh chậu hoa đọc sách, thật là thích.</value></data>
+  <data name="Npc_furnisher_Line_16" xml:space="preserve"><value>Từ hầm mỏ về, bạn cần một chỗ ngồi êm để nghỉ đấy.</value></data>
   <data name="Npc_blacksmith_Name" xml:space="preserve"><value>Ông Cường</value></data>
   <data name="Npc_blacksmith_Role" xml:space="preserve"><value>Thợ rèn</value></data>
-  <data name="Npc_blacksmith_Greeting" xml:space="preserve"><value>Hừm, lại có khách. Cần than, quặng, hay nâng cấp nông cụ?</value></data>
-  <data name="Npc_blacksmith_Talk1" xml:space="preserve"><value>Mang quặng và than tới đây, tôi sẽ rèn cho bạn cái cuốc ra trò.</value></data>
-  <data name="Npc_blacksmith_Talk2" xml:space="preserve"><value>Dưới hầm mỏ có nhiều thứ quý, nhưng nhớ mang theo đồ ăn.</value></data>
+  <data name="Npc_blacksmith_Line_01" xml:space="preserve"><value>Hừm, khách à. Cần than, quặng, hay nâng cấp nông cụ?</value></data>
+  <data name="Npc_blacksmith_Line_02" xml:space="preserve"><value>Nông cụ tốt là nửa công việc, giữ lưỡi cho sắc vào.</value></data>
+  <data name="Npc_blacksmith_Line_03" xml:space="preserve"><value>Lò này nóng từ sáng đến tối, nhưng sắt thì không bao giờ chờ đợi.</value></data>
+  <data name="Npc_blacksmith_Line_04" xml:space="preserve"><value>Mang quặng đến đây, tôi rèn cho cái gì bền cái ấy.</value></data>
+  <data name="Npc_blacksmith_Line_05" xml:space="preserve"><value>Đất xuân mềm, dễ cày. Mang cuốc đến mài cho sắc đi.</value></data>
+  <data name="Npc_blacksmith_Line_06" xml:space="preserve"><value>Hè nóng, lò của tôi còn nóng hơn. Đừng đứng gần quá nhé.</value></data>
+  <data name="Npc_blacksmith_Line_07" xml:space="preserve"><value>Thu sang là lúc tốt để nâng cấp nông cụ trước mùa đông.</value></data>
+  <data name="Npc_blacksmith_Line_08" xml:space="preserve"><value>Đông lạnh, sắt dễ giòn, nhưng lò tôi thì không bao giờ tắt.</value></data>
+  <data name="Npc_blacksmith_Line_09" xml:space="preserve"><value>Mưa thế này thì ở xưởng là tốt nhất, tiếng búa nghe cũng vui tai.</value></data>
+  <data name="Npc_blacksmith_Line_10" xml:space="preserve"><value>Tuyết rơi, tôi đốt lò to hơn. Vào đây sưởi tay cho ấm.</value></data>
+  <data name="Npc_blacksmith_Line_11" xml:space="preserve"><value>Sáng sớm tôi bắt đầu đập sắt, tiếng búa vang cả xóm.</value></data>
+  <data name="Npc_blacksmith_Line_12" xml:space="preserve"><value>Tối rồi, than trong lò đỏ rực, nhìn đẹp lắm.</value></data>
+  <data name="Npc_blacksmith_Line_13" xml:space="preserve"><value>Chào bạn, tôi là Cường. Cần gì thì nói thẳng với tôi.</value></data>
+  <data name="Npc_blacksmith_Line_14" xml:space="preserve"><value>Đã có nông sản rồi, nâng cấp công cụ là đúng lúc đấy.</value></data>
+  <data name="Npc_blacksmith_Line_15" xml:space="preserve"><value>Dưới hầm sâu nhiều đá lắm. Nhớ mang quặng sắt lên cho tôi.</value></data>
+  <data name="Npc_blacksmith_Line_16" xml:space="preserve"><value>Trưa nay ồn quá, đừng để tiếng búa làm bạn giật mình nhé.</value></data>
   <data name="Npc_carpenter_Name" xml:space="preserve"><value>Bác Lâm</value></data>
   <data name="Npc_carpenter_Role" xml:space="preserve"><value>Thợ mộc</value></data>
-  <data name="Npc_carpenter_Greeting" xml:space="preserve"><value>À, bạn đến rồi. Chuồng gà, chuồng bò, bác dựng được hết.</value></data>
-  <data name="Npc_carpenter_Talk1" xml:space="preserve"><value>Gà cần có cỏ khô mỗi tối, bò cũng vậy. Đừng để chúng đói.</value></data>
-  <data name="Npc_carpenter_Talk2" xml:space="preserve"><value>Dựng nhà mất vài ngày, nhưng làm chắc thì dùng cả đời.</value></data>
+  <data name="Npc_carpenter_Line_01" xml:space="preserve"><value>À, bạn đến rồi. Chuồng gà, chuồng bò, bác dựng được hết.</value></data>
+  <data name="Npc_carpenter_Line_02" xml:space="preserve"><value>Gà cần cỏ khô mỗi tối, bò cũng vậy. Đừng để chúng đói.</value></data>
+  <data name="Npc_carpenter_Line_03" xml:space="preserve"><value>Dựng nhà mất vài ngày, nhưng làm chắc thì dùng cả đời.</value></data>
+  <data name="Npc_carpenter_Line_04" xml:space="preserve"><value>Gỗ tốt, đá chắc. Được nói chuyện với bạn thế này, bác cũng vui.</value></data>
+  <data name="Npc_carpenter_Line_05" xml:space="preserve"><value>Xuân về là lúc dựng chuồng mới. Đất đang mềm, dễ đào móng.</value></data>
+  <data name="Npc_carpenter_Line_06" xml:space="preserve"><value>Hè nắng, gỗ khô nhanh nên làm việc cũng nhanh hơn.</value></data>
+  <data name="Npc_carpenter_Line_07" xml:space="preserve"><value>Thu về rồi, nhớ chuẩn bị đủ cỏ khô cho mùa đông nhé.</value></data>
+  <data name="Npc_carpenter_Line_08" xml:space="preserve"><value>Đông lạnh, chuồng gà phải kín gió. Bác có vài mẹo chống gió đấy.</value></data>
+  <data name="Npc_carpenter_Line_09" xml:space="preserve"><value>Mưa rồi, mái nhà phải chắc. Bác kiểm tra từng viên ngói đây.</value></data>
+  <data name="Npc_carpenter_Line_10" xml:space="preserve"><value>Tuyết đọng trên mái, chuồng cần thêm rơm để giữ ấm cho vật nuôi.</value></data>
+  <data name="Npc_carpenter_Line_11" xml:space="preserve"><value>Sáng sớm bác đã có mặt ở xưởng, bào gỗ từ lúc trời còn tối.</value></data>
+  <data name="Npc_carpenter_Line_12" xml:space="preserve"><value>Tối rồi, nhớ dồn gà vào chuồng trước khi trời tối hẳn nhé.</value></data>
+  <data name="Npc_carpenter_Line_13" xml:space="preserve"><value>Chào bạn! Bác là Lâm. Muốn nuôi gà hay nuôi bò thì cứ hỏi bác.</value></data>
+  <data name="Npc_carpenter_Line_14" xml:space="preserve"><value>Ruộng xanh tốt thế này, sao không dựng thêm chuồng nuôi?</value></data>
+  <data name="Npc_carpenter_Line_15" xml:space="preserve"><value>Mỏ sâu vất vả lắm. Khi nào muốn nuôi thêm vật nuôi thì ghé bác nhé.</value></data>
+  <data name="Npc_carpenter_Line_16" xml:space="preserve"><value>Trưa nắng bác vẫn đứng cưa gỗ đấy. Ghé uống nước đã nào.</value></data>
   <data name="Npc_trader_Name" xml:space="preserve"><value>Anh Phát</value></data>
   <data name="Npc_trader_Role" xml:space="preserve"><value>Thương nhân</value></data>
-  <data name="Npc_trader_Greeting" xml:space="preserve"><value>Chào bạn! Có hàng gì hay muốn bán, hay muốn mua đồ của người khác?</value></data>
-  <data name="Npc_trader_Talk1" xml:space="preserve"><value>Giá ở chợ lên xuống theo người bán. Xem lịch sử giá trước khi đăng nhé.</value></data>
-  <data name="Npc_trader_Talk2" xml:space="preserve"><value>Tôi chỉ giữ chỗ cho mọi người buôn bán. Hàng nào, giá nào là do bạn quyết định.</value></data>
+  <data name="Npc_trader_Line_01" xml:space="preserve"><value>Chào bạn! Có hàng gì muốn bán, hay muốn mua đồ của người khác?</value></data>
+  <data name="Npc_trader_Line_02" xml:space="preserve"><value>Giá chợ lên xuống theo người bán. Xem lịch sử giá trước khi đăng nhé.</value></data>
+  <data name="Npc_trader_Line_03" xml:space="preserve"><value>Tôi chỉ giữ chỗ cho mọi người buôn bán. Bán gì, giá nào là do bạn.</value></data>
+  <data name="Npc_trader_Line_04" xml:space="preserve"><value>Hàng tươi bán nhanh, nhưng đừng vội bán rẻ quá.</value></data>
+  <data name="Npc_trader_Line_05" xml:space="preserve"><value>Xuân về, rau non đang lên giá đấy. Xem trước khi bán nhé.</value></data>
+  <data name="Npc_trader_Line_06" xml:space="preserve"><value>Hè đến, dưa và cà chua có nhiều người tìm mua lắm.</value></data>
+  <data name="Npc_trader_Line_07" xml:space="preserve"><value>Thu sang, hàng về nhiều nên giá có thể chùng xuống đấy.</value></data>
+  <data name="Npc_trader_Line_08" xml:space="preserve"><value>Đông lạnh, hàng khan. Ai có sẵn trong kho thì bán được giá tốt.</value></data>
+  <data name="Npc_trader_Line_09" xml:space="preserve"><value>Mưa cả ngày mà người mua vẫn đến. Hàng nào cũng có chỗ bán.</value></data>
+  <data name="Npc_trader_Line_10" xml:space="preserve"><value>Tuyết dày thế này, ai cũng mua đồ ăn để dành cả.</value></data>
+  <data name="Npc_trader_Line_11" xml:space="preserve"><value>Sáng sớm là lúc quầy tôi đông khách nhất.</value></data>
+  <data name="Npc_trader_Line_12" xml:space="preserve"><value>Chiều tối tôi đếm lại hàng. Bạn cũng nên kiểm lại túi đồ nhé.</value></data>
+  <data name="Npc_trader_Line_13" xml:space="preserve"><value>Chào bạn! Tôi là Phát. Chợ này mở cửa cho tất cả mọi người.</value></data>
+  <data name="Npc_trader_Line_14" xml:space="preserve"><value>Bán được vụ mùa đầu tiên rồi à? Chợ này là chỗ tốt để tiếp tục.</value></data>
+  <data name="Npc_trader_Line_15" xml:space="preserve"><value>Quặng từ hầm mỏ đang được giá lắm. Bạn có định bán không?</value></data>
+  <data name="Npc_trader_Line_16" xml:space="preserve"><value>Trưa đông khách, cứ xem giá thoải mái, xem không tốn đồng nào.</value></data>
   <data name="Npc_board_keeper_Name" xml:space="preserve"><value>Bà Thư</value></data>
   <data name="Npc_board_keeper_Role" xml:space="preserve"><value>Người giữ bảng tin</value></data>
-  <data name="Npc_board_keeper_Greeting" xml:space="preserve"><value>Chào bạn! Bảng tin hôm nay có việc cho cả làng đấy.</value></data>
-  <data name="Npc_board_keeper_Talk1" xml:space="preserve"><value>Cả làng góp sức thì mục tiêu nào cũng xong. Phần thưởng chia đều cho mọi người.</value></data>
-  <data name="Npc_board_keeper_Talk2" xml:space="preserve"><value>Mỗi ngày có vài yêu cầu giao hàng mới. Ai làm trước được thưởng trước.</value></data>
+  <data name="Npc_board_keeper_Line_01" xml:space="preserve"><value>Chào bạn! Hôm nay bảng tin có việc cho cả làng đấy.</value></data>
+  <data name="Npc_board_keeper_Line_02" xml:space="preserve"><value>Cả làng góp sức thì mục tiêu nào cũng xong sớm hơn.</value></data>
+  <data name="Npc_board_keeper_Line_03" xml:space="preserve"><value>Phần thưởng chia đều cho mọi người tham gia, không ai thiệt đâu.</value></data>
+  <data name="Npc_board_keeper_Line_04" xml:space="preserve"><value>Mỗi ngày có vài yêu cầu giao hàng mới. Ai làm trước được thưởng trước.</value></data>
+  <data name="Npc_board_keeper_Line_05" xml:space="preserve"><value>Xuân rồi, bảng tin có yêu cầu hạt giống và rau mới đấy.</value></data>
+  <data name="Npc_board_keeper_Line_06" xml:space="preserve"><value>Hè nắng, cả làng đang cần dưa cho buổi lễ đầu mùa.</value></data>
+  <data name="Npc_board_keeper_Line_07" xml:space="preserve"><value>Thu sang, bảng đầy yêu cầu thu hoạch. Chọn việc nào vừa sức bạn nhé.</value></data>
+  <data name="Npc_board_keeper_Line_08" xml:space="preserve"><value>Đông về, cả làng góp củi và thức ăn để cùng sưởi ấm.</value></data>
+  <data name="Npc_board_keeper_Line_09" xml:space="preserve"><value>Mưa thế này, việc trong nhà nhiều lắm. Xem bảng đi nào.</value></data>
+  <data name="Npc_board_keeper_Line_10" xml:space="preserve"><value>Tuyết rơi, bảng có thêm mấy yêu cầu cần người đi đường xa.</value></data>
+  <data name="Npc_board_keeper_Line_11" xml:space="preserve"><value>Sáng sớm tôi dán yêu cầu mới lên bảng, đến sớm sẽ có việc hay.</value></data>
+  <data name="Npc_board_keeper_Line_12" xml:space="preserve"><value>Tối đến, nhớ nộp việc trước khi tôi dọn bảng nhé.</value></data>
+  <data name="Npc_board_keeper_Line_13" xml:space="preserve"><value>Chào bạn! Tôi là Thư. Làm vài việc nhỏ trên bảng là quen ngay.</value></data>
+  <data name="Npc_board_keeper_Line_14" xml:space="preserve"><value>Bạn đã có vụ mùa đầu tiên, giờ thử nhận việc của cả làng nhé.</value></data>
+  <data name="Npc_board_keeper_Line_15" xml:space="preserve"><value>Bạn xuống tới mỏ sâu rồi, giỏi thật. Có yêu cầu quặng đang chờ đấy.</value></data>
+  <data name="Npc_board_keeper_Line_16" xml:space="preserve"><value>Trưa rồi, ai rảnh thì xem bảng nhé, còn nhiều việc chưa ai nhận.</value></data>
   <data name="Device_BlockedText" xml:space="preserve"><value>Nosum hiện chỉ chơi được trên máy tính. Hãy mở trang này trên PC nhé!</value></data>
   <data name="Device_NarrowTitle" xml:space="preserve"><value>Cửa sổ quá hẹp</value></data>
   <data name="Device_NarrowText" xml:space="preserve"><value>Hãy kéo rộng cửa sổ trình duyệt ra ít nhất {0} px để chơi.</value></data>
@@ -887,6 +996,13 @@
   <data name="Skill_Fishing" xml:space="preserve"><value>Câu cá</value></data>
   <data name="Craft_Skill_Fishing" xml:space="preserve"><value>Câu cá</value></data>
   <data name="Combat_NotEnoughMp" xml:space="preserve"><value>Không đủ MP để thi triển phép!</value></data>
+  <data name="Combat_Refused_OnCooldown" xml:space="preserve"><value>Kỹ năng này vẫn đang hồi, chưa thể thi triển!</value></data>
+  <data name="Combat_Refused_NoTarget" xml:space="preserve"><value>Không có quái vật trong tầm để thi triển!</value></data>
+  <data name="Combat_Refused_OutOfRange" xml:space="preserve"><value>Mục tiêu ở quá xa để thi triển!</value></data>
+  <data name="Combat_Refused_AlreadyFull" xml:space="preserve"><value>Máu đã đầy, không cần hồi phục!</value></data>
+  <data name="Combat_Refused_UnknownMonster" xml:space="preserve"><value>Mục tiêu không còn ở đây!</value></data>
+  <data name="Combat_Refused_UnknownSkill" xml:space="preserve"><value>Kỹ năng này không tồn tại!</value></data>
+  <data name="Combat_Refused_NotJoined" xml:space="preserve"><value>Hãy vào bản đồ trước khi thi triển kỹ năng!</value></data>
   <data name="Combat_KnockedOut" xml:space="preserve"><value>Bạn đã kiệt sức và được đưa về Nhà nông trại với lượng máu yếu!</value></data>
   <data name="Combat_Skills_Aria" xml:space="preserve"><value>Kỹ năng chiến đấu</value></data>
   <data name="Combat_Skill_Whirlwind" xml:space="preserve"><value>Xoay kiếm</value></data>
@@ -1000,14 +1116,11 @@
   <data name="Emote_Invalid" xml:space="preserve"><value>Biểu cảm này không có trên vòng.</value></data>
   <data name="Pet_Cat" xml:space="preserve"><value>Mèo</value></data>
   <data name="Pet_Dog" xml:space="preserve"><value>Chó</value></data>
-  <data name="Pet_AdoptTitle" xml:space="preserve"><value>Nhận thú cưng</value></data>
-  <data name="Pet_AdoptHint" xml:space="preserve"><value>Chọn một bạn đồng hành và đặt tên cho bạn ấy (tối đa 12 ký tự).</value></data>
   <data name="Pet_NameLabel" xml:space="preserve"><value>Tên</value></data>
   <data name="Pet_Adopt" xml:space="preserve"><value>Nhận nuôi</value></data>
   <data name="Pet_Mood" xml:space="preserve"><value>Tâm trạng</value></data>
   <data name="Pet_Pet" xml:space="preserve"><value>Vuốt ve</value></data>
   <data name="Pet_AlreadyPetted" xml:space="preserve"><value>Hôm nay bạn đã vuốt ve bạn ấy rồi.</value></data>
-  <data name="Pet_OnlyAtHome" xml:space="preserve"><value>Bạn chỉ có thể nhận thú cưng khi ở trang trại của mình.</value></data>
   <data name="Pet_Status_Ok" xml:space="preserve"><value>Xong.</value></data>
   <data name="Pet_Status_NoPet" xml:space="preserve"><value>Bạn chưa có thú cưng.</value></data>
   <data name="Pet_Status_AlreadyHasPet" xml:space="preserve"><value>Bạn đã có một thú cưng rồi.</value></data>
@@ -1051,4 +1164,55 @@
   <data name="Furniture_BlocksWalking" xml:space="preserve"><value>Chặn lối đi</value></data>
   <data name="Furniture_WalkOver" xml:space="preserve"><value>Có thể đi qua</value></data>
   <data name="Furniture_Detail" xml:space="preserve"><value>{0} · {1} · {2}</value></data>
+  <data name="Toolbar_Backpack" xml:space="preserve"><value>Túi đồ</value></data>
+  <data name="Npc_Action_Wardrobe" xml:space="preserve"><value>Tủ đồ</value></data>
+  <data name="Npc_Action_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>
+  <data name="Npc_Action_Backpack" xml:space="preserve"><value>Túi đồ</value></data>
+  <data name="Backpack_Size" xml:space="preserve"><value>Túi đồ hiện có {0} ô.</value></data>
+  <data name="Backpack_Next" xml:space="preserve"><value>Cỡ tiếp theo: {0} ô, giá {1} xu. Thêm một hàng ô.</value></data>
+  <data name="Backpack_Upgrade" xml:space="preserve"><value>Nâng cấp túi</value></data>
+  <data name="Backpack_Max" xml:space="preserve"><value>Túi đồ đã lớn nhất.</value></data>
+  <data name="Backpack_Hint" xml:space="preserve"><value>Ô mới hiện ngay trong túi đồ của bạn.</value></data>
+  <data name="Backpack_Status_Ok" xml:space="preserve"><value>Túi đồ đã được nâng cấp.</value></data>
+  <data name="Backpack_Status_NotAtCounter" xml:space="preserve"><value>Hãy đứng tại quầy của thợ may.</value></data>
+  <data name="Backpack_Status_MaxSize" xml:space="preserve"><value>Túi đồ đã lớn nhất.</value></data>
+  <data name="Backpack_Status_NotEnoughCoins" xml:space="preserve"><value>Bạn không đủ xu.</value></data>
+  <data name="Backpack_Status_Conflict" xml:space="preserve"><value>Có thay đổi cùng lúc. Hãy thử lại.</value></data>
+  <data name="Account_Status_NicknameNeedsScroll" xml:space="preserve"><value>Bạn cần một Cuộn đổi tên để đổi biệt danh. Mua ở cửa hàng quần áo.</value></data>
+  <data name="Profile_ScrollCount" xml:space="preserve"><value>Cuộn đổi tên trong túi: {0}</value></data>
+  <data name="Profile_NeedsScroll" xml:space="preserve"><value>Đổi biệt danh cần một Cuộn đổi tên. Mua ở cửa hàng quần áo.</value></data>
+  <data name="Pet_BuyHint" xml:space="preserve"><value>Mèo {0} xu, chó {1} xu. Mua ở quầy thợ mộc, rồi đặt tên cho bạn ấy.</value></data>
+  <data name="Pet_NoPetTitle" xml:space="preserve"><value>Chưa có thú cưng</value></data>
+  <data name="Pet_Rehome" xml:space="preserve"><value>Trả lại</value></data>
+  <data name="Pet_RehomeTitle" xml:space="preserve"><value>Trả lại thú cưng</value></data>
+  <data name="Pet_RehomeMessage" xml:space="preserve"><value>Trả {0} cho thợ mộc và nhận lại {1} xu? Thú cưng sẽ rời khỏi nông trại của bạn.</value></data>
+  <data name="Pet_RehomeConfirm" xml:space="preserve"><value>Trả lại</value></data>
+  <data name="Pet_RehomeCancel" xml:space="preserve"><value>Hủy</value></data>
+  <data name="Pet_Status_NotAtShop" xml:space="preserve"><value>Hãy đứng gần quầy thợ mộc ở thị trấn.</value></data>
+  <data name="Pet_Status_NotEnoughCoins" xml:space="preserve"><value>Bạn không đủ xu.</value></data>
+  <data name="Carpenter_Pets" xml:space="preserve"><value>Thú cưng</value></data>
+  <data name="Carpenter_PetHint" xml:space="preserve"><value>Mèo và chó được bán ở đây. Mỗi người chỉ nuôi một thú cưng.</value></data>
+  <data name="Carpenter_PetPrice" xml:space="preserve"><value>{0} xu</value></data>
+  <data name="Carpenter_BuyPet" xml:space="preserve"><value>Mua</value></data>
+  <data name="Carpenter_PetHave" xml:space="preserve"><value>Bạn đã có thú cưng. Hãy trả lại trước khi mua con khác.</value></data>
+  <data name="Carpenter_Tab_Goods" xml:space="preserve"><value>Hàng hóa</value></data>
+  <data name="Carpenter_Tab_Buildings" xml:space="preserve"><value>Chuồng trại</value></data>
+  <data name="Pet_Choose" xml:space="preserve"><value>Chọn</value></data>
+  <data name="Pet_NameStep" xml:space="preserve"><value>Đặt tên cho {0}</value></data>
+  <data name="Pet_NameNext" xml:space="preserve"><value>Tiếp</value></data>
+  <data name="Pet_BuyTitle" xml:space="preserve"><value>Mua thú cưng</value></data>
+  <data name="Pet_BuyMessage" xml:space="preserve"><value>Mua {0} tên {1} với giá {2} xu?</value></data>
+  <data name="Pet_BuyConfirm" xml:space="preserve"><value>Xác nhận</value></data>
+  <data name="Pet_BuyCancel" xml:space="preserve"><value>Hủy</value></data>
+  <data name="Shop_Preset_All" xml:space="preserve"><value>Tất cả</value></data>
+  <data name="Shop_Preset_Count" xml:space="preserve"><value>x{0}</value></data>
+  <data name="Shop_Block_NotEnoughCoins" xml:space="preserve"><value>Thiếu {0} xu để mua.</value></data>
+  <data name="Shop_Block_BagFull" xml:space="preserve"><value>Túi đồ đã đầy.</value></data>
+  <data name="Shop_Block_NotInSeason" xml:space="preserve"><value>Trồng vào {0}</value></data>
+  <data name="Shop_Block_SoldIn" xml:space="preserve"><value>Bán vào {0}</value></data>
+  <data name="Shop_Block_NotThisSeason" xml:space="preserve"><value>Không bán mùa này</value></data>
+  <data name="Shop_Detail_Total" xml:space="preserve"><value>Tổng: {0} xu cho {1} món</value></data>
+  <data name="Shop_Detail_After" xml:space="preserve"><value>Số dư sau khi mua: {0} xu</value></data>
+  <data name="Market_Confirm_Text" xml:space="preserve"><value>Đăng bán {1} {0} với giá {2} xu?</value></data>
+  <data name="Tooltip_RunEnergySave" xml:space="preserve"><value>Chạy tốn ít sức lực hơn: {0}%</value></data>
 </root>

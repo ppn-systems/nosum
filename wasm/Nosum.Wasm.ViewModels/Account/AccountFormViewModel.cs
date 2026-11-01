@@ -34,23 +34,38 @@ public sealed class AccountFormViewModel : IObservableViewModel
     private readonly IExternalSignIn _externalSignIn;
     private readonly ExternalSignInOptions _options;
     private readonly IStringLocalizer<Language> _text;
+    private readonly RememberedSessionViewModel _remembered;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="client">The network access.</param>
     /// <param name="externalSignIn">Runs the Google or Microsoft sign-in in the browser.</param>
     /// <param name="options">Which providers have a client id on this client.</param>
     /// <param name="text">The localizer for <c>Language.resx</c>.</param>
-    public AccountFormViewModel(IAccountClient client, IExternalSignIn externalSignIn, ExternalSignInOptions options, IStringLocalizer<Language> text)
+    /// <param name="remembered">The remembered session this browser keeps for the continue card (docs/adr/ADR-082).</param>
+    public AccountFormViewModel(
+        IAccountClient client,
+        IExternalSignIn externalSignIn,
+        ExternalSignInOptions options,
+        IStringLocalizer<Language> text,
+        RememberedSessionViewModel remembered)
     {
         ArgumentNullException.ThrowIfNull(client);
         ArgumentNullException.ThrowIfNull(externalSignIn);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(remembered);
         _client = client;
         _externalSignIn = externalSignIn;
         _options = options;
         _text = text;
+        _remembered = remembered;
     }
+
+    /// <summary>Gets the remembered session the continue card reads (docs/adr/ADR-082).</summary>
+    public RememberedSessionViewModel Remembered => _remembered;
+
+    /// <summary>Gets whether the continue card replaces the sign-in buttons: a session is remembered and nobody is signed in on this page.</summary>
+    public bool ShowsContinue => _remembered.HasRemembered && this.CurrentSession is null && this.Mode == AccountFormMode.Login;
 
     /// <summary>Raised when something the components show has changed; they re-render.</summary>
     public event Action? Changed;
@@ -204,7 +219,45 @@ public sealed class AccountFormViewModel : IObservableViewModel
     /// <param name="cancellationToken">Cancels the request.</param>
     /// <returns>A task that completes when the reply has been handled.</returns>
     public Task PlayAsGuestAsync(CancellationToken cancellationToken = default)
-        => this.RunAsync(() => _client.StartGuestAsync(UiCulture.Current, cancellationToken), isUpgrade: false);
+        => this.RunAsync(() => _client.StartGuestAsync(UiCulture.Current, cancellationToken), isUpgrade: false, RememberedAccountKind.Guest);
+
+    /// <summary>Loads the remembered session so the continue card knows whether to show. Call once, when the start screen appears.</summary>
+    /// <param name="cancellationToken">Cancels the read.</param>
+    /// <returns>A task that completes when the card's state is known.</returns>
+    public Task LoadRememberedAsync(CancellationToken cancellationToken = default) => _remembered.LoadAsync(cancellationToken);
+
+    /// <summary>
+    /// Resumes the remembered session without another sign-in (the continue card). A refusal falls back to the sign-in buttons with the reason shown.
+    /// Does nothing while a request is in flight.
+    /// </summary>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>A task that completes when the reply has been handled.</returns>
+    public Task ContinueAsync(CancellationToken cancellationToken = default)
+        => this.RunAsync(() => _remembered.ContinueAsync(cancellationToken), isUpgrade: false, kind: null);
+
+    /// <summary>Signs out the remembered session and shows the sign-in buttons (the "sign out / use another account" action).</summary>
+    /// <param name="cancellationToken">Cancels the requests.</param>
+    /// <returns>A task that completes when the sign-in buttons are shown.</returns>
+    public async Task ForgetRememberedAsync(CancellationToken cancellationToken = default)
+    {
+        if (this.IsBusy)
+        {
+            return;
+        }
+
+        this.IsBusy = true;
+        this.ErrorText = null;
+        this.Changed?.Invoke();
+        try
+        {
+            await _remembered.ForgetAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            this.IsBusy = false;
+            this.Changed?.Invoke();
+        }
+    }
 
     /// <summary>
     /// Signs in with Google or Microsoft: the provider's sign-in runs, then the server is asked to sign the account in (creating it on first use).
@@ -250,7 +303,7 @@ public sealed class AccountFormViewModel : IObservableViewModel
 
         if (!this.IsUpgradeMode)
         {
-            return this.RunAsync(() => _client.SignInWithExternalAsync(ExternalProvider.Google, idToken, UiCulture.Current, cancellationToken), isUpgrade: false);
+            return this.RunAsync(() => _client.SignInWithExternalAsync(ExternalProvider.Google, idToken, UiCulture.Current, cancellationToken), isUpgrade: false, RememberedAccountKind.Google);
         }
 
         string nickname = NicknameRules.Normalize(this.Nickname);
@@ -261,7 +314,7 @@ public sealed class AccountFormViewModel : IObservableViewModel
             return Task.CompletedTask;
         }
 
-        return this.RunAsync(() => _client.LinkExternalIdentityAsync(ExternalProvider.Google, idToken, nickname, cancellationToken), isUpgrade: true);
+        return this.RunAsync(() => _client.LinkExternalIdentityAsync(ExternalProvider.Google, idToken, nickname, cancellationToken), isUpgrade: true, RememberedAccountKind.Google);
     }
 
     /// <summary>Shows why Google's button could not sign the player in (the script did not load, or the button was not configured).</summary>
@@ -408,11 +461,12 @@ public sealed class AccountFormViewModel : IObservableViewModel
         }
 
         this.CurrentSession = null;
+        await _remembered.ClearAsync(CancellationToken.None).ConfigureAwait(false);
         this.ChangeMode(AccountFormMode.Login);
         this.SignedOut?.Invoke();
     }
 
-    private async Task RunAsync(Func<Task<AccountReply>> request, bool isUpgrade)
+    private async Task RunAsync(Func<Task<AccountReply>> request, bool isUpgrade, RememberedAccountKind? kind)
     {
         if (this.IsBusy)
         {
@@ -435,6 +489,12 @@ public sealed class AccountFormViewModel : IObservableViewModel
         finally
         {
             this.IsBusy = false;
+        }
+
+        // A sign-in or link is remembered for the continue card; a resume (kind null) renews its own record in the view model.
+        if (kind is { } remember && reply is { Status: AccountStatus.Ok, Session: { } issued })
+        {
+            await _remembered.RememberAsync(issued, remember, CancellationToken.None).ConfigureAwait(false);
         }
 
         this.ApplyReply(reply, isUpgrade);
@@ -479,6 +539,12 @@ public sealed class AccountFormViewModel : IObservableViewModel
         {
             this.IsAwaitingProvider = false;
             this.IsBusy = false;
+        }
+
+        if (reply is { Status: AccountStatus.Ok, Session: { } issued })
+        {
+            RememberedAccountKind kind = provider == ExternalProvider.Google ? RememberedAccountKind.Google : RememberedAccountKind.Microsoft;
+            await _remembered.RememberAsync(issued, kind, CancellationToken.None).ConfigureAwait(false);
         }
 
         this.ApplyReply(reply, isUpgrade);

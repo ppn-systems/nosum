@@ -185,7 +185,7 @@ def build(src, repo, tools_size, weapons_size):
         ]
     tools = Image(*tools_size)
     weapons = Image(*weapons_size)
-    with open(f'{repo}/wasm/Nosum.Wasm/Game/ItemIcons.cs', encoding='utf-8') as f:
+    with open(f'{repo}/wasm/Nosum.Wasm.ViewModels/Inventory/ItemIcons.cs', encoding='utf-8') as f:
         rows = ROW.findall(f.read())
     if not rows:
         raise SystemExit('ItemIcons.cs: no Tool(...) rows found; update tools/art_repack/tools.py')

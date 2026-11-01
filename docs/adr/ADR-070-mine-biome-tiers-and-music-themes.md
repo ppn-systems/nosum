@@ -54,3 +54,11 @@ shows (`MapSpec.MineFloor`), so the tier can be derived on both sides from the f
 
 Players want the tiers to differ in more than tint and music (new tiles, ambient loops, a biome name on the floor), which needs own art (M6) and
 new `.resx` keys (the `i18n` skill). Or the surface and the mine should not share a track: that needs more music tracks.
+
+## Amendment — species breaks follow the tiers (2026-10-31)
+
+- **Amends:** the Context and Consequences statement that monster species are not changed by this ADR. The species of each mine band now
+  follow the four biome tiers: floors 1–10, 11–20, 21–30 and 31–40. Band 3 is magma slime, skeleton warrior and goblin scout; band 4 is stone
+  golem, skeleton warrior and magma slime. Before, the species broke at floor 25, which put the stone golem on floor 26.
+- **Reason:** a species break in the middle of a biome made floor 26 a spike. See [ADR-045, D5](ADR-045-mmorpg-combat-hp-mp-and-monster-assets.md)
+  and `docs/design/combat-balance.md`.

@@ -170,14 +170,14 @@ public sealed partial class NodeWireTests
 
         public CancellationToken Timeout => _timeout.Token;
 
-        public static async Task<TestHost> StartAsync(PostgresFixture database, TimeProvider? clock = null)
+        public static async Task<TestHost> StartAsync(PostgresFixture database, TimeProvider? clock = null, bool development = true)
         {
             ushort port = GetFreePort();
             HostServices.Register(database.Options);
             TestAccounts.UseFakeVerifiers(database.Options);
 
-            // Development, so the tester grant can hand out tree seeds.
-            NetworkApplication app = Program.BuildApplication(port, clock, development: true);
+            // Development by default, so the tester tools (grant, clock, QA hook) are mapped; a Production host is started with development: false.
+            NetworkApplication app = Program.BuildApplication(port, clock, development: development);
             TestHost host = new(app, port);
             await app.ActivateAsync(host.Timeout);
             return host;
@@ -295,6 +295,7 @@ public sealed partial class NodeWireTests
                     }
                 }),
                 session.On<MoveCorrection>(c => this.Corrections.Add(new MoveCorrection { Sequence = c.Sequence, Reason = c.Reason, X = c.X, Y = c.Y })),
+                session.On<LevelUp>(p => this.LevelUps.Add((p.Skill, p.Level))),
             ];
         }
 
@@ -309,6 +310,8 @@ public sealed partial class NodeWireTests
         public Inbox<InventorySlotRow> Slots { get; } = new();
 
         public Inbox<MoveCorrection> Corrections { get; } = new();
+
+        public Inbox<(byte Skill, byte Level)> LevelUps { get; } = new();
 
         public Guid AccountId { get; private set; }
 
@@ -393,6 +396,68 @@ public sealed partial class NodeWireTests
         {
             using DevGrant request = new() { ItemId = itemId, Quantity = quantity };
             return (await _session.RequestAsync<DevGrantResult>(request, ct: ct)).Ok;
+        }
+
+        public async Task<bool> TeleportAsync(string mapId, int tileX, int tileY, CancellationToken ct)
+        {
+            using DevTeleport request = new() { MapId = mapId, TileX = tileX, TileY = tileY };
+            return (await _session.RequestAsync<DevTeleportResult>(request, ct: ct)).Ok;
+        }
+
+        public async Task<bool> SeasonAsync(int seasons, CancellationToken ct)
+        {
+            using DevSeason request = new() { Seasons = seasons };
+            return (await _session.RequestAsync<DevSeasonResult>(request, ct: ct)).Ok;
+        }
+
+        public async Task<bool> LevelUpAsync(int skill, int level, CancellationToken ct)
+        {
+            using DevLevelUp request = new() { Skill = skill, Level = level };
+            return (await _session.RequestAsync<DevLevelUpResult>(request, ct: ct)).Ok;
+        }
+
+        public async Task<bool> BiteAsync(uint castId, CancellationToken ct)
+        {
+            using DevFishingBite request = new() { CastId = castId };
+            return (await _session.RequestAsync<DevFishingBiteResult>(request, ct: ct)).Ok;
+        }
+
+        /// <summary>Probes a Development opcode with a short timeout: <see langword="true"/> when the server answered at all (a Production server does not map it).</summary>
+        public Task<bool> ProbeTeleportAsync(CancellationToken ct)
+        {
+            using DevTeleport request = new() { MapId = GameMaps.Town, TileX = 1, TileY = 1 };
+            return AnsweredAsync(() => _session.RequestAsync<DevTeleportResult>(request, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: ct), ct);
+        }
+
+        public Task<bool> ProbeSeasonAsync(CancellationToken ct)
+        {
+            using DevSeason request = new() { Seasons = 1 };
+            return AnsweredAsync(() => _session.RequestAsync<DevSeasonResult>(request, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: ct), ct);
+        }
+
+        public Task<bool> ProbeLevelUpAsync(CancellationToken ct)
+        {
+            using DevLevelUp request = new() { Skill = 1, Level = 2 };
+            return AnsweredAsync(() => _session.RequestAsync<DevLevelUpResult>(request, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: ct), ct);
+        }
+
+        public Task<bool> ProbeBiteAsync(CancellationToken ct)
+        {
+            using DevFishingBite request = new() { CastId = 1 };
+            return AnsweredAsync(() => _session.RequestAsync<DevFishingBiteResult>(request, RequestOptions.Default.WithEncrypt().WithTimeout(1500), ct: ct), ct);
+        }
+
+        private static async Task<bool> AnsweredAsync<T>(Func<ValueTask<T>> call, CancellationToken ct)
+        {
+            try
+            {
+                _ = await call();
+                return true;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
+            {
+                return false;
+            }
         }
 
         public async Task SendMoveAsync(uint sequence, float x, float y, byte facing, CancellationToken ct)

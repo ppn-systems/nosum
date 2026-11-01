@@ -32,6 +32,7 @@ public readonly record struct PlayerLookView(uint PlayerId, PlayerLook Look, str
         row.ShirtItemId = this.Look.ShirtItemId;
         row.PantsItemId = this.Look.PantsItemId;
         row.HatItemId = this.Look.HatItemId;
+        row.FeetItemId = this.Look.FeetItemId;
         row.Nickname = this.Nickname;
         row.PetKind = this.Pet.Kind;
         row.PetName = this.Pet.Name ?? string.Empty;

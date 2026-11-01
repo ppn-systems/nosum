@@ -86,6 +86,18 @@ public static class LookPalette
         _ => PlainPants,
     };
 
+    /// <summary>Returns the boots tier to draw: the band of boots.png (1 leather to 4 winged), or 0 for bare feet (docs/adr/ADR-084).</summary>
+    /// <param name="itemId">The worn boots item id, or zero.</param>
+    /// <returns>The tier, or 0.</returns>
+    public static int BootsTier(int itemId) => itemId switch
+    {
+        ItemCatalog.LeatherBoots => 1,
+        ItemCatalog.TravelerBoots => 2,
+        ItemCatalog.SwiftBoots => 3,
+        ItemCatalog.WingedBoots => 4,
+        _ => 0,
+    };
+
     /// <summary>Returns the hat to draw.</summary>
     /// <param name="itemId">The worn hat item id, or zero.</param>
     /// <param name="sprite">The frame and tint when a hat is worn.</param>
