@@ -63,6 +63,8 @@ async function boot(page, mineSetup = true) {
 // Stands the farmer beside the nearest living monster and selects the sword (slot 9).
 async function stand(page) {
   await page.evaluate(([dx, dy]) => window.nosumQa.teleportToMonster('mine1', dx, dy), [TG_DX, TG_DY]);
+  await sleep(1500);
+  await page.evaluate(([dx, dy]) => window.nosumQa.teleportToMonster('mine1', dx, dy), [TG_DX, TG_DY]);
   await sleep(1800);
   await page.keyboard.press('9');
   await sleep(300);
@@ -220,7 +222,7 @@ async function stepaway(browser) {
 async function newGuestPage(browser) {
   const ctx = await browser.newContext({ viewport: { width: W, height: H }, locale, hasTouch: TOUCH, isMobile: TOUCH });
   const page = await ctx.newPage();
-  page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text().slice(0, 240)); });
+  page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text().slice(0, 240)); if (m.text().startsWith('DBG')) say(m.text().slice(0, 240)); });
   page.on('pageerror', e => errors.push('pageerror: ' + e.message.slice(0, 240)));
   return { page, close: () => ctx.close() };
 }
