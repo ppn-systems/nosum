@@ -145,7 +145,9 @@ internal static class DbBudgetBaseline
         ["ShipItems / ship a stack at the bin"] = new(3, 3, 3, 3),
         ["StartGuest / new guest"] = new(1, 1, 1, 1),
         ["TradeConfirm / first side confirms"] = new(0, 0, 0, 0),
-        ["TradeConfirm / second side confirms: the swap"] = new(2, 1, 1, 1),
+        // Lowered 2026-11-01 (docs/adr/ADR-035 amendment 2026-11-01): the confirmations were refused as too soon on the fake clock, so the swap was never
+        // measured; the clock is now moved past the confirm lock, and the swap costs one read (the rest of the transfer is writes and the transaction).
+        ["TradeConfirm / second side confirms: the swap"] = new(1, 1, 1, 1),
         ["UnblockPlayer / unblock"] = new(1, 1, 0, 1),
         ["UpgradeCoop / warehouse to level 1"] = new(11, 1, 1, 1),
         ["UpgradeTool / hoe to copper"] = new(4, 1, 1, 1),

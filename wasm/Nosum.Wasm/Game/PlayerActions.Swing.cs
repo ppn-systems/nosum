@@ -7,10 +7,12 @@ using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Energy;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
+using Nosum.Gameplay.Nodes;
 using Nosum.Contracts.Market;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Gameplay.Skills;
 using Nosum.Wasm.Socket.Farm;
+using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.ViewModels.Audio;
 
 namespace Nosum.Wasm.Game;
@@ -25,12 +27,15 @@ internal sealed partial class PlayerActions
     // Energy "-N" labels on screen at once; the ring drops the oldest.
     internal const int FloatSlots = 4;
     private const double EnergyFloatSeconds = 0.9;
+    private const double XpFloatSeconds = 0.9;
 
     // Chests, furnaces and animals are not swung; the next action waits this long after opening or tending one.
     private const double OpenCooldownSeconds = ToolPacing.MinIntervalMs / 1000.0;
     private const double RecoverySeconds = ToolPacing.RecoveryMs / 1000.0;
 
     private readonly EnergyFloat[] _energyFloats = new EnergyFloat[FloatSlots];
+    private readonly XpFloat[] _xpFloats = new XpFloat[FloatSlots];
+    private readonly NodeChannel? _nodes;
     private double _nowSeconds;
     private double _nextUseSeconds = double.NegativeInfinity;
     private double _swingStartSeconds = double.NegativeInfinity;
@@ -47,9 +52,20 @@ internal sealed partial class PlayerActions
     private int _queuedFloatX;
     private int _queuedFloatY;
     private int _firedCost;
+
+    // Whether the queued use came from the action key with an item in hand (not the wide key or a drag), the item, and the tiles: the action key's
+    // harvest of a ripe crop with another item in hand is named on the message line (ActionKeyHarvested).
+    private bool _queuedByActionKey;
+    private int _queuedItemId;
+    private bool _firedByActionKey;
+    private int _firedItemId;
+    private int _firedTiles;
     private int _firedFloatX;
     private int _firedFloatY;
+    private NodeKind? _queuedNodeKind;
+    private NodeKind? _firedNodeKind;
     private int _nextFloat;
+    private int _nextXpFloat;
     private Facing? _turnTo;
     private bool _outdoors = true;
 
@@ -116,6 +132,36 @@ internal sealed partial class PlayerActions
         return false;
     }
 
+    /// <summary>
+    /// Gets an "+N XP" label that is still rising above a node the farmer gathered, if one is on screen (docs/adr/ADR-089 D5).
+    /// </summary>
+    /// <param name="index">Ring slot, from 0 to <see cref="FloatSlots"/> minus one.</param>
+    /// <param name="nowSeconds">Scene clock, seconds.</param>
+    /// <param name="worldX">Tile centre x, world pixels.</param>
+    /// <param name="worldY">Tile centre y, world pixels.</param>
+    /// <param name="amount">Experience gained.</param>
+    /// <param name="progress">Normalized age in <c>[0, 1)</c>.</param>
+    /// <returns><see langword="true"/> while the label is shown.</returns>
+    public bool TryGetXpFloat(int index, double nowSeconds, out int worldX, out int worldY, out int amount, out float progress)
+    {
+        XpFloat floated = _xpFloats[index];
+        double elapsed = nowSeconds - floated.StartSeconds;
+        if (floated.Amount > 0 && elapsed >= 0.0 && elapsed < XpFloatSeconds)
+        {
+            worldX = floated.X;
+            worldY = floated.Y;
+            amount = floated.Amount;
+            progress = (float)(elapsed / XpFloatSeconds);
+            return true;
+        }
+
+        worldX = 0;
+        worldY = 0;
+        amount = 0;
+        progress = 0f;
+        return false;
+    }
+
     // Starts a swing of a tool (or of bare hands and seeds): its length depends on the tool and on exhaustion, and the next action waits for it and the recovery.
     private void BeginSwing(ToolKind tool, int itemId, double nowSeconds)
     {
@@ -126,9 +172,11 @@ internal sealed partial class PlayerActions
     }
 
     // Queues a use of the held item for the hit frame of the swing just begun; the tiles of a wide use are one request.
-    private void QueueUse(int slot, int tileX, int tileY, int tiles, ToolKind tool, int tileSize)
+    private void QueueUse(int slot, int tileX, int tileY, int tiles, ToolKind tool, int tileSize, bool byActionKey = false)
     {
         _useQueued = true;
+        _queuedByActionKey = byActionKey;
+        _queuedItemId = _swingItemId;
         _useAtSeconds = _swingStartSeconds + (_swingSeconds * ToolPacing.HitFraction);
         _queuedSlot = slot;
         _queuedTileX = tileX;
@@ -139,6 +187,7 @@ internal sealed partial class PlayerActions
         _queuedCost = EnergyCostOf(tool);
         _queuedFloatX = (tileX * tileSize) + (tileSize / 2);
         _queuedFloatY = (tileY * tileSize) + (tileSize / 2);
+        _queuedNodeKind = tiles == 1 ? this.NodeKindAt(tileX, tileY) : null;
         this.PressJuice(slot, tileX, tileY, tool, tileSize);
     }
 
@@ -206,8 +255,13 @@ internal sealed partial class PlayerActions
         _useQueued = false;
         _audio?.Play(AudioCatalog.ToolSound(_queuedTool));
         _firedCost = _queuedCost;
+        _firedByActionKey = _queuedByActionKey;
+        _firedItemId = _queuedItemId;
+        _firedTiles = _queuedTiles;
         _firedFloatX = _queuedFloatX;
         _firedFloatY = _queuedFloatY;
+        _firedNodeKind = _queuedNodeKind;
+        _queuedNodeKind = null;
         if (_queuedTiles > 1)
         {
             _farm.UseArea(_queuedSlot, _queuedTileX, _queuedTileY, _queuedTiles);
@@ -219,11 +273,28 @@ internal sealed partial class PlayerActions
     }
 
     // The server's answer: energy is spent only on an outcome that worked the tile, so the label floats only then.
-    private void OnFarmUseCompleted(FarmStatus status, FarmAction action, int worked)
+    private void OnFarmUseCompleted(FarmStatus status, FarmAction action, int worked, int daysLeft)
     {
+        _ = daysLeft;
+
+        // The action key harvested a ripe crop while another item was in hand: the player is told the key did it (not the item in hand).
+        bool keyHarvest = status == FarmStatus.Ok && action == FarmAction.Harvested && _firedByActionKey && _firedTiles == 1 && _firedItemId is not (0 or ItemCatalog.Scythe);
+        _firedByActionKey = false;
+        if (keyHarvest)
+        {
+            this.ActionKeyHarvested?.Invoke();
+        }
+
         // The server charged the cost of each tile that worked, so the label is the cost of one tile times the count (docs/adr/ADR-088).
         int cost = _firedCost * worked;
         _firedCost = 0;
+        NodeKind? gathered = _firedNodeKind;
+        _firedNodeKind = null;
+        if (status == FarmStatus.Ok && gathered is { } kind && action is FarmAction.Hit or FarmAction.Broke)
+        {
+            this.ShowXpFloat(kind, action == FarmAction.Broke);
+        }
+
         if (status != FarmStatus.Ok || cost <= 0 || !ChargesEnergy(action))
         {
             return;
@@ -231,6 +302,43 @@ internal sealed partial class PlayerActions
 
         _energyFloats[_nextFloat] = new EnergyFloat(_firedFloatX, _firedFloatY, cost, _nowSeconds);
         _nextFloat = (_nextFloat + 1) % FloatSlots;
+    }
+
+    // The experience the server gives for the swing (docs/adr/ADR-089 D5): the hit that leaves the node standing gives the hit experience, the
+    // breaking hit gives the break experience of the kind. Shown over the node as "+N XP", the same ring as the energy labels.
+    private void ShowXpFloat(NodeKind kind, bool broke)
+    {
+        int xp = SkillRules.GatherXp(kind, broke);
+        if (xp <= 0)
+        {
+            return;
+        }
+
+        _xpFloats[_nextXpFloat] = new XpFloat(_firedFloatX, _firedFloatY, xp, _nowSeconds);
+        _nextXpFloat = (_nextXpFloat + 1) % FloatSlots;
+    }
+
+    // The kind of the node on a tile, read from the node list the map sent (no allocation); null when no node stands there.
+    private NodeKind? NodeKindAt(int tileX, int tileY)
+    {
+        if (_nodes is null)
+        {
+            return null;
+        }
+
+        using (_nodes.Read())
+        {
+            for (int i = 0; i < _nodes.Count; i++)
+            {
+                NodeInfo node = _nodes.At(i);
+                if (node.X == tileX && node.Y == tileY)
+                {
+                    return (NodeKind)node.Kind;
+                }
+            }
+        }
+
+        return null;
     }
 
     private static bool ChargesEnergy(FarmAction action)
@@ -260,4 +368,6 @@ internal sealed partial class PlayerActions
         => ItemCatalog.TryGet(this.HeldItemId, out ItemDefinition? held) ? held.Tool : ToolKind.None;
 
     private readonly record struct EnergyFloat(int X, int Y, int Amount, double StartSeconds);
+
+    private readonly record struct XpFloat(int X, int Y, int Amount, double StartSeconds);
 }

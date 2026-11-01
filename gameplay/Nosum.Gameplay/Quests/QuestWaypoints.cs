@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Mines;
 using Nosum.Gameplay.Npcs;
 
 namespace Nosum.Gameplay.Quests;
@@ -92,14 +93,20 @@ public static class QuestWaypoints
             places[npc.Id] = new QuestWaypoint(npc.MapId, npc.TileX, npc.TileY);
         }
 
-        foreach (string mapId in new[] { GameMaps.Forest, GameMaps.Mine })
+        // The Forest's place is the tree nearest its arrival (Forest.tmx, Paths layer, tile 11), and the Mine's is the cave shaft down to the ore
+        // (MineWorld.CaveShaft): the spawn tile is not where a player chops or mines (ADR-096 D1). Ore lies on the floors below, which are generated per player.
+        foreach ((string placeKey, string mapId, (int X, int Y) node) in new[]
+                 {
+                     (GameMaps.Forest, GameMaps.Forest, (65, 9)),
+                     (GameMaps.Mine, GameMaps.Mine, MineWorld.CaveShaft),
+                 })
         {
             if (!GameMaps.TryGet(mapId, out MapSpec? map))
             {
                 throw new InvalidOperationException("The quest place map " + mapId + " is not in the map catalogue.");
             }
 
-            places[mapId] = new QuestWaypoint(map.Id, map.SpawnTileX, map.SpawnTileY);
+            places[placeKey] = new QuestWaypoint(map.Id, node.X, node.Y);
         }
 
         return places;

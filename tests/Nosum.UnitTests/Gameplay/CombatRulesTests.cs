@@ -431,4 +431,22 @@ public sealed class CombatRulesTests
         CombatRules.GroundSlamDamage(MonsterKind.BossMagmaColossus).Should().Be(CombatRules.MonsterDamage(MonsterKind.BossMagmaColossus) * 2);
         CombatRules.GroundSlamTelegraphMs.Should().Be(1000);
     }
+
+    [Fact]
+    public void MonsterStrikeWindup_IsFourHundredMilliseconds()
+    {
+        CombatRules.MonsterStrikeWindupMs.Should().Be(400);
+    }
+
+    [Theory]
+    [InlineData(0, 0, true)]
+    [InlineData(1, 0, true)]
+    [InlineData(-1, 1, true)]
+    [InlineData(1, 1, true)]
+    [InlineData(2, 0, false)]
+    [InlineData(0, -2, false)]
+    public void IsMeleeInReach_ReachesOneTileIncludingDiagonals(int dx, int dy, bool expected)
+    {
+        CombatRules.IsMeleeInReach(dx, dy).Should().Be(expected);
+    }
 }

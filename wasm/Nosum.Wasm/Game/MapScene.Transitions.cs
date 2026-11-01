@@ -258,6 +258,24 @@ internal sealed partial class MapScene
             int rise = ViewOptions.ReduceMotion ? 0 : (int)(progress * 14f);
             _world.AddOverlay(RenderCommandBuffer.LabelTexture, labelId, 0, 0, 0, worldX, worldY - 4 - rise, worldY + 16, worldX, 9850 + i);
         }
+
+        // The experience a gathering swing gave floats higher, above the energy label (docs/adr/ADR-089 D5).
+        for (int i = 0; i < PlayerActions.FloatSlots; i++)
+        {
+            if (!_actions.TryGetXpFloat(i, _clockSeconds, out int worldX, out int worldY, out int amount, out float progress))
+            {
+                continue;
+            }
+
+            int labelId = _combatLabels.GetXpLabelId(amount);
+            if (labelId == 0)
+            {
+                continue;
+            }
+
+            int rise = ViewOptions.ReduceMotion ? 0 : (int)(progress * 14f);
+            _world.AddOverlay(RenderCommandBuffer.LabelTexture, labelId, 0, 0, 0, worldX, worldY - 16 - rise, worldY + 16, worldX, 9860 + i);
+        }
     }
 
     private void AddLabel(string? nickname, int feetX, int feetY)

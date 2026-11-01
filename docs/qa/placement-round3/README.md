@@ -12,7 +12,7 @@ Round 3 of the placement critique ([`docs/design/critique-placement.md`](../../d
 
 Frame names are the step order of the script. `notes.json` holds the strip text at each step and the recipe survey (every recipe's name, what it makes and its unlock line). `errors.txt` lists console and page errors (none in either set).
 
-Both sets use the same scripts. The "before" set was taken against a worktree of `origin/master` with its own client and server; the "after" set against this branch.
+Both sets use the same scripts. The "before" set was taken against a worktree of `origin/master` with its own client and server; the "after" set against this branch. Both were taken on 72b11f9 (the round-2 merge); `origin/master` moved to 35a7e7a before the PR, and the merge brings unrelated changes that the frames do not show. The builds and the unit suite were re-run on the merged tree.
 
 ## What was played
 

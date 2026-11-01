@@ -78,8 +78,8 @@ The large and gold tiers stay above their everyday product: a gold product is 1.
 `AnimalRulesTests.GoldProduce_SellsForHalfMoreThanTheEverydayKind`), and the large tier comes on top at up to 55 % of days. The
 figures use the everyday product, so they are a floor. Sheep were underpaid before and now sit in the band.
 
-Feeding is one ration a night (hay, or fiber from the scythe, which is free). Hay costs 10 coins at the carpenter (was 30; docs/adr/ADR-081
-amendment 2026-11-01): a fed animal costs at most 280 coins a season in hay, and every animal's season product covers it. Fiber makes feed free.
+Feeding is one ration a night (hay, or fiber from the scythe, which is free). Hay costs 12 coins at the carpenter (was 30, then 10; docs/adr/ADR-081
+amendment 2026-11-01 and its round-2 amendment): a fed animal costs at most 336 coins a season in hay, and every animal's season product covers it. Fiber makes feed free.
 
 ## Fishing: expected coins per cast
 
@@ -113,7 +113,7 @@ Energy per game day: 270, unchanged. A tool use costs 3 at the basic tier, 2 wit
 | Requests board | bin price + 30 %, +20 % in the first 4 hours | Fine: about a 1.3–1.6× premium on any item the bin buys |
 | Quests | 10 – 50 coins once | Fine: a progression nudge, not an income |
 | Community goal pools | 10 000 – 50 000 coins, shared, capped per player | Kept. The pool is now about +25 % of the bin price (was +50 %), because the bin rose with the crops. This keeps coins in circulation down |
-| Tool upgrades | copper 2 000 coins, iron 5 000 coins, plus bars | Fine: a copper tool is a quarter of a season for a forty-plot farm |
+| Tool upgrades | copper 2 000 coins, iron 8 000 coins, plus bars | Fine: a copper tool is a quarter of a season for a forty-plot farm |
 | Blacksmith ore | coal 150, copper ore 75, iron ore 150 coins | Kept as a sink: a few ore short of a bar, not a way around the mine |
 | Crafted food | fish stew sells 120; ingredients now cost about 96 at the bin | Fine: a small margin |
 | Dungeon crafts | arcane grimoire 650, heart crystal 750 | Not changed here. Their ingredients are monster drops with no bin price, so they cannot be compared yet; the combat balance pass owns them |

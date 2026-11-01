@@ -1,0 +1,137 @@
+{
+  "mode": "stepaway",
+  "size": "1280x720",
+  "locale": "vi-VN",
+  "attempts": [
+    {
+      "attempt": 1,
+      "key": "ArrowUp",
+      "control": {
+        "landing1": {
+          "hpBefore": 74,
+          "hpAfter": 66
+        },
+        "landing2": {
+          "hpBefore": 61,
+          "hpAfter": 58,
+          "gapMsFromLanding1": 1105
+        }
+      },
+      "pressOffsetMsFromLanding2": 1158,
+      "hpBeforeStep": 58,
+      "hpEnd": 37,
+      "allDropsRelToLanding2": [
+        {
+          "atRelMs": -1105,
+          "from": 74,
+          "to": 66
+        },
+        {
+          "atRelMs": -1096,
+          "from": 66,
+          "to": 61
+        },
+        {
+          "atRelMs": 0,
+          "from": 61,
+          "to": 58
+        },
+        {
+          "atRelMs": 396,
+          "from": 58,
+          "to": 50
+        },
+        {
+          "atRelMs": 411,
+          "from": 50,
+          "to": 45
+        },
+        {
+          "atRelMs": 1513,
+          "from": 45,
+          "to": 42
+        },
+        {
+          "atRelMs": 1892,
+          "from": 42,
+          "to": 37
+        }
+      ],
+      "hitsFromPlus1000": 2,
+      "success": false
+    },
+    {
+      "attempt": 2,
+      "key": "ArrowLeft",
+      "control": {
+        "landing1": {
+          "hpBefore": 80,
+          "hpAfter": 78
+        },
+        "landing2": {
+          "hpBefore": 78,
+          "hpAfter": 70,
+          "gapMsFromLanding1": 403
+        }
+      },
+      "pressOffsetMsFromLanding2": 1154,
+      "hpBeforeStep": 70,
+      "hpEnd": 62,
+      "allDropsRelToLanding2": [
+        {
+          "atRelMs": -403,
+          "from": 80,
+          "to": 78
+        },
+        {
+          "atRelMs": 0,
+          "from": 78,
+          "to": 70
+        },
+        {
+          "atRelMs": 1505,
+          "from": 70,
+          "to": 62
+        }
+      ],
+      "hitsFromPlus1000": 1,
+      "success": false
+    },
+    {
+      "attempt": 3,
+      "key": "ArrowDown",
+      "control": {
+        "landing1": {
+          "hpBefore": 92,
+          "hpAfter": 84
+        },
+        "landing2": {
+          "hpBefore": 84,
+          "hpAfter": 76,
+          "gapMsFromLanding1": 1495
+        }
+      },
+      "pressOffsetMsFromLanding2": 1201,
+      "hpBeforeStep": 76,
+      "hpEnd": 76,
+      "allDropsRelToLanding2": [
+        {
+          "atRelMs": -1495,
+          "from": 92,
+          "to": 84
+        },
+        {
+          "atRelMs": 0,
+          "from": 84,
+          "to": 76
+        }
+      ],
+      "hitsFromPlus1000": 0,
+      "success": true
+    }
+  ],
+  "voidAttempts": 0,
+  "successfulAttempts": 1,
+  "attemptsUsed": 3,
+  "errors": []
+}

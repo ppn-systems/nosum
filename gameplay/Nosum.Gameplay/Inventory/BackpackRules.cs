@@ -21,7 +21,7 @@ public static class BackpackRules
     private static readonly BackpackQuote[] s_sizes =
     [
         new(45, 600),
-        new(MaxCapacity, 1_500),
+        new(MaxCapacity, 1_000),
     ];
 
     /// <summary>Finds the size a backpack of <paramref name="capacity"/> slots can grow to next.</summary>

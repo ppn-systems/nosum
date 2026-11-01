@@ -74,7 +74,9 @@ public sealed class ToolRulesTests
     [InlineData(ItemCatalog.IronWateringCan, 5, AreaVerdict.Ok)]
     [InlineData(ItemCatalog.IronAxe, 3, AreaVerdict.NotAnAreaTool)]
     [InlineData(ItemCatalog.IronPickaxe, 5, AreaVerdict.NotAnAreaTool)]
-    [InlineData(ItemCatalog.Scythe, 3, AreaVerdict.NotAnAreaTool)]
+    [InlineData(ItemCatalog.Scythe, 1, AreaVerdict.Ok)]
+    [InlineData(ItemCatalog.Scythe, 3, AreaVerdict.Ok)]
+    [InlineData(ItemCatalog.Scythe, 5, AreaVerdict.TooWide)]
     [InlineData(ItemCatalog.ParsnipSeeds, 3, AreaVerdict.NotAnAreaTool)]
     [InlineData(ItemCatalog.IronHoe, 2, AreaVerdict.InvalidLength)]
     [InlineData(ItemCatalog.IronHoe, 0, AreaVerdict.InvalidLength)]
@@ -86,6 +88,29 @@ public sealed class ToolRulesTests
 
         ToolRules.ValidateArea(held, length).Should().Be(expected);
     }
+
+    [Theory]
+    [InlineData(ToolTier.Basic, 3)]
+    [InlineData(ToolTier.Copper, 5)]
+    [InlineData(ToolTier.Iron, 5)]
+    public void ScytheAreaLength_HasItsOwnCurve(ToolTier tier, int expected)
+        => ToolRules.ScytheAreaLength(tier).Should().Be(expected);
+
+    [Theory]
+    [InlineData(ToolKind.Hoe, ToolTier.Iron, 5)]
+    [InlineData(ToolKind.WateringCan, ToolTier.Copper, 3)]
+    [InlineData(ToolKind.Scythe, ToolTier.Basic, 3)]
+    [InlineData(ToolKind.Axe, ToolTier.Iron, 1)]
+    [InlineData(ToolKind.Pickaxe, ToolTier.Iron, 1)]
+    public void LineLength_IsTheToolsOwnLine(ToolKind tool, ToolTier tier, int expected)
+        => ToolRules.LineLength(tool, tier).Should().Be(expected);
+
+    [Theory]
+    [InlineData(ToolKind.Scythe, true)]
+    [InlineData(ToolKind.Hoe, false)]
+    [InlineData(ToolKind.WateringCan, false)]
+    public void HarvestsAlongALine_OnlyTheScythe(ToolKind tool, bool expected)
+        => ToolRules.HarvestsAlongALine(tool).Should().Be(expected);
 
     [Fact]
     public void ValidateArea_EmptyHands_OnlyASingleTile()

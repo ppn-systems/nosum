@@ -1,0 +1,202 @@
+{
+  "size": "1920x1080",
+  "shots": [
+    "arrow-town-vi-1920x1080.png",
+    "greeting-seed-keeper-vi-1920x1080.png",
+    "arrow-town-en-1920x1080.png",
+    "greeting-seed-keeper-en-1920x1080.png",
+    "arrow-forest-vi-1920x1080.png",
+    "arrow-forest-en-1920x1080.png",
+    "arrow-mine-vi-1920x1080.png",
+    "name-lift-farm-door-vi-1920x1080.png",
+    "arrow-mine-en-1920x1080.png",
+    "name-lift-farm-door-en-1920x1080.png"
+  ],
+  "metrics": {
+    "seeds-arrow-vi": {
+      "goldPixels": 925,
+      "arrowBox": {
+        "left": 1450,
+        "top": 940,
+        "right": 1495,
+        "bottom": 985
+      },
+      "arrowOverlapsHud": [
+        "div.hotbar-dock",
+        "section.game-panel.hud.bare.energy",
+        "div.game-panel-body",
+        "div.vitals-bars.",
+        "div.energy-bar.hp-bar.",
+        "span.energy-fill.hp-fill",
+        "div.emote-layer"
+      ],
+      "greenInMinimap": 100,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "greeting-vi": {
+      "expected": "Đang định trồng gì? Hạt giống mua ngay trên quầy này.",
+      "shown": true
+    },
+    "hint-vi": {
+      "hintOnScreenDuringHold": false,
+      "msFromReleaseToHint": 2399
+    },
+    "alloc-vi": {
+      "bytesPerSecond": 48555
+    },
+    "seeds-arrow-en": {
+      "goldPixels": 925,
+      "arrowBox": {
+        "left": 1450,
+        "top": 940,
+        "right": 1495,
+        "bottom": 985
+      },
+      "arrowOverlapsHud": [
+        "div.hotbar-dock",
+        "section.game-panel.hud.bare.energy",
+        "div.game-panel-body",
+        "div.vitals-bars.",
+        "div.energy-bar.hp-bar.",
+        "span.energy-fill.hp-fill",
+        "div.emote-layer"
+      ],
+      "greenInMinimap": 100,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "greeting-en": {
+      "expected": "Planning what to grow? The seeds are right here on this counter.",
+      "shown": true
+    },
+    "hint-en": {
+      "hintOnScreenDuringHold": false,
+      "msFromReleaseToHint": null
+    },
+    "alloc-en": {
+      "bytesPerSecond": 22901
+    },
+    "forest-arrow-vi": {
+      "goldPixels": 925,
+      "arrowBox": {
+        "left": 1280,
+        "top": 100,
+        "right": 1325,
+        "bottom": 145
+      },
+      "arrowOverlapsHud": [
+        "div.hud-bar",
+        "section.game-panel.hud.calendar",
+        "div.game-panel-body",
+        "p.calendar-line",
+        "span.calendar-time",
+        "div.emote-layer"
+      ],
+      "greenInMinimap": 100,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "forest-arrow-en": {
+      "goldPixels": 925,
+      "arrowBox": {
+        "left": 1280,
+        "top": 100,
+        "right": 1325,
+        "bottom": 145
+      },
+      "arrowOverlapsHud": [
+        "div.hud-bar",
+        "section.game-panel.hud.calendar",
+        "div.game-panel-body",
+        "p.calendar-line",
+        "span.calendar-time",
+        "div.emote-layer"
+      ],
+      "greenInMinimap": 100,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "mine-arrow-vi": {
+      "goldPixels": 925,
+      "arrowBox": {
+        "left": 100,
+        "top": 420,
+        "right": 145,
+        "bottom": 465
+      },
+      "arrowOverlapsHud": [
+        "div.emote-layer"
+      ],
+      "greenInMinimap": 100,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "door-vi": {
+      "goldPixels": 0,
+      "arrowBox": null,
+      "arrowOverlapsHud": [],
+      "greenInMinimap": 0,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "mine-arrow-en": {
+      "goldPixels": 925,
+      "arrowBox": {
+        "left": 100,
+        "top": 420,
+        "right": 145,
+        "bottom": 465
+      },
+      "arrowOverlapsHud": [
+        "div.emote-layer"
+      ],
+      "greenInMinimap": 100,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "door-en": {
+      "goldPixels": 0,
+      "arrowBox": null,
+      "arrowOverlapsHud": [],
+      "greenInMinimap": 0,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "errors": []
+  },
+  "errors": [],
+  "playerId": "01a1986a-7bea-7d83-a84b-eccc7786dbb3"
+}

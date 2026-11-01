@@ -1,0 +1,11 @@
+{
+  "mode": "fishing",
+  "size": "1280x720",
+  "locale": "en-US",
+  "bite": {
+    "statusAtBite": "Something is biting! Press Space or click to reel in!",
+    "inputMode": "keyboard"
+  },
+  "afterPress": "You caught Sea bass!",
+  "errors": []
+}

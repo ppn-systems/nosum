@@ -128,10 +128,37 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
     /// <summary>Gets the newest message, or <see langword="null"/> when the line is empty.</summary>
     public string? Message => _toasts.Count > 0 ? _toasts[^1].Text : null;
 
+    /// <summary>Gets the hover hint (the crop under the mouse and its growth stage), or <see langword="null"/> when there is none.</summary>
+    public string? HoverHint { get; private set; }
+
+    /// <summary>Sets or clears the hover hint; the view is told only when the text changes.</summary>
+    /// <param name="text">The text, or <see langword="null"/> to clear it.</param>
+    public void SetHoverHint(string? text)
+    {
+        if (text == this.HoverHint)
+        {
+            return;
+        }
+
+        this.HoverHint = text;
+        this.Changed?.Invoke();
+    }
+
     /// <summary>Maps a status code to its localized text.</summary>
     /// <param name="status">The server's outcome code.</param>
     /// <returns>The text, or <see langword="null"/> for <see cref="FarmStatus.Ok"/>.</returns>
     public string? TextOf(FarmStatus status) => status == FarmStatus.Ok ? null : _text["Farm_Status_" + status].Value;
+
+    /// <summary>
+    /// Maps an unripe crop and the watered days it has left to its localized text, "Not ready, 2 days left." (docs/adr/ADR-094 D2). The number comes
+    /// from the server; the words come from the resources.
+    /// </summary>
+    /// <param name="daysLeft">The watered game days still needed, one or more.</param>
+    /// <returns>The text.</returns>
+    public string TextOfNotMature(int daysLeft)
+        => daysLeft == 1
+            ? _text["Farm_Status_NotMatureOneDay"].Value
+            : string.Format(System.Globalization.CultureInfo.CurrentCulture, _text["Farm_Status_NotMatureDays"].Value, daysLeft);
 
     /// <summary>Maps a placeable status code to its localized text.</summary>
     /// <param name="status">The server's outcome code.</param>
@@ -195,13 +222,14 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
             : _text["Market_Status_" + status].Value);
     }
 
-    private void OnUseCompleted(FarmStatus status, FarmAction action, int worked)
+    private void OnUseCompleted(FarmStatus status, FarmAction action, int worked, int daysLeft)
     {
         _ = action;
         _ = worked;
 
         // A swing that came too soon is dropped without a word: the key was just held (docs/adr/ADR-021 D8).
-        if (status != FarmStatus.Cooldown && this.TextOf(status) is { } text)
+        string? text = status == FarmStatus.NotMature && daysLeft > 0 ? this.TextOfNotMature(daysLeft) : this.TextOf(status);
+        if (status != FarmStatus.Cooldown && text is not null)
         {
             this.Show(text);
         }

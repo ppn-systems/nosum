@@ -1,0 +1,182 @@
+{
+  "size": "1920x1080",
+  "shots": [
+    "arrow-town-vi-1920x1080.png",
+    "greeting-seed-keeper-vi-1920x1080.png",
+    "arrow-town-en-1920x1080.png",
+    "greeting-seed-keeper-en-1920x1080.png",
+    "arrow-forest-vi-1920x1080.png",
+    "arrow-forest-en-1920x1080.png",
+    "arrow-mine-vi-1920x1080.png",
+    "name-lift-farm-door-vi-1920x1080.png",
+    "arrow-mine-en-1920x1080.png",
+    "name-lift-farm-door-en-1920x1080.png"
+  ],
+  "metrics": {
+    "seeds-arrow-vi": {
+      "goldPixels": 925,
+      "arrowBox": {
+        "left": 265,
+        "top": 940,
+        "right": 310,
+        "bottom": 985
+      },
+      "arrowOverlapsHud": [
+        "div.emote-layer"
+      ],
+      "greenInMinimap": 100,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "greeting-vi": {
+      "expected": "Đang định trồng gì? Hạt giống mua ngay trên quầy này.",
+      "shown": true
+    },
+    "hint-vi": {
+      "hintOnScreenDuringHold": false,
+      "msFromReleaseToHint": 2381
+    },
+    "alloc-vi": {
+      "idleBytesPerSecond": 18347,
+      "heldBytesPerSecond": 21563
+    },
+    "seeds-arrow-en": {
+      "goldPixels": 925,
+      "arrowBox": {
+        "left": 265,
+        "top": 940,
+        "right": 310,
+        "bottom": 985
+      },
+      "arrowOverlapsHud": [
+        "div.emote-layer"
+      ],
+      "greenInMinimap": 100,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "greeting-en": {
+      "expected": "Planning what to grow? The seeds are right here on this counter.",
+      "shown": true
+    },
+    "hint-en": {
+      "hintOnScreenDuringHold": false,
+      "msFromReleaseToHint": null
+    },
+    "alloc-en": {
+      "idleBytesPerSecond": 17483,
+      "heldBytesPerSecond": 21579
+    },
+    "forest-arrow-vi": {
+      "goldPixels": 925,
+      "arrowBox": {
+        "left": 970,
+        "top": 100,
+        "right": 1015,
+        "bottom": 145
+      },
+      "arrowOverlapsHud": [
+        "div.emote-layer"
+      ],
+      "greenInMinimap": 100,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "forest-arrow-en": {
+      "goldPixels": 925,
+      "arrowBox": {
+        "left": 925,
+        "top": 100,
+        "right": 970,
+        "bottom": 145
+      },
+      "arrowOverlapsHud": [
+        "div.emote-layer"
+      ],
+      "greenInMinimap": 100,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "mine-arrow-vi": {
+      "goldPixels": 925,
+      "arrowBox": {
+        "left": 100,
+        "top": 395,
+        "right": 145,
+        "bottom": 440
+      },
+      "arrowOverlapsHud": [
+        "div.emote-layer"
+      ],
+      "greenInMinimap": 100,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "door-vi": {
+      "goldPixels": 0,
+      "arrowBox": null,
+      "arrowOverlapsHud": [],
+      "greenInMinimap": 0,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "mine-arrow-en": {
+      "goldPixels": 925,
+      "arrowBox": {
+        "left": 100,
+        "top": 395,
+        "right": 145,
+        "bottom": 440
+      },
+      "arrowOverlapsHud": [
+        "div.emote-layer"
+      ],
+      "greenInMinimap": 100,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "door-en": {
+      "goldPixels": 0,
+      "arrowBox": null,
+      "arrowOverlapsHud": [],
+      "greenInMinimap": 0,
+      "minimapRect": [
+        1580,
+        140,
+        300,
+        220
+      ]
+    },
+    "errors": []
+  },
+  "errors": [],
+  "playerId": "01a1987e-e65f-7456-967f-a1478c38e465"
+}

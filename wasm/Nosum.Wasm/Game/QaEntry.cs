@@ -33,6 +33,8 @@ internal static partial class QaEntry
               levelUp: (skill, level) => dev.LevelUp(skill, level),
               fishingBite: () => dev.FishingBite(),
               allocatedBytes: () => dev.AllocatedBytes(),
+              frameBodyBytes: () => dev.FrameBodyBytes(),
+              frameBodyFrames: () => dev.FrameBodyFrames(),
               springReset: () => dev.ToSpring(),
               teleportToMonster: mapId => dev.TeleportToMonster(mapId),
             });
