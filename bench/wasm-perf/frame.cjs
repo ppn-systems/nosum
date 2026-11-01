@@ -3,7 +3,9 @@
 //  1. guest sign-in, teleport to the farm, grant a hoe and seeds, till and sow a block of tiles so the map carries many plots and crops;
 //  2. idle for N seconds, then walk for N seconds: each game frame is timed around its requestAnimationFrame callback
 //     (the game loop is the one rAF callback that submits a frame; Blazor's own callbacks are rare and small);
-//  3. allocations per frame: GC.GetAllocatedBytesForCurrentThread() before and after each phase, through nosumQa.allocatedBytes().
+//  3. allocations per frame: GC.GetAllocatedBytesForCurrentThread() before and after each phase, through nosumQa.allocatedBytes(). The frame's
+//     own work (GameLoop.Frame) is counted apart, through nosumQa.frameBodyBytes(): that is the number the idle gate reads.
+//  4. --max-idle-body N (default 0): exit 1 when the idle phase's frame body allocates more than N bytes a frame (docs/adr/ADR-097 D1).
 const fs = require('fs');
 const { chromium } = require('playwright');
 
@@ -13,6 +15,7 @@ const opt = name => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] 
 const seconds = Number(opt('--seconds') || 8);
 const jsonOut = opt('--json');
 const STEP_MS = Number(opt('--step') || 260);
+const MAX_IDLE_BODY = Number(opt('--max-idle-body') ?? 0);
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 const pct = (arr, p) => { if (!arr.length) return null; const s = [...arr].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
@@ -48,10 +51,14 @@ const initScript = () => {
 async function phase(page, name, secs, act) {
   await page.evaluate(() => { const s = window.__frameStats; s.on = true; s.cb = []; s.dt = []; s.last = 0; s.draws = 0; s.fills = 0; });
   const before = await page.evaluate(() => window.nosumQa.allocatedBytes());
+  const bodyBefore = await page.evaluate(() => [window.nosumQa.frameBodyBytes(), window.nosumQa.frameBodyFrames()]);
   const end = Date.now() + secs * 1000;
   if (act) await act(end);
   else await wait(secs * 1000);
   const after = await page.evaluate(() => window.nosumQa.allocatedBytes());
+  const bodyAfter = await page.evaluate(() => [window.nosumQa.frameBodyBytes(), window.nosumQa.frameBodyFrames()]);
+  const bodyFrames = bodyAfter[1] - bodyBefore[1];
+  const bodyBytesPerFrame = bodyFrames ? Math.round(((bodyAfter[0] - bodyBefore[0]) / bodyFrames) * 10) / 10 : null;
   const s = await page.evaluate(() => { const v = window.__frameStats; v.on = false; return { cb: v.cb, dt: v.dt, draws: v.draws, fills: v.fills }; });
   const frames = s.cb.length;
   return {
@@ -60,6 +67,8 @@ async function phase(page, name, secs, act) {
     callbackP50Ms: r2(pct(s.cb, 0.5)), callbackP95Ms: r2(pct(s.cb, 0.95)), callbackMaxMs: r2(Math.max(...s.cb)),
     intervalP50Ms: r2(pct(s.dt, 0.5)), intervalP95Ms: r2(pct(s.dt, 0.95)),
     allocBytesPerFrame: frames ? Math.round((after - before) / frames) : null,
+    frameBodyBytesPerFrame: bodyBytesPerFrame,
+    frameBodyFrames: bodyFrames,
     drawImagePerFrame: frames ? r2(s.draws / frames) : null,
     fillRectPerFrame: frames ? r2(s.fills / frames) : null,
   };
@@ -133,7 +142,11 @@ async function phase(page, name, secs, act) {
 
   const onScreenCrops = await page.evaluate(() => (document.querySelector('canvas') ? 'canvas present' : 'no canvas'));
   if (opt('--shot')) await page.screenshot({ path: opt('--shot') });
-  const report = { build: base, seconds, errors: errors.length, canvas: onScreenCrops, phases: results };
+  const idle = results.find(r => r.name === 'idle');
+  const gate = { maxIdleBodyBytesPerFrame: MAX_IDLE_BODY, idleBodyBytesPerFrame: idle ? idle.frameBodyBytesPerFrame : null };
+  gate.pass = gate.idleBodyBytesPerFrame !== null && gate.idleBodyBytesPerFrame <= MAX_IDLE_BODY;
+  if (!gate.pass) process.exitCode = 1;
+  const report = { build: base, seconds, errors: errors.length, canvas: onScreenCrops, gate, phases: results };
   console.log(JSON.stringify(report, null, 2));
   if (jsonOut) fs.writeFileSync(jsonOut, JSON.stringify(report, null, 2));
   await browser.close();

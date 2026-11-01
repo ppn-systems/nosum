@@ -96,8 +96,9 @@ public struct Walker
         ArgumentNullException.ThrowIfNull(grid);
         ArgumentOutOfRangeException.ThrowIfLessThan(speedFactor, 1);
 
-        int dx = (input.HasFlag(InputState.Right) ? 1 : 0) - (input.HasFlag(InputState.Left) ? 1 : 0);
-        int dy = (input.HasFlag(InputState.Down) ? 1 : 0) - (input.HasFlag(InputState.Up) ? 1 : 0);
+        // Bit tests, not Enum.HasFlag: HasFlag boxes its argument on a runtime that does not inline it, and this runs every frame (docs/adr/ADR-097 D2).
+        int dx = ((input & InputState.Right) != 0 ? 1 : 0) - ((input & InputState.Left) != 0 ? 1 : 0);
+        int dy = ((input & InputState.Down) != 0 ? 1 : 0) - ((input & InputState.Up) != 0 ? 1 : 0);
         this.IsMoving = dx != 0 || dy != 0;
         if (!this.IsMoving)
         {
