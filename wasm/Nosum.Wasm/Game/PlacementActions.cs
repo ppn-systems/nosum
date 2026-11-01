@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Nosum.Contracts.Placeable;
 using Nosum.Core;
 using Nosum.Gameplay.Buildings;
 using Nosum.Gameplay.Farm;
@@ -33,6 +34,7 @@ internal sealed class PlacementActions
     private readonly NodeChannel? _nodes;
     private readonly HashSet<(int X, int Y)> _noReserved = [];
     private double _lastActionSeconds = double.NegativeInfinity;
+    private BuildConfirmation _buildConfirm;
     private int _rotation;
     private int _lastHeldItemId;
 
@@ -72,6 +74,9 @@ internal sealed class PlacementActions
     /// <summary>Gets whether the ghost looks placeable (the server has the last word).</summary>
     public bool GhostValid { get; private set; }
 
+    /// <summary>Gets why the ghost cannot be placed (the same codes the server answers with), or <see cref="PlaceStatus.Ok"/>.</summary>
+    public PlaceStatus GhostStatus { get; private set; }
+
     /// <summary>Gets the id of the piece being carried to a new spot, or zero.</summary>
     public int CarryingId { get; private set; }
 
@@ -104,6 +109,7 @@ internal sealed class PlacementActions
             this.CarryingId = 0;
             _view.SetCarrying(0);
             this.GhostVisible = false;
+            _view.SetGhost(false, PlaceStatus.Ok, false);
             _ = _view.TakeRequests();
             return;
         }
@@ -118,7 +124,7 @@ internal sealed class PlacementActions
         bool rotate = (edges & InputEdges.Rotate) != 0 || (requests & PlacementRequests.Rotate) != 0;
         bool grab = (edges & InputEdges.Grab) != 0 || (requests & PlacementRequests.Grab) != 0;
         bool pickUp = (edges & InputEdges.PickUp) != 0 || (requests & PlacementRequests.PickUp) != 0;
-        bool act = (edges & InputEdges.Action) != 0;
+        bool place = (edges & InputEdges.Action) != 0 || (requests & PlacementRequests.Place) != 0;
 
         // Grab starts carrying the piece in front (except unmovable buildings), or puts a carried piece back (cancels).
         if (grab)
@@ -170,6 +176,7 @@ internal sealed class PlacementActions
         if (itemId == 0 || !PlaceableCatalog.TryGet(itemId, out PlaceableDefinition? definition))
         {
             this.GhostVisible = false;
+            _view.SetGhost(false, PlaceStatus.Ok, false);
             return;
         }
 
@@ -189,12 +196,13 @@ internal sealed class PlacementActions
         this.GhostTileX = tileX;
         this.GhostTileY = tileY;
         this.GhostRotation = _rotation;
-        this.GhostValid = placedSet.Check(definition, _rotation, tileX, tileY, mapGrid, _noReserved, this.CarryingId) == PlacementVerdict.Ok
-            && !PlacedSet.CoversFeet(view, tileX, tileY, feetX, feetY, mapGrid.TileSize)
-            && this.IsGroundAndBuildingValid(definition, view, tileX, tileY, placedSet, content);
+        this.GhostStatus = this.StatusOf(definition, _rotation, tileX, tileY, view, placedSet, mapGrid, feetX, feetY, content);
+        this.GhostValid = this.GhostStatus == PlaceStatus.Ok;
         this.GhostVisible = true;
 
-        if (act && Throttle(nowSeconds, ref _lastActionSeconds))
+        // A finished building cannot be moved or stowed (docs/adr/ADR-028), so a building that looks valid needs a second press.
+        bool building = definition.Kind == PlaceableKind.Building && this.CarryingId == 0;
+        if (place && Throttle(nowSeconds, ref _lastActionSeconds))
         {
             if (this.CarryingId != 0)
             {
@@ -202,20 +210,57 @@ internal sealed class PlacementActions
                 this.CarryingId = 0;
                 _view.SetCarrying(0);
             }
+            else if (building && this.GhostValid && !_buildConfirm.Press(tileX, tileY, nowSeconds))
+            {
+                // The first press only asks; the second press on the same tile builds it.
+            }
             else
             {
                 _placed.Place(slot, tileX, tileY, _rotation);
             }
         }
+
+        _view.SetGhost(true, this.GhostStatus, building && _buildConfirm.IsArmed(nowSeconds));
     }
 
-    private bool IsGroundAndBuildingValid(PlaceableDefinition definition, PlaceableView view, int tileX, int tileY, PlacedSet placedSet, MapContent? content)
+    // Why the ghost cannot go where it is, with the server's own codes so the panel can show the same sentence the server would refuse with.
+    private PlaceStatus StatusOf(PlaceableDefinition definition, int rotation, int tileX, int tileY, PlaceableView view, PlacedSet placedSet, WalkGrid mapGrid, double feetX, double feetY, MapContent? content)
+    {
+        PlacementVerdict verdict = placedSet.Check(definition, rotation, tileX, tileY, mapGrid, _noReserved, this.CarryingId);
+        if (verdict != PlacementVerdict.Ok)
+        {
+            return verdict switch
+            {
+                PlacementVerdict.BadRotation => PlaceStatus.BadRotation,
+                PlacementVerdict.OutsideRoom => PlaceStatus.OutsideRoom,
+                PlacementVerdict.Reserved => PlaceStatus.Reserved,
+                PlacementVerdict.Overlaps => PlaceStatus.Overlaps,
+                PlacementVerdict.Tilled => PlaceStatus.Tilled,
+                PlacementVerdict.Node => PlaceStatus.NodeInTheWay,
+                _ => PlaceStatus.Blocked,
+            };
+        }
+
+        if (PlacedSet.CoversFeet(view, tileX, tileY, feetX, feetY, mapGrid.TileSize))
+        {
+            return PlaceStatus.PlayerInTheWay;
+        }
+
+        return this.GroundAndBuildingStatus(definition, view, tileX, tileY, placedSet, content);
+    }
+
+    private PlaceStatus GroundAndBuildingStatus(PlaceableDefinition definition, PlaceableView view, int tileX, int tileY, PlacedSet placedSet, MapContent? content)
     {
         if (definition.Kind == PlaceableKind.Building)
         {
-            if ((content is not null && !content.Spec.Farmable) || CountBuildings(placedSet) >= BuildingRules.MaxPerLand)
+            if (content is not null && !content.Spec.Farmable)
             {
-                return false;
+                return PlaceStatus.NotPlaceable;
+            }
+
+            if (CountBuildings(placedSet) >= BuildingRules.MaxPerLand)
+            {
+                return PlaceStatus.LimitReached;
             }
         }
 
@@ -227,7 +272,7 @@ internal sealed class PlacementActions
                 {
                     if (Math.Abs(tileX + dx - content.Spec.SpawnTileX) <= 1 && Math.Abs(tileY + dy - content.Spec.SpawnTileY) <= 1)
                     {
-                        return false;
+                        return PlaceStatus.Reserved;
                     }
                 }
             }
@@ -242,7 +287,7 @@ internal sealed class PlacementActions
                     {
                         if (Math.Abs(tileX + dx - warp.FromX) <= 1 && Math.Abs(tileY + dy - warp.FromY) <= 1)
                         {
-                            return false;
+                            return PlaceStatus.Reserved;
                         }
                     }
                 }
@@ -261,7 +306,7 @@ internal sealed class PlacementActions
                         {
                             if (_farm.TryGetTile(tileX + dx, tileY + dy, out _))
                             {
-                                return false;
+                                return PlaceStatus.Tilled;
                             }
                         }
                     }
@@ -281,14 +326,14 @@ internal sealed class PlacementActions
                         if (node.X >= tileX && node.X < tileX + view.FootprintWidth
                             && node.Y >= tileY && node.Y < tileY + view.FootprintHeight)
                         {
-                            return false;
+                            return PlaceStatus.NodeInTheWay;
                         }
                     }
                 }
             }
         }
 
-        return true;
+        return PlaceStatus.Ok;
     }
 
     private static int CountBuildings(PlacedSet placedSet)

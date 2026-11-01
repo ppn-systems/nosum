@@ -69,6 +69,8 @@
   <data name="Inventory_Close" xml:space="preserve"><value>Close</value></data>
   <data name="Inventory_Sort" xml:space="preserve"><value>Sort</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Hotbar</value></data>
+  <data name="Inventory_Hint" xml:space="preserve"><value>Click to pick up · right-click to split half · Shift+click to quick-move</value></data>
+  <data name="Inventory_HintPicked" xml:space="preserve"><value>Holding {0}: click a target slot to place, click again to put down</value></data>
   <data name="Inventory_LockHotbar" xml:space="preserve"><value>Keep hotbar when sorting</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Quantity: {0}</value></data>
   <data name="Tooltip_Tier" xml:space="preserve"><value>Tier: {0}</value></data>
@@ -103,6 +105,8 @@
   <data name="Placement_Move" xml:space="preserve"><value>Move (F)</value></data>
   <data name="Placement_Cancel" xml:space="preserve"><value>Cancel move (F)</value></data>
   <data name="Placement_Carrying" xml:space="preserve"><value>Carrying: {0}</value></data>
+  <data name="Placement_ConfirmBuild" xml:space="preserve"><value>A finished building cannot be moved or stowed. Press E again to build here.</value></data>
+  <data name="Place_Stowed" xml:space="preserve"><value>Stowed in your bag. You can place it again any time.</value></data>
   <data name="Panel_Close" xml:space="preserve"><value>Close</value></data>
   <data name="Toolbar_Label" xml:space="preserve"><value>Open a panel</value></data>
   <data name="Toolbar_Inventory" xml:space="preserve"><value>Inventory</value></data>
@@ -135,6 +139,12 @@
   <data name="Market_Shipped" xml:space="preserve"><value>Sold for {0} coins.</value></data>
   <data name="Toast_Repeat" xml:space="preserve"><value>{0} ×{1}</value></data>
   <data name="Market_Done_Create" xml:space="preserve"><value>Listed for sale.</value></data>
+  <data name="Market_Sort_Newest" xml:space="preserve"><value>Newest</value></data>
+  <data name="Market_Sort_UnitLowest" xml:space="preserve"><value>Cheapest each</value></data>
+  <data name="Market_Sort_UnitHighest" xml:space="preserve"><value>Priciest each</value></data>
+  <data name="Market_Price_Each" xml:space="preserve"><value>{0} coins ({1} each)</value></data>
+  <data name="Market_BinHint" xml:space="preserve"><value>The shipping bin pays {0} coins each, {1} for this stack.</value></data>
+  <data name="Market_Done_CreateDetail" xml:space="preserve"><value>Listed {0} × {1} for {2} coins. You receive {3} coins when it sells, after the {4}% fee.</value></data>
   <data name="Market_Done_Buy" xml:space="preserve"><value>Bought.</value></data>
   <data name="Market_Done_Cancel" xml:space="preserve"><value>Withdrawn to your inventory.</value></data>
   <data name="Market_Done_Ship" xml:space="preserve"><value>Sold.</value></data>
@@ -171,6 +181,7 @@
   <data name="Wardrobe_Worn" xml:space="preserve"><value>Worn</value></data>
   <data name="Wardrobe_Bag" xml:space="preserve"><value>In your bag</value></data>
   <data name="Wardrobe_BagEmpty" xml:space="preserve"><value>You have no clothes in your bag.</value></data>
+  <data name="Wardrobe_InstantNote" xml:space="preserve"><value>Changes apply at once and everyone on the map sees them. Change clothes in your bag.</value></data>
   <data name="Wardrobe_TakeOff" xml:space="preserve"><value>Take off</value></data>
   <data name="Wardrobe_Status_Ok" xml:space="preserve"><value>Done.</value></data>
   <data name="Wardrobe_Status_InvalidSkin" xml:space="preserve"><value>Invalid skin tone.</value></data>
@@ -294,6 +305,7 @@
   <data name="Coop_Status_MaxLevel" xml:space="preserve"><value>That upgrade is already at its highest level.</value></data>
   <data name="Coop_Status_AlreadyUpgraded" xml:space="preserve"><value>That upgrade was already bought.</value></data>
   <data name="Farm_Status_LockedLand" xml:space="preserve"><value>This part of the co-op land is not unlocked yet.</value></data>
+  <data name="Farm_Status_AlreadyWet" xml:space="preserve"><value>The soil is already wet today.</value></data>
   <data name="Place_Status_LockedLand" xml:space="preserve"><value>This part of the co-op land is not unlocked yet.</value></data>
   <data name="Nickname_Guest" xml:space="preserve"><value>Guest {0}</value></data>
   <data name="Account_Nickname" xml:space="preserve"><value>Nickname</value></data>
@@ -334,11 +346,14 @@
   <data name="Journal_Unknown" xml:space="preserve"><value>???</value></data>
   <data name="Journal_Undiscovered" xml:space="preserve"><value>Not obtained yet</value></data>
   <data name="Journal_Tip" xml:space="preserve"><value>{0}&#10;Obtained: {1}&#10;First: {2}</value></data>
+  <data name="Journal_Filter_All" xml:space="preserve"><value>All</value></data>
+  <data name="Journal_Filter_Found" xml:space="preserve"><value>Found</value></data>
+  <data name="Journal_Filter_Missing" xml:space="preserve"><value>Missing</value></data>
   <data name="Profile_Current" xml:space="preserve"><value>Current nickname: {0}</value></data>
   <data name="Profile_NewLabel" xml:space="preserve"><value>New nickname</value></data>
   <data name="Profile_Save" xml:space="preserve"><value>Change nickname</value></data>
   <data name="Profile_Rule" xml:space="preserve"><value>You can change your nickname once every 24 hours.</value></data>
-  <data name="Profile_GuestNotice" xml:space="preserve"><value>Guests keep their generated name. Link a Google or Microsoft account to choose your own nickname.</value></data>
+  <data name="Profile_GuestNotice" xml:space="preserve"><value>Guests keep a generated name. After your first quest you can link a Google or Microsoft account: your progress is kept and you choose your own nickname.</value></data>
   <data name="Profile_Changed" xml:space="preserve"><value>Your nickname is now {0}.</value></data>
   <data name="Profile_NextChange" xml:space="preserve"><value>You can change it again at {0}.</value></data>
   <data name="Shop_Title_seed_shop" xml:space="preserve"><value>Seed shop</value></data>
@@ -614,6 +629,8 @@
   <data name="Mail_Empty" xml:space="preserve"><value>Your mailbox is empty.</value></data>
   <data name="Mail_Unread" xml:space="preserve"><value>Unread</value></data>
   <data name="Mail_Collect" xml:space="preserve"><value>Collect</value></data>
+  <data name="Mail_CollectAll" xml:space="preserve"><value>Collect all ({0})</value></data>
+  <data name="Mail_HasGift" xml:space="preserve"><value>Gift</value></data>
   <data name="Mail_Collected" xml:space="preserve"><value>Collected.</value></data>
   <data name="Mail_CollectedTag" xml:space="preserve"><value>Collected</value></data>
   <data name="Mail_Delete" xml:space="preserve"><value>Delete</value></data>
@@ -696,6 +713,9 @@
   <data name="Skill_Level" xml:space="preserve"><value>Level {0}</value></data>
   <data name="Skill_MaxLevel" xml:space="preserve"><value>Max level</value></data>
   <data name="Skill_LevelUp" xml:space="preserve"><value>{0} reached level {1}!</value></data>
+  <data name="Skill_Perk" xml:space="preserve"><value>{0} tools: {1} less energy per use</value></data>
+  <data name="Tooltip_Area" xml:space="preserve"><value>Area: {0} tiles in a line</value></data>
+  <data name="Tooltip_ToolEnergy" xml:space="preserve"><value>Energy per use: {0} before the skill bonus</value></data>
   <data name="Toolbar_Skills" xml:space="preserve"><value>Skills</value></data>
   <data name="Place_Status_Tilled" xml:space="preserve"><value>You cannot place that on tilled soil.</value></data>
   <data name="Place_Status_NodeInTheWay" xml:space="preserve"><value>A tree, a stone or a weed is in the way.</value></data>
@@ -733,6 +753,7 @@
   <data name="Craft_Materials" xml:space="preserve"><value>Materials</value></data>
   <data name="Craft_Makes" xml:space="preserve"><value>Makes: {0} x{1}</value></data>
   <data name="Craft_Button" xml:space="preserve"><value>Craft</value></data>
+  <data name="Craft_ButtonMax" xml:space="preserve"><value>Craft max x{0}</value></data>
   <data name="Craft_ButtonMany" xml:space="preserve"><value>Craft x{0}</value></data>
   <data name="Craft_Unlock" xml:space="preserve"><value>Requires {0} level {1}</value></data>
   <data name="Craft_Locked" xml:space="preserve"><value>Locked</value></data>
@@ -802,7 +823,7 @@
   <data name="Animal_chicken_Name" xml:space="preserve"><value>Chicken</value></data>
   <data name="Animal_cow_Name" xml:space="preserve"><value>Cow</value></data>
   <data name="Building_Done_Commission" xml:space="preserve"><value>The blueprint is in your bag. Set it down on the ground.</value></data>
-  <data name="Building_Done_BuyAnimal" xml:space="preserve"><value>Bought, and on its way to the barn.</value></data>
+  <data name="Building_Done_BuyAnimal" xml:space="preserve"><value>Bought, and on its way to its new home.</value></data>
   <data name="Building_Done_Feed" xml:space="preserve"><value>You filled the feeding bench.</value></data>
   <data name="Building_Done_Pet" xml:space="preserve"><value>You pet {0}. Friendship: {1}.</value></data>
   <data name="Building_Done_Collect" xml:space="preserve"><value>You got {0}.</value></data>
@@ -1141,6 +1162,7 @@
   <data name="Shop_Confirm_No" xml:space="preserve"><value>Cancel</value></data>
   <data name="Settings_TouchControls" xml:space="preserve"><value>On-screen touch controls</value></data>
   <data name="Settings_Haptics" xml:space="preserve"><value>Vibrate on purchases and sales</value></data>
+  <data name="Settings_Feedback" xml:space="preserve"><value>Feedback</value></data>
   <data name="Account_Provider_Guidance" xml:space="preserve"><value>Google and Microsoft sign-in is off on this server. Play as a guest instead.</value></data>
   <data name="Game_Start_Step_Connect" xml:space="preserve"><value>Connecting to the server…</value></data>
   <data name="Game_Start_Step_Assets" xml:space="preserve"><value>Loading graphics and sound…</value></data>

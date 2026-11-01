@@ -1,0 +1,14 @@
+01-start: after guest sign-in: farmer on the farm, hoe selected
+02-faced-down: walked one tile south (facing the untilled soil)
+03-till-1: E with hoe: tile tilled (presses: 1)
+04-till-again: E again on the same tilled tile (refused?)  | toast="Đất đã được xới rồi."
+05-plant: seeds selected, E: planted (presses: 1)
+06-water: can selected, E: watered (presses: 1)
+07-water-again: E again with can on wet soil  | toast="Dùng vật phẩm này ở đây không có tác dụng."
+grant copper hoe -> undefined
+08-copper-hoe-held: copper hoe granted to slot 9 and selected (area tool, R)
+09-area-till: R with copper hoe: wide till (3 tiles), presses: 1
+advance clock 4 days -> undefined
+10-grown: after 4 game days: crop growth stage visible?
+11-harvest-try: seeds still held; E on the ripe crop harvests
+12-after-harvest: after E: harvest outcome and produce  | toast="Chỗ này đã có cây trồng."

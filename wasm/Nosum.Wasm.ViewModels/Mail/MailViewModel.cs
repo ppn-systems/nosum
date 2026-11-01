@@ -41,6 +41,7 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
     private readonly NicknameFormatter _names;
     private readonly Func<long> _nowMs;
     private readonly HashSet<Guid> _collecting = [];
+    private readonly Queue<Guid> _collectQueue = new();
     private bool _open;
 
     /// <summary>Initializes the view model.</summary>
@@ -153,6 +154,48 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
         this.Raise();
     }
 
+    /// <summary>Gets how many mails still have a gift to collect now (the count on the "collect all" button).</summary>
+    public int CollectableCount
+    {
+        get
+        {
+            int count = 0;
+            foreach (MailDisplay mail in this.Mails)
+            {
+                if (mail.CanCollect)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+    }
+
+    /// <summary>
+    /// Collects the gifts of every mail that still has one, one after another: the server settles each gift against the same bag and
+    /// wallet, so a request sent while another is in flight could be refused. The next gift is sent when the last one is accepted;
+    /// a refusal stops the run and its reason stays on the status line.
+    /// </summary>
+    public void CollectAll()
+    {
+        if (_collecting.Count > 0)
+        {
+            return;
+        }
+
+        _collectQueue.Clear();
+        foreach (MailDisplay mail in this.Mails)
+        {
+            if (mail.CanCollect)
+            {
+                _collectQueue.Enqueue(mail.Id);
+            }
+        }
+
+        this.CollectNextQueued();
+    }
+
     /// <summary>Deletes a mail.</summary>
     /// <param name="mailId">The mail.</param>
     public void Delete(Guid mailId)
@@ -194,11 +237,32 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
         _collecting.Clear();
         if (status != MailStatus.Ok)
         {
+            _collectQueue.Clear();
             this.SetStatus(this.StatusText(status));
+            return;
         }
-        else
+
+        this.SetStatus(action == MailAction.Collect ? this.Text("Mail_Collected") : string.Empty, good: true);
+        if (action == MailAction.Collect)
         {
-            this.SetStatus(action == MailAction.Collect ? this.Text("Mail_Collected") : string.Empty, good: true);
+            this.CollectNextQueued();
+        }
+    }
+
+    // Sends the next queued gift that is still collectable; an empty queue ends the run.
+    private void CollectNextQueued()
+    {
+        while (_collectQueue.Count > 0)
+        {
+            Guid next = _collectQueue.Dequeue();
+            foreach (MailDisplay mail in this.Mails)
+            {
+                if (mail.Id == next && mail.CanCollect)
+                {
+                    this.Collect(next);
+                    return;
+                }
+            }
         }
     }
 

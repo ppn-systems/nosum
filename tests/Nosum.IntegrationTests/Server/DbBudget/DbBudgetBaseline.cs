@@ -35,7 +35,9 @@ internal static class DbBudgetBaseline
         ["BrowseListings / empty market, page 0, asked again"] = new(2, 0, 0, 0),
         ["BrowseListings / one listing on the page"] = new(2, 0, 0, 0),
         ["BuyFromShop / buy seeds"] = new(3, 3, 3, 3),
-        ["BuyListing / buy one listing"] = new(6, 2, 1, 2),
+        // Lowered 2026-11-01 (docs/adr/ADR-035 amendment 2026-11-01; docs/adr/ADR-013 A9): the listing is read once under the listing lock and the save is a
+        // compare-and-set on its status; the two wallets come in one query. 6 reads become 4: the two mail reads are the sale notice.
+        ["BuyListing / buy one listing"] = new(4, 2, 1, 2),
         ["CancelListing / cancel own listing"] = new(3, 1, 1, 1),
         ["CastRod / at the sea with a rod"] = new(0, 1, 0, 1),
         ["ChestMove / five parsnips into the chest"] = new(1, 1, 1, 1),

@@ -21,8 +21,11 @@ namespace Nosum.Wasm.Game;
 /// </summary>
 internal sealed class PlacedObjectsDecorator : IMapDecorator
 {
-    // Multiply tint of a ghost that cannot be placed there (RRGGBBAA).
-    private static readonly int s_invalidTint = unchecked((int)0xFF7070FF);
+    // Multiply tint of a ghost that cannot be placed there (RRGGBBAA): a strong red, so it reads as "no" next to a placed piece.
+    private static readonly int s_invalidTint = unchecked((int)0xFF5A5AFF);
+
+    // Multiply tint of a ghost that can be placed there: a clear green, so the valid spot does not look like the piece already placed (ADR-015 D10).
+    private static readonly int s_validTint = unchecked((int)0xB4FFB4FF);
 
     // Multiply tint of a building that is still being built: dull and bluish, so it reads as scaffolding (docs/adr/ADR-028 D1).
     private static readonly int s_scaffoldTint = unchecked((int)0x8C94B4FF);
@@ -88,6 +91,7 @@ internal sealed class PlacedObjectsDecorator : IMapDecorator
         int baseY = (tileY + view.FootprintHeight) * _tileSize;
         int left = tileX * _tileSize;
         int tint = ghost && !valid ? s_invalidTint
+            : ghost ? s_validTint
             : definition.Kind == PlaceableKind.Building && !ghost && _buildings is not null && _buildings.IsUnderConstruction(placedId) ? s_scaffoldTint
             : RenderCommandBuffer.NoTint;
 

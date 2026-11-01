@@ -101,9 +101,9 @@ public sealed class CoopLandTests : IClassFixture<PostgresFixture>, IDisposable
         Stand(founder, coop, x, y);
         Stand(member, coop, x, y);
 
-        (await UseAsync(founder, FarmItem.Hoe, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Tilled));
-        (await UseAsync(founder, FarmItem.Seed, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Planted));
-        (await UseAsync(member, FarmItem.Can, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Watered), "a member may water what another planted");
+        (await UseAsync(founder, FarmItem.Hoe, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Tilled, Worked: 1));
+        (await UseAsync(founder, FarmItem.Seed, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Planted, Worked: 1));
+        (await UseAsync(member, FarmItem.Can, x, y)).Should().Be(new FarmUseOutcome(FarmStatus.Ok, FarmAction.Watered, Worked: 1), "a member may water what another planted");
         (await UseAsync(member, FarmItem.Hoe, x, y)).Status.Should().NotBe(FarmStatus.Ok, "an unripe crop is not harvested");
         await GrowParsnipAsync(member, x, y);
         FarmUseOutcome harvest = await UseAsync(member, FarmItem.Hoe, x, y);

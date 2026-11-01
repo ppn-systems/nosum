@@ -79,3 +79,11 @@ No combat. The blacksmith page is the lower part of the blacksmith's shop tab (`
 - A stone or ore node can stand in a one-tile corridor and wall off the rest of a cave. Everything is breakable with the pickaxe the starter kit gives, so the player is never stuck, but a floor can need clearing.
 - The layouts are the early content's own and have void tiles outside the caves that the walk grid treats as walkable if a gap connects them; the planner only places nodes on tiles reachable from the arrival tile.
 - Tool art is cut from the early sheets (ADR-007) and the ladder reuses the mine sheet's ladder top; both are replaced with the rest of the art in M6.
+
+## Amendments
+
+### 2026-11-01 - the elevator picker closes on a map change (combat critique)
+
+- The mine elevator picker stayed open when the player changed map by another route: a teleport, a knock-out carried back to the farm, or a warp. It
+  covered the map the player was now on. `ClientWiring` closes the picker on `PlayerChannel.Joined`, which the client raises on every join and map
+  change. Riding the lift still closes it as before. No wire or server change.

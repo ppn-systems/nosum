@@ -71,26 +71,55 @@ public sealed class JournalViewModel : PanelViewModel
     /// <summary>Gets the zero-based page the journal shows.</summary>
     public int Page { get; private set; }
 
-    /// <summary>Gets the number of pages of the catalogue (at least one).</summary>
-    public static int PageCount => Math.Max(1, (Total + CellsPerPage - 1) / CellsPerPage);
+    /// <summary>Gets which items the grid shows: every item, only the obtained ones, or only the missing ones (docs/design/critique-npc-hud.md).</summary>
+    public JournalFilter Filter { get; private set; }
 
-    /// <summary>Gets the cells on the current page.</summary>
+    /// <summary>Gets the number of pages of the cells the filter shows (at least one).</summary>
+    public int PageCount => Math.Max(1, (this.FilteredCells().Count + CellsPerPage - 1) / CellsPerPage);
+
+    /// <summary>Gets the cells on the current page, after the filter.</summary>
     public List<JournalCell> PageCells()
     {
-        int page = Math.Min(this.Page, PageCount - 1);
-        return this.Cells().Skip(page * CellsPerPage).Take(CellsPerPage).ToList();
+        int page = Math.Min(this.Page, this.PageCount - 1);
+        return this.FilteredCells().Skip(page * CellsPerPage).Take(CellsPerPage).ToList();
     }
 
     /// <summary>Shows another page of the journal.</summary>
     /// <param name="page">The zero-based page; clamped to the pages there are.</param>
     public void GoToPage(int page)
     {
-        int next = Math.Clamp(page, 0, PageCount - 1);
+        int next = Math.Clamp(page, 0, this.PageCount - 1);
         if (next != this.Page)
         {
             this.Page = next;
             this.Raise();
         }
+    }
+
+    /// <summary>Shows only the items the filter names, from the first page. Local to the panel: nothing is asked of the server.</summary>
+    /// <param name="filter">The filter.</param>
+    public void SetFilter(JournalFilter filter)
+    {
+        if (filter != this.Filter)
+        {
+            this.Filter = filter;
+            this.Page = 0;
+            this.Raise();
+        }
+    }
+
+    /// <summary>Gets the cells the filter keeps, in catalogue order.</summary>
+    /// <returns>The cells, every one of them when the filter is <see cref="JournalFilter.All"/>.</returns>
+    public List<JournalCell> FilteredCells()
+    {
+        List<JournalCell> cells = this.Cells();
+        if (this.Filter == JournalFilter.All)
+        {
+            return cells;
+        }
+
+        bool wantFound = this.Filter == JournalFilter.Found;
+        return cells.FindAll(cell => cell.Discovered == wantFound);
     }
 
     /// <summary>Builds one cell per catalogue item, in catalogue order.</summary>
@@ -128,6 +157,19 @@ public sealed class JournalViewModel : PanelViewModel
 
     private static string FormatDate(long unixSeconds)
         => DateTimeOffset.FromUnixTimeSeconds(unixSeconds).ToLocalTime().ToString("d", CultureInfo.CurrentCulture);
+}
+
+/// <summary>Which journal cells the grid shows.</summary>
+public enum JournalFilter
+{
+    /// <summary>Every item of the catalogue.</summary>
+    All = 0,
+
+    /// <summary>Only the items the farmer has obtained.</summary>
+    Found = 1,
+
+    /// <summary>Only the items the farmer has not obtained yet.</summary>
+    Missing = 2,
 }
 
 /// <summary>One journal slot: the item's display and whether the farmer has obtained it.</summary>

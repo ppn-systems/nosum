@@ -338,6 +338,30 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
     }
 
     [Fact]
+    public async Task Browse_SortsByUnitPrice_LowestAndHighestFirst()
+    {
+        // Stacks of different sizes compare on what one unit costs (docs/adr/ADR-013 amendment 2026-11-01): 40 for two is 20 each, 50 for five is 10, 30 for one is 30.
+        Guid seller = await CreatePlayerAsync();
+        _ = await _inventory.AddAsync(seller, ItemCatalog.Potato, 20, "test.setup");
+        foreach ((int quantity, long price) in new[] { (2, 40L), (5, 50L), (1, 30L) })
+        {
+            _clock.Advance(TimeSpan.FromSeconds(1));
+            int slot = await SlotOfAsync(seller, ItemCatalog.Potato);
+            (await _market.CreateListingAsync(seller, slot, ItemCatalog.Potato, quantity, price)).Should().Be(MarketStatus.Ok);
+        }
+
+        ListingsPageView lowest = await _market.BrowseAsync(0, [ItemCatalog.Potato], MarketSort.UnitPriceLowest);
+        ListingsPageView highest = await _market.BrowseAsync(0, [ItemCatalog.Potato], MarketSort.UnitPriceHighest);
+        ListingsPageView newest = await _market.BrowseAsync(0, [ItemCatalog.Potato], MarketSort.Newest);
+
+        static long[] Units(ListingsPageView page) => [.. page.Listings.Select(l => l.Price / l.Quantity)];
+        Units(lowest).Should().BeInAscendingOrder();
+        Units(highest).Should().BeInDescendingOrder();
+        Units(lowest).Should().Contain(10L).And.Contain(20L).And.Contain(30L);
+        newest.Listings.Select(l => l.ExpiresAt).Should().BeInDescendingOrder(); // a listing lasts the same time: later listings expire later
+    }
+
+    [Fact]
     public async Task Browse_PagesNewestFirstAndFiltersByItem()
     {
         Guid seller = await CreatePlayerAsync();

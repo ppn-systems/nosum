@@ -108,10 +108,11 @@ public sealed class MarketChannel
     /// <summary>Reads a page of listings.</summary>
     /// <param name="page">Page number, zero based.</param>
     /// <param name="itemIds">Only these items; empty for all.</param>
-    public void Browse(int page, IReadOnlyList<int> itemIds)
+    /// <param name="sort">The order of the page (a <see cref="MarketSort"/> value); newest first by default.</param>
+    public void Browse(int page, IReadOnlyList<int> itemIds, MarketSort sort = MarketSort.Newest)
     {
         ArgumentNullException.ThrowIfNull(itemIds);
-        _ = this.BrowseAsync(page, itemIds);
+        _ = this.BrowseAsync(page, itemIds, (int)sort);
     }
 
     /// <summary>Reads the daily price history of one item.</summary>
@@ -154,12 +155,13 @@ public sealed class MarketChannel
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "A lost read changes nothing; the player asks again.")]
-    private async Task BrowseAsync(int page, IReadOnlyList<int> itemIds)
+    private async Task BrowseAsync(int page, IReadOnlyList<int> itemIds, int sortBy)
     {
         try
         {
             using PacketScope<BrowseListings> request = PacketFactory<BrowseListings>.Acquire();
             request.Value.Page = page;
+            request.Value.SortBy = sortBy;
             request.Value.ItemIds.Clear();
             request.Value.ItemIds.AddRange(itemIds);
             ListingsPage reply = await _socket.RequestAsync<ListingsPage>(request.Value).ConfigureAwait(false);

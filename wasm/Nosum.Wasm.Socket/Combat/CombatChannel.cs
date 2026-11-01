@@ -54,6 +54,12 @@ public sealed partial class CombatChannel : IDisposable
     public const int ImpactFinisher = 2;
 
     private int _hp = 100;
+
+    // The last damage number shown for the farmer: the HP after that hit, its amount and when it showed (docs/adr/ADR-055 amendment).
+    private const long DuplicateHitWindowMs = 1500;
+    private int _lastHitHpAfter = -1;
+    private int _lastHitAmount;
+    private long _lastHitShownAt;
     private int _maxHp = 100;
     private int _mp = 50;
     private int _maxMp = 50;
@@ -468,10 +474,7 @@ public sealed partial class CombatChannel : IDisposable
                     this.SpawnFloatingText((m.X * 16) + 8, (m.Y * 16) - 6, reply.DamageDealt, style);
                 }
 
-                if (reply.DamageTaken > 0)
-                {
-                    this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, reply.DamageTaken, 2);
-                }
+                this.AnnouncePlayerDamage(reply.Hp, reply.DamageTaken, 2);
 
                 this.RecordMonsterHit(reply.MonsterId, impact);
                 this.UpdateMonsterHp(reply.MonsterId, reply.MonsterHp);
@@ -504,6 +507,7 @@ public sealed partial class CombatChannel : IDisposable
                 int hpDiff = reply.Hp - oldHp;
                 if (hpDiff > 0)
                 {
+                    _lastHitHpAfter = -1;
                     this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, hpDiff, 3);
                 }
 

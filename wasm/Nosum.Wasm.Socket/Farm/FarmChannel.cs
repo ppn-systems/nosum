@@ -59,7 +59,7 @@ public sealed class FarmChannel : IDisposable
     }
 
     /// <summary>Raised when the server answered a use of an item. May run on any thread.</summary>
-    public event Action<FarmStatus, FarmAction>? UseCompleted;
+    public event Action<FarmStatus, FarmAction, int>? UseCompleted;
 
     /// <summary>Raised when tiles were loaded or changed. May run on any thread.</summary>
     public event Action? Changed;
@@ -189,13 +189,13 @@ public sealed class FarmChannel : IDisposable
             request.Value.TileX = tileX;
             request.Value.TileY = tileY;
             UseItemResult result = await _socket.RequestAsync<UseItemResult>(request.Value).ConfigureAwait(false);
-            this.UseCompleted?.Invoke(result.Status, result.Action);
+            this.UseCompleted?.Invoke(result.Status, result.Action, result.Worked);
         }
         catch (Exception)
         {
             // The request was lost (connection dropped, or no reply): nothing is known to have been applied, so the player is told to try again
             // instead of seeing a press that silently did nothing.
-            this.UseCompleted?.Invoke(FarmStatus.Conflict, FarmAction.None);
+            this.UseCompleted?.Invoke(FarmStatus.Conflict, FarmAction.None, 0);
         }
     }
 
@@ -210,13 +210,13 @@ public sealed class FarmChannel : IDisposable
             request.Value.TileY = tileY;
             request.Value.Tiles = (byte)tiles;
             UseItemResult result = await _socket.RequestAsync<UseItemResult>(request.Value).ConfigureAwait(false);
-            this.UseCompleted?.Invoke(result.Status, result.Action);
+            this.UseCompleted?.Invoke(result.Status, result.Action, result.Worked);
         }
         catch (Exception)
         {
             // The request was lost (connection dropped, or no reply): nothing is known to have been applied, so the player is told to try again
             // instead of seeing a press that silently did nothing.
-            this.UseCompleted?.Invoke(FarmStatus.Conflict, FarmAction.None);
+            this.UseCompleted?.Invoke(FarmStatus.Conflict, FarmAction.None, 0);
         }
     }
 
