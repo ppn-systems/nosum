@@ -44,6 +44,8 @@ public static class NosumProtocol
     /// 31: days left on an unripe crop - <c>DaysLeft</c> appended to <c>UseItemResult</c>, set on <c>FarmStatus.NotMature</c> (docs/adr/ADR-094 D2).
     /// No opcode, existing field or enum value changed. Clients built for 30 misread the reply, so they ship together.
     /// 32: monster strike telegraph - new push <c>StrikeTelegraph</c> (S2C <c>0xC249</c>): an ordinary monster's wind-up before its melee strike lands (docs/adr/ADR-097). No existing packet changed.
+    /// 33: market page size - <c>PageSize</c> appended to <c>BrowseListings</c> (docs/adr/ADR-101 amendment 2026-11-01): the rows the market panel has room for, clamped by the server to 20.
+    /// No opcode or existing field changed. A field appended to an existing packet, so server and client ship together.
     /// </summary>
-    public const ushort Version = 32;
+    public const ushort Version = 33;
 }

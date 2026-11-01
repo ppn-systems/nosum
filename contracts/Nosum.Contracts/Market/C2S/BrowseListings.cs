@@ -28,4 +28,11 @@ public sealed partial class BrowseListings : PacketBase<BrowseListings>, IPacket
     /// <summary>The order of the page: a <see cref="Market.MarketSort"/> value. Appended in protocol 29 (docs/adr/ADR-013 amendment); an older client that sends no sort is not supported: server and client ship together.</summary>
     [WireRange(0, 2)]
     [SerializeOrder(2)] public int SortBy { get; set; }
+
+    /// <summary>
+    /// Listings on the page: the rows the client's panel has room for (docs/adr/ADR-101 amendment 2026-11-01). Zero asks for the server's default (10);
+    /// a larger value is clamped to <see cref="WireLimits.MaxListingsPageSize"/>. Appended in protocol 33.
+    /// </summary>
+    [WireRange(0, WireLimits.MaxListingsPageSize)]
+    [SerializeOrder(3)] public int PageSize { get; set; }
 }

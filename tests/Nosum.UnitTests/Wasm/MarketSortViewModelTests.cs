@@ -11,6 +11,7 @@ using Nosum.Contracts.Inventory.S2C;
 using Nosum.Contracts.Market;
 using Nosum.Contracts.Market.C2S;
 using Nosum.Contracts.Market.S2C;
+using Nosum.Contracts.Validation;
 using Nosum.Gameplay.Economy;
 using Nosum.Gameplay.Items;
 using Nosum.Wasm.Socket.Inventory;
@@ -45,6 +46,71 @@ public sealed class MarketSortViewModelTests
         request.Page.Should().Be(0);
         request.SortBy.Should().Be((int)MarketSort.UnitPriceLowest);
         vm.Sort.Should().Be(MarketSort.UnitPriceLowest);
+    }
+
+    [Fact]
+    public void SetPageSize_AsksForThatManyRowsFromTheFirstPage()
+    {
+        using CultureScope scope = new("en", "en-US");
+        (MarketViewModel vm, FakeGameSocket socket) = Create(new ListingsPage());
+        vm.Open();
+
+        vm.SetPageSize(7);
+
+        BrowseListings request = socket.Requests.OfType<BrowseListings>().Last();
+        request.PageSize.Should().Be(7);
+        request.Page.Should().Be(0);
+        vm.PageSize.Should().Be(7);
+    }
+
+    [Fact]
+    public void SetPageSize_ClampsToTheWireLimits()
+    {
+        using CultureScope scope = new("en", "en-US");
+        (MarketViewModel vm, FakeGameSocket socket) = Create(new ListingsPage());
+        vm.Open();
+
+        vm.SetPageSize(0);
+        vm.PageSize.Should().Be(MarketViewModel.MinPageSize);
+        vm.SetPageSize(500);
+        vm.PageSize.Should().Be(MarketViewModel.MaxPageSize);
+        socket.Requests.OfType<BrowseListings>().Last().PageSize.Should().Be(WireLimits.MaxListingsPageSize);
+    }
+
+    [Fact]
+    public void SetPageSize_TheSameSize_AsksNothing()
+    {
+        using CultureScope scope = new("en", "en-US");
+        (MarketViewModel vm, FakeGameSocket socket) = Create(new ListingsPage());
+        vm.Open();
+        int asked = socket.Requests.OfType<BrowseListings>().Count();
+
+        vm.SetPageSize(CoinRules.ListingsPerPage);
+
+        socket.Requests.OfType<BrowseListings>().Count().Should().Be(asked, "a render that measures again to the same answer stops here");
+    }
+
+    [Theory]
+    [InlineData(124, 16, 2, 7)] // seven rows of 16 with six gaps of 2: 7 × 16 + 6 × 2 = 124
+    [InlineData(123, 16, 2, 6)] // one pixel short of seven rows
+    [InlineData(0, 16, 2, 1)]   // no room still asks for one row
+    [InlineData(1000, 16, 2, 20)] // a tall window is capped at the wire limit
+    [InlineData(double.NaN, 16, 2, 1)]
+    public void RowsThatFit_CountsWholeRowsAndTheGapsBetweenThem(double available, double row, double gap, int expected)
+    {
+        MarketViewModel.RowsThatFit(available, row, gap).Should().Be(expected);
+    }
+
+    [Fact]
+    public void PageCount_CountsInTheSizeTheBrowseAskedFor()
+    {
+        using CultureScope scope = new("en", "en-US");
+        (MarketViewModel vm, _) = Create(new ListingsPage { Total = 25 });
+        vm.Open();
+
+        vm.SetPageSize(7);
+
+        vm.PageCount.Should().Be(4, "25 listings in pages of seven");
     }
 
     [Fact]

@@ -44,3 +44,30 @@ Section 6 item 7 of the critique: a seller cannot see when a listing ends (48 ho
 - The compact slot is a second item picture size. A new screen that wants it must name a dense list in its review; the default stays 18.
 - Expiry is the local clock. If a player's clock is far off, the hour shown is off by that much; the server still decides when a listing ends.
 - Not done here: the price of current asks (section 6 item 8) needs a server query; the recurring late-game sink (section 2) is the owner's decision.
+
+## Amendment 2026-11-01 (round 4): the page size follows the window
+
+Resolves the open item "Not met: no inner scroll for a page of eight" above. The owner's decision (coordinator, round 4): keep the 14 u row buttons, and let the
+page size follow the room the panel has. Amends the wire (protocol 33) and the browse page of [ADR-013](ADR-013-economy-coins-escrow-market-trade.md). No button
+size and no panel size change; [`ui-standard.md`](../design/ui-standard.md) section 7, item 7 is met as written.
+
+- **D6 — The page is the rows that fit.** The Browse page asks for as many listings as the listing list has room for. The room is measured with the shop's
+  window measure (`shop-rows.js`, `measure`): the panel's max height less everything else in the body (the tabs, the search row, the price history, the
+  pager). `MarketViewModel.RowsThatFit` turns it into whole rows: n rows take n × row + (n − 1) × gap, clamped to 1..20. The measure runs on each render of the
+  Browse tab (a new reply, a tab change, the open) and on a debounced window resize, never per frame. A new size reloads the first page; the same size asks
+  nothing, so the render that follows measures to the same answer and stops.
+- **D7 — Wire: one field appended.** `BrowseListings.PageSize` (serialize order 3, `WireRange(0, 20)`; `WireLimits.MaxListingsPageSize` = 20). Zero is the
+  server's default, 10 (`CoinRules.ListingsPerPage`). The server clamps a larger value to 20 (`MarketService.BrowseAsync`). Protocol 33; no opcode changed.
+  Server and client ship together.
+- **D8 — Only the newest browse is shown.** `MarketChannel` drops a reply to an older browse. Before this round a late reply could put back a page of the
+  old size after the panel had asked for a new one, and the panel then stayed on the old size. The panel now shows the page it asked for last.
+- **D9 — Buttons and the compact slot are unchanged.** The row buttons stay 14 u (D2, `ui-standard.md` section 8); the compact picture stays 12 u (D1).
+
+**Result** (`docs/qa/economy-round4/`, eight listings per page replaced by the rows that fit; sixteen listings in the capture): at 1280×720 the page holds
+seven rows and the body is `clientHeight == scrollHeight` (499 px); at 1920×1080 five rows, 668 px; at 390×844 fifteen rows of 28 px, 621 px. The same in vi and en.
+
+Consequences:
+- A short window shows fewer rows per page, so there are more pages. The count is the server's own, in the size asked; the pager reads "Page 1 of 3" at 1280×720.
+- A resize reloads page 1 when the count of rows changes (a drag of the window asks once, after it stops).
+- A client built for protocol 32 cannot browse on 33 (the field is appended to an existing packet, so they ship together).
+- Not done: the price of current asks (critique section 6, item 8) still needs a server query for open asks.

@@ -1,0 +1,46 @@
+{
+  "lang": "vi",
+  "base": "http://localhost:5810",
+  "captured": [
+    "390x844/vi-seller-sell-empty.png",
+    "390x844/vi-seller-sell-picked.png",
+    "390x844/vi-seller-listed.png",
+    "390x844/vi-buyer-browse.png",
+    "390x844/vi-buyer-sell-picked.png",
+    "390x844/vi-buyer-sell-priced.png"
+  ],
+  "skipped": [
+    {
+      "screen": "buyer-browse-sorted",
+      "reason": "no sort control in this build"
+    }
+  ],
+  "errors": [],
+  "measures": [
+    {
+      "viewport": "390x844",
+      "clientHeight": 621,
+      "scrollHeight": 621,
+      "fits": true,
+      "listings": 15,
+      "rowHeight": 28,
+      "listHeight": 476,
+      "pager": "Trước\n    Trang 1/2\n    Sau",
+      "kids": [
+        "DIV.game-row:28",
+        "DIV.market-filter:65",
+        "DIV.listing-list:476",
+        "DIV.game-row:28"
+      ],
+      "filter": {
+        "h": 65,
+        "w": 340,
+        "kids": [
+          "INPUT.game-input market-search:340x33",
+          "BUTTON.game-button primary  :37x28",
+          "DIV.game-row :197x28"
+        ]
+      }
+    }
+  ]
+}
