@@ -12,7 +12,7 @@ namespace Nosum.Abstractions.Friends;
 public sealed record DevFriend(string Nickname, string SessionToken);
 
 /// <summary>
-/// Development-only tester tool (docs/adr/ADR-097): makes the asking player a registered test account when it is a guest, creates a registered
+/// Development-only tester tool (docs/adr/ADR-100): makes the asking player a registered test account when it is a guest, creates a registered
 /// test player, and befriends the two through the normal friend request and its accept. The host registers it only in Development.
 /// </summary>
 public interface IDevSocialService

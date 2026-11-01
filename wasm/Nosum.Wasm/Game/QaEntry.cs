@@ -10,7 +10,7 @@ namespace Nosum.Wasm.Game;
 /// The QA entry point for the UI capture harness (docs/adr/ADR-079). Compiled only into a build made with <c>-p:NosumDevTools=true</c>; a production
 /// build has no such code. The script it runs does nothing unless the page URL carries <c>?qa=1</c>; then <c>window.nosumQa</c> offers the tester
 /// calls of <see cref="DevTools"/> (grant, clock, teleport, season, the Spring reset, the teleport next to a monster, level-up banner, fishing
-/// bite, and a registered test friend, docs/adr/ADR-097). Nothing is drawn; the server still decides.
+/// bite, and a registered test friend, docs/adr/ADR-100). Nothing is drawn; the server still decides.
 /// </summary>
 [SupportedOSPlatform("browser")]
 internal static partial class QaEntry
@@ -33,6 +33,8 @@ internal static partial class QaEntry
               levelUp: (skill, level) => dev.LevelUp(skill, level),
               fishingBite: () => dev.FishingBite(),
               allocatedBytes: () => dev.AllocatedBytes(),
+              frameBodyBytes: () => dev.FrameBodyBytes(),
+              frameBodyFrames: () => dev.FrameBodyFrames(),
               springReset: () => dev.ToSpring(),
               teleportToMonster: mapId => dev.TeleportToMonster(mapId),
               befriend: () => dev.Befriend(),

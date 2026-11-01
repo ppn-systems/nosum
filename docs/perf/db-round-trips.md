@@ -227,7 +227,7 @@ Phase 2 (all of ADR-035 D3-D7 built). The table of phase 1 is in the history of 
 | 0x9002 | TradeSetOffer | items and coins | Ok | 1 | 0 | 0 | 1 | 0 |
 | 0x9002 | TradeSetOffer | items | Ok | 0 | 0 | 0 | 0 | 0 |
 | 0x9003 | TradeConfirm | first side confirms | Ok | 0 | 0 | 0 | 0 | 0 |
-| 0x9003 | TradeConfirm | second side confirms: the swap | Ok | 2 | 1 | 1 | 1 | 1 |
+| 0x9003 | TradeConfirm | second side confirms: the swap | Ok | 1 | 1 | 1 | 1 | 0 |
 | 0x9004 | TradeCancel | cancel an open trade | Ok | 0 | 0 | 0 | 0 | 0 |
 | 0x9100 | SendChat | map channel | Ok | 1 | 0 | 0 | 0 | 0 |
 | 0x9100 | SendChat | whisper by nickname | Ok | 2 | 0 | 0 | 0 | 0 |
@@ -356,7 +356,7 @@ Measured with the same harness, before and after the change (`NOSUM_DB_BUDGET_DU
   the code; the others were already measured on master. Each is set to the measured value, so a regression fails the test.
 - **Not checked by the budget, found while doing this:** `Trade / TradeConfirm` rows measure `TooSoon` on master and on this branch, so the swap is never
   executed by the scenario and its limit (2 reads, 1 write, 1 transaction) is not tested. The scenario needs a wait between the two confirmations. Left for a
-  follow-up: it changes the scenario, not the server.
+  follow-up: it changes the scenario, not the server. Fixed in the ADR-035 amendment of 2026-11-01: the scenario moves the clock past the lock and the swap is measured (1 read).
 
 - **2026-11-01, economy rebuild (ADR-035 amendment 2026-11-01):** `BuyListing` is at 4 reads (listing read once, the save is a compare-and-set on its
   status; both wallets in one query for every transfer). The row above is the measurement; the limit in `DbBudgetBaseline` is 4.

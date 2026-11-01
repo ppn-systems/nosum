@@ -49,4 +49,10 @@ public sealed class MarketSortPacketTests
     {
         NosumProtocol.Version.Should().BeGreaterThanOrEqualTo(31);
     }
+
+    [Fact]
+    public void NosumProtocol_Version_IsAtLeastThirtyTwo_WithTheStrikeTelegraph()
+    {
+        NosumProtocol.Version.Should().BeGreaterThanOrEqualTo(32);
+    }
 }

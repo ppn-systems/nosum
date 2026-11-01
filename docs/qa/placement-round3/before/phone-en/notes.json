@@ -1,0 +1,179 @@
+{
+  "viewport": "phone",
+  "lang": "en",
+  "bought": "The blueprint is in your bag. Set it down on the ground.",
+  "blueprintGhost": null,
+  "confirm": "A finished building cannot be moved or stowed. Press E again to build here.",
+  "afterBuild": null,
+  "recipes": [
+    {
+      "name": "Chest",
+      "makes": "Makes: Chest x1",
+      "locked": null
+    },
+    {
+      "name": "Wood fence",
+      "makes": "Makes: Wood fence x1",
+      "locked": null
+    },
+    {
+      "name": "Stone path",
+      "makes": "Makes: Stone path x1",
+      "locked": null
+    },
+    {
+      "name": "Scarecrow",
+      "makes": "Makes: Scarecrow x1",
+      "locked": "Requires Farming level 1"
+    },
+    {
+      "name": "Scarecrow",
+      "makes": "Makes: Scarecrow x1",
+      "locked": "Requires Farming level 1"
+    },
+    {
+      "name": "Sprinkler",
+      "makes": "Makes: Sprinkler x1",
+      "locked": "Requires Farming level 2"
+    },
+    {
+      "name": "Farm guestbook",
+      "makes": "Makes: Farm guestbook x1",
+      "locked": "Requires Farming level 1"
+    },
+    {
+      "name": "Furnace",
+      "makes": "Makes: Furnace x1",
+      "locked": "Requires Mining level 1"
+    },
+    {
+      "name": "Salad",
+      "makes": "Makes: Salad x1",
+      "locked": null
+    },
+    {
+      "name": "Baked potato",
+      "makes": "Makes: Baked potato x1",
+      "locked": "Requires Farming level 1"
+    },
+    {
+      "name": "Pumpkin soup",
+      "makes": "Makes: Pumpkin soup x1",
+      "locked": "Requires Farming level 3"
+    },
+    {
+      "name": "Fishing rod",
+      "makes": "Makes: Fishing rod x1",
+      "locked": null
+    },
+    {
+      "name": "Fish stew",
+      "makes": "Makes: Fish stew x1",
+      "locked": "Requires Fishing level 2"
+    },
+    {
+      "name": "Health potion",
+      "makes": "Makes: Health potion x1",
+      "locked": null
+    },
+    {
+      "name": "Mana potion",
+      "makes": "Makes: Mana potion x1",
+      "locked": "Requires Combat level 1"
+    },
+    {
+      "name": "Golden elixir",
+      "makes": "Makes: Golden elixir x1",
+      "locked": "Requires Combat level 4"
+    },
+    {
+      "name": "Bronze sword",
+      "makes": "Makes: Bronze sword x1",
+      "locked": "Requires Combat level 1"
+    },
+    {
+      "name": "Iron sword",
+      "makes": "Makes: Iron sword x1",
+      "locked": "Requires Combat level 2"
+    },
+    {
+      "name": "Steel broadsword",
+      "makes": "Makes: Steel broadsword x1",
+      "locked": "Requires Combat level 4"
+    },
+    {
+      "name": "Golden blade",
+      "makes": "Makes: Golden blade x1",
+      "locked": "Requires Combat level 6"
+    },
+    {
+      "name": "Arcane staff",
+      "makes": "Makes: Arcane staff x1",
+      "locked": "Requires Combat level 3"
+    },
+    {
+      "name": "Leather armor",
+      "makes": "Makes: Leather armor x1",
+      "locked": "Requires Combat level 1"
+    },
+    {
+      "name": "Swift boots",
+      "makes": "Makes: Swift boots x1",
+      "locked": "Requires Combat level 3"
+    },
+    {
+      "name": "Winged boots",
+      "makes": "Makes: Winged boots x1",
+      "locked": "Requires Combat level 6"
+    },
+    {
+      "name": "Speed tonic",
+      "makes": "Makes: Speed tonic x1",
+      "locked": "Requires Combat level 2"
+    },
+    {
+      "name": "Iron helmet",
+      "makes": "Makes: Iron helmet x1",
+      "locked": "Requires Combat level 2"
+    },
+    {
+      "name": "Iron chestplate",
+      "makes": "Makes: Iron chestplate x1",
+      "locked": "Requires Combat level 3"
+    },
+    {
+      "name": "Iron greaves",
+      "makes": "Makes: Iron greaves x1",
+      "locked": "Requires Combat level 2"
+    },
+    {
+      "name": "Ranger tunic",
+      "makes": "Makes: Ranger tunic x1",
+      "locked": "Requires Combat level 2"
+    },
+    {
+      "name": "Arcane grimoire",
+      "makes": "Makes: Arcane grimoire x1",
+      "locked": "Requires Combat level 3"
+    },
+    {
+      "name": "Heart crystal",
+      "makes": "Makes: Heart crystal x1",
+      "locked": "Requires Combat level 3"
+    },
+    {
+      "name": "Sanctuary candelabra",
+      "makes": "Makes: Sanctuary candelabra x1",
+      "locked": "Requires Combat level 4"
+    }
+  ],
+  "chestCrafted": null,
+  "chestGhost": null,
+  "chestPlaced": null,
+  "chestOpen": null,
+  "furnaceGhost": "You are standing there.",
+  "furnaceStepped": "You are standing there.",
+  "furnacePlaced": null,
+  "sprinklerGhost": null,
+  "sprinklerPlaced": null
+}

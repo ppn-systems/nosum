@@ -54,7 +54,7 @@ internal static partial class DevTools
     [JSExport]
     internal static void Teleport(string mapId, int tileX, int tileY) => s_channel?.Teleport(mapId, tileX, tileY);
 
-    /// <summary>Asks a Development server for a new registered test friend of the player (docs/adr/ADR-097). Resolves to the nickname and the
+    /// <summary>Asks a Development server for a new registered test friend of the player (docs/adr/ADR-100). Resolves to the nickname and the
     /// session token separated by a tab, or to an empty string when the server made none.</summary>
     [JSExport]
     internal static async Task<string> Befriend()
@@ -71,6 +71,14 @@ internal static partial class DevTools
     /// <summary>Bytes the frame thread has allocated so far. The frame benchmark (bench/wasm-perf/frame.cjs) reads the difference across a run.</summary>
     [JSExport]
     internal static double AllocatedBytes() => GC.GetAllocatedBytesForCurrentThread();
+
+    /// <summary>Managed bytes the frame's own work allocated since the page started (<see cref="FrameAllocations"/>).</summary>
+    [JSExport]
+    internal static double FrameBodyBytes() => FrameAllocations.Bytes;
+
+    /// <summary>Frames counted by <see cref="FrameBodyBytes"/>.</summary>
+    [JSExport]
+    internal static double FrameBodyFrames() => FrameAllocations.Frames;
 
     /// <summary>Passes season starts on the server clock.</summary>
     /// <param name="seasons">Season starts to pass, 1 to 4.</param>

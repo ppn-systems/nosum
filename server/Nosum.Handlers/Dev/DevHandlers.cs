@@ -144,7 +144,7 @@ public static partial class DevHandlers
     }
 
     /// <summary>Makes the sender a registered test account and befriends a new registered test player, whose nickname and session token come back
-    /// (docs/adr/ADR-097).</summary>
+    /// (docs/adr/ADR-100).</summary>
     /// <param name="context">The request.</param>
     /// <returns>A task that completes when the reply was sent.</returns>
     [PacketOpcode(DevOpCode.DevBefriend)]

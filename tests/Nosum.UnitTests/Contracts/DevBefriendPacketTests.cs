@@ -9,13 +9,13 @@ using Xunit;
 
 namespace Nosum.UnitTests.Contracts;
 
-/// <summary>The Development QA friend packets (docs/adr/ADR-097): their opcodes sit in the tester band and the protocol version moved with them.</summary>
+/// <summary>The Development QA friend packets (docs/adr/ADR-100): their opcodes sit in the tester band and the protocol version moved with them.</summary>
 public sealed class DevBefriendPacketTests
 {
     [Fact]
-    public void NosumProtocol_Version_IsThirtyTwo_WithTheDevelopmentQaFriend()
+    public void NosumProtocol_Version_IsThirtyThree_WithTheDevelopmentQaFriend()
     {
-        NosumProtocol.Version.Should().Be(32);
+        NosumProtocol.Version.Should().Be(33);
     }
 
     [Fact]

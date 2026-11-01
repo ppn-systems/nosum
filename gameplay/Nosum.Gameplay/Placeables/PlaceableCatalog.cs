@@ -97,12 +97,12 @@ public static class PlaceableCatalog
         new(ItemCatalog.Doormat, FurnitureSheet, new PlaceableView(208, 1600, 16, 16, 1, 1)) { Category = FurnitureCategory.Rugs, BlocksWalking = false },
 
         // Crafted objects (docs/adr/ADR-024). craftables.png cells are 16 x 32, the footprint is the bottom tile.
-        new(ItemCatalog.Chest, CraftedSheet, new PlaceableView(32, 512, 16, 32, 1, 1)) { Kind = PlaceableKind.Chest },
+        new(ItemCatalog.Chest, CraftedSheet, new PlaceableView(32, 512, 16, 32, 1, 1)) { Kind = PlaceableKind.Chest, Category = FurnitureCategory.Storage },
         new(ItemCatalog.Scarecrow, CraftedSheet, new PlaceableView(0, 32, 16, 32, 1, 1)),
-        new(ItemCatalog.Furnace, CraftedSheet, new PlaceableView(80, 32, 16, 32, 1, 1)) { Kind = PlaceableKind.Furnace },
+        new(ItemCatalog.Furnace, CraftedSheet, new PlaceableView(80, 32, 16, 32, 1, 1)) { Kind = PlaceableKind.Furnace, Category = FurnitureCategory.Equipment },
         new(ItemCatalog.WoodFence, CraftedSheet, new PlaceableView(0, 64, 16, 16, 1, 1)) { Kind = PlaceableKind.Fence },
         new(ItemCatalog.StonePath, ObjectsSheet, new PlaceableView(112, 32, 16, 16, 1, 1)) { Kind = PlaceableKind.Path, BlocksWalking = false },
-        new(ItemCatalog.Sprinkler, ObjectsSheet, new PlaceableView(128, 32, 16, 16, 1, 1)) { Kind = PlaceableKind.Sprinkler },
+        new(ItemCatalog.Sprinkler, ObjectsSheet, new PlaceableView(128, 32, 16, 16, 1, 1)) { Kind = PlaceableKind.Sprinkler, Category = FurnitureCategory.Equipment },
 
         // The guestbook shares the scarecrow's cell until it has art of its own (docs/adr/ADR-007).
         new(ItemCatalog.Guestbook, CraftedSheet, new PlaceableView(0, 32, 16, 32, 1, 1)) { Kind = PlaceableKind.Guestbook },

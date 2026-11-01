@@ -1,4 +1,4 @@
-# ADR-097: Development QA friend for the two-player browser check
+# ADR-100: Development QA friend for the two-player browser check
 
 ## Status
 
@@ -16,7 +16,7 @@ decides every outcome, Production maps no tester opcode, and the wire is append-
 ## Decision
 
 - **D1 — One Development opcode.** `DevBefriend` (C2S `0xF006`, reply `DevBefriendResult` `0xF046`) in the `DevOpCode` band. `DevHandlers` maps it,
-  and the host maps the handler only in Development. `NosumProtocol.Version` moves from 31 to 32; no existing packet, opcode or field changed.
+  and the host maps the handler only in Development. `NosumProtocol.Version` moves from 32 to 33; no existing packet, opcode or field changed.
 - **D2 — The sender becomes a registered test account.** A friends list is for registered accounts only, so a guest sender is made registered
   (`IsGuest = false`, the nickname is kept). This is a Development-only change of privilege with no identity linked; it exists so the tester can
   see the friends list, presence and visits from its own account.
@@ -36,7 +36,7 @@ decides every outcome, Production maps no tester opcode, and the wire is append-
 - The sender's account stops being a guest in Development after the first call. Production is unaffected: the opcode is not mapped there
   (`DevQaWireTests.DevQaOpcodes_InProduction_AreNotMappedAndNothingAnswers` probes it and expects no answer).
 - The session token of the test player crosses the wire to a Development client only. It is not logged, and it is a test account with no identity.
-- Protocol version 32 is a wire change for every client built from this commit; clients and server ship together, as before.
+- Protocol version 33 is a wire change for every client built from this commit; clients and server ship together, as before.
 
 ## References
 

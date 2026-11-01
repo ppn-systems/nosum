@@ -308,3 +308,32 @@ Every other limit is unchanged.
 - **Not changed:** the write counts, the transaction count, the SaveChanges count, every other row. `GetRequests / today's board, chain finished` reads one more row
   (the friend list) on this run than on the previous one; the statement is the same and the row has no limit, so it is recorded, not blocked. `Disconnect` reads 0 (its
   limit is 0; the previous run recorded 1 and failed it).
+
+## Amendment (2026-11-01): the budget test measures the same work on every run
+
+The class was flaky on master: `HotPaths_NeverCostMoreThanTheirBaseline` failed in 1 of 5 runs (`PetPet / pet the cat`), and the rows below
+failed on other runs. Each cause was a property of the scenario, not a change of the server's cost, so the fix is in the scenario and no limit was raised.
+
+- **`PetPet / pet the cat` (ADR-092 D2 forage).** The first petting of a game day may bring back a forage item, rolled from the farmer's id and the day.
+  The farmer's id is new on every run, so about 30% of runs measured the extra inventory write (`2/1/0/1` against `1/1/0/1`). The scenario now moves the fake
+  clock, a day at a time, until the roll for that farmer is nothing, then measures the petting. Measured on 8 runs: `1/1/0/1` every time.
+- **`TradeConfirm / second side confirms: the swap` was never measured.** The confirmations were refused as `TooSoon` (the offer lock is 3 s of server time
+  and the rig's clock does not move by itself), so the row measured a refusal and its limit was not tested. The scenario now moves the clock past
+  `TradeSession.ConfirmLock`. The swap measures reads 1, writes 1, transactions 1, SaveChanges 1; the limit is lowered from 2 to 1 reads in the same change
+  (`DbBudgetBaseline`). `TradeConfirm / first side confirms` now measures `Ok` (0 everywhere).
+- **`Disconnect / joined player, socket closed` (reads 0 or 1).** The save at the leave starts from the copy of the player's state row. When the copy was not
+  held, the leave read the row first (`SELECT` then `INSERT`): 3 of 9 runs. The scenario loads the copy before the socket closes, as a player who has been
+  playing holds it. Measured on 8 runs: reads 0 every time; the limit stays 0.
+- **`LinkExternalIdentity / guest to registered` (reads 4 or 5).** The same kind of cause: the guest's friends and requests were not held when the link
+  arrived, so the link read `friendships` first (5 reads, 2 of 8 runs). The scenario loads the guest's friend facts before the link. Measured on 8 runs: reads
+  4 every time; the limit stays 4. The `5/4` seen on the animals round-two tree is the figure from before the 2026-11-01 economy rebuild (one wallet query
+  per transfer, above); master already has that change.
+
+**What is not fixed, and why.** The two loads above make the measured state the state a playing player holds; they do not remove the race behind it. A
+session-end handler (`ISessionRegistry.SessionEnded`) runs off the closing path (`SessionRegistry.Release`), so it can drop a player's cached copies after
+the next request has started. The scenario does not wait for it, because no public seam says when it has finished. A follow-up should make the closing path
+finish before the next request for the same account (or make the copies survive a late end); until then the scenario states, not the server, decide the
+row, and a run that loses the race will show one extra read again.
+
+**Why this is not a loosened baseline.** No limit was raised. The only limit that changed is `TradeConfirm / second side confirms: the swap`, which is lowered
+from 2 to 1 read because the swap is now measured for the first time. `PickUpObject / pick up a fence` measures 1 read against a limit of 2 and is not changed here.

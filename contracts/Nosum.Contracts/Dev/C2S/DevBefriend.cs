@@ -8,7 +8,7 @@ namespace Nosum.Contracts.Dev.C2S;
 
 /// <summary>
 /// Development only: makes the sender a registered test account (if it is a guest) and befriends a new registered test player, whose nickname
-/// and session token come back in the reply so a second client can sign in as that player (docs/adr/ADR-097). Not handled in Production.
+/// and session token come back in the reply so a second client can sign in as that player (docs/adr/ADR-100). Not handled in Production.
 /// </summary>
 [Packet]
 [GenerateFormatter]

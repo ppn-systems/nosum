@@ -1,7 +1,7 @@
 // Social round 3: two real players play end to end (docs/design/critique-social.md; grading in docs/qa/social-round3/README.md).
 // Run from the repo root with the Development host on :57300 and a Development WASM client built with -p:NosumDevTools=true:
 //   BASE=http://localhost:5080/ LABEL=after OUT_DIR=docs/qa/social-round3/after NODE_PATH=$(npm root -g) node tests/browser/social-round3-play.cjs
-// Player A is a guest that befriends a new registered test player (window.nosumQa.befriend, docs/adr/ADR-097). Player B signs in as that test
+// Player A is a guest that befriends a new registered test player (window.nosumQa.befriend, docs/adr/ADR-100). Player B signs in as that test
 // player in a second browser context (the remembered session is seeded from the token). Steps, in the Town: friend presence, chat, a trade with
 // both confirmations, a visit to the friend's farm, a co-op founded by A with deposits from both, and the warehouse log. Every step is logged.
 // SIZE=1280x720|1920x1080|390x844 (default 1280x720) and LANGS=vi,en (default both) choose the frames; each step saves a frame.

@@ -10,7 +10,7 @@ using Nosum.Contracts.Dev.S2C;
 
 namespace Nosum.Wasm.Socket.Dev;
 
-/// <summary>A registered test player the Development server befriended with the sender (docs/adr/ADR-097).</summary>
+/// <summary>A registered test player the Development server befriended with the sender (docs/adr/ADR-100).</summary>
 /// <param name="Nickname">The test player's nickname.</param>
 /// <param name="SessionToken">The test player's session token; a second client resumes as that player with it.</param>
 public sealed record TestFriend(string Nickname, string SessionToken);
@@ -88,7 +88,7 @@ public sealed class DevChannel
         _ = await _socket.RequestAsync<DevFishingBiteResult>(request.Value).ConfigureAwait(false);
     });
 
-    /// <summary>Asks the server for a new registered test friend of the sender (docs/adr/ADR-097). Null when the server made none (or does not answer).</summary>
+    /// <summary>Asks the server for a new registered test friend of the sender (docs/adr/ADR-100). Null when the server made none (or does not answer).</summary>
     /// <returns>The test player's nickname and session token, or null.</returns>
     [SuppressMessage("Design", "CA1031", Justification = "A tester tool: a missing answer (Production) is not an error.")]
     public async Task<TestFriend?> BefriendAsync()

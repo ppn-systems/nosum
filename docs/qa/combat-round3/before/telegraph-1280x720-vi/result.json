@@ -1,0 +1,49 @@
+{
+  "mode": "telegraph",
+  "size": "1280x720",
+  "locale": "vi-VN",
+  "landings": [
+    {
+      "atRelMs": 0,
+      "from": 100,
+      "to": 92
+    },
+    {
+      "atRelMs": 15,
+      "from": 92,
+      "to": 84
+    },
+    {
+      "atRelMs": 20,
+      "from": 84,
+      "to": 82
+    },
+    {
+      "atRelMs": 1500,
+      "from": 82,
+      "to": 74
+    },
+    {
+      "atRelMs": 1511,
+      "from": 74,
+      "to": 66
+    },
+    {
+      "atRelMs": 1515,
+      "from": 66,
+      "to": 64
+    }
+  ],
+  "frameOffsetsMs": [
+    807,
+    924,
+    1015,
+    1106,
+    1207,
+    1304,
+    1387,
+    1479,
+    1589
+  ],
+  "errors": []
+}
