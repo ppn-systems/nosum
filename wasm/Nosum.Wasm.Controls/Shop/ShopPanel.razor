@@ -46,7 +46,8 @@
                 {
                     int itemId = offer.ItemId;
                     <GameRow Class="@RowClass(offer)">
-                        <ItemSlotButton Slot="offer.Item" Picked="@(Vm.Detail?.ItemId == itemId)" OnClick="@(() => Vm.Select(itemId))" Tip="@offer.Item.Name" />
+                        @* A greyed row (out of season) is not clickable: its price cell carries the reason (docs/design/research-hud-and-loops.md, item 4). *@
+                        <ItemSlotButton Slot="offer.Item" Picked="@(Vm.Detail?.ItemId == itemId)" OnClick="@(() => { if (offer.SeasonNote.Length == 0) { Vm.Select(itemId); } })" Tip="@offer.Item.Name" />
                         <span class="shop-text">
                             <span class="shop-name">@offer.Item.Name</span>
                             <span class="shop-price">@offer.PriceText</span>
