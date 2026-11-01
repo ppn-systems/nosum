@@ -139,6 +139,12 @@
   <data name="Market_Shipped" xml:space="preserve"><value>Sold for {0} coins.</value></data>
   <data name="Toast_Repeat" xml:space="preserve"><value>{0} ×{1}</value></data>
   <data name="Market_Done_Create" xml:space="preserve"><value>Listed for sale.</value></data>
+  <data name="Market_Sort_Newest" xml:space="preserve"><value>Newest</value></data>
+  <data name="Market_Sort_UnitLowest" xml:space="preserve"><value>Cheapest each</value></data>
+  <data name="Market_Sort_UnitHighest" xml:space="preserve"><value>Priciest each</value></data>
+  <data name="Market_Price_Each" xml:space="preserve"><value>{0} coins ({1} each)</value></data>
+  <data name="Market_BinHint" xml:space="preserve"><value>The shipping bin pays {0} coins each, {1} for this stack.</value></data>
+  <data name="Market_Done_CreateDetail" xml:space="preserve"><value>Listed {0} × {1} for {2} coins. You receive {3} coins when it sells, after the {4}% fee.</value></data>
   <data name="Market_Done_Buy" xml:space="preserve"><value>Bought.</value></data>
   <data name="Market_Done_Cancel" xml:space="preserve"><value>Withdrawn to your inventory.</value></data>
   <data name="Market_Done_Ship" xml:space="preserve"><value>Sold.</value></data>
