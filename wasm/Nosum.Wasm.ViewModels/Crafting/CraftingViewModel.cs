@@ -138,6 +138,55 @@ public sealed class CraftingViewModel : PanelViewModel, IDisposable
     /// <summary>Crafts the selected recipe <see cref="BatchSize"/> times.</summary>
     public void CraftBatch() => this.Craft(BatchSize);
 
+    /// <summary>
+    /// Gets how many times the selected recipe can be crafted right now: as many as the items allow (capped at the server's batch limit)
+    /// and the bag has room for, or zero when it cannot be made at all. The server checks the same count again when the request arrives.
+    /// </summary>
+    public int MaxCraftable
+    {
+        get
+        {
+            if (!RecipeCatalog.TryGet(_selected, out RecipeDefinition? recipe) || !_crafting.IsUnlocked(recipe.Id))
+            {
+                return 0;
+            }
+
+            InventoryGrid grid = this.GridOfInventory();
+            int upper = RecipeCatalog.MaxBatch;
+            foreach (RecipeInput input in recipe.Inputs)
+            {
+                upper = Math.Min(upper, grid.CountOf(input.ItemId) / input.Quantity);
+            }
+
+            // The items bound the count; the room for the result can still lower it, so step down until the rules agree.
+            for (int times = upper; times >= 1; times--)
+            {
+                if (RecipeRules.CanCraft(recipe, times, grid) == InventoryVerdict.Ok)
+                {
+                    return times;
+                }
+            }
+
+            return 0;
+        }
+    }
+
+    /// <summary>Gets whether the selected recipe can be crafted at least once right now.</summary>
+    public bool CanCraftMax => this.MaxCraftable > 0;
+
+    /// <summary>Gets the localized text of the button that crafts as many times as possible, with the count it would make.</summary>
+    public string CraftMaxLabel => this.Text("Craft_ButtonMax", this.MaxCraftable);
+
+    /// <summary>Crafts the selected recipe as many times as the items and the bag allow; does nothing when that is none.</summary>
+    public void CraftMax()
+    {
+        int times = this.MaxCraftable;
+        if (times > 0)
+        {
+            this.Craft(times);
+        }
+    }
+
     /// <summary>Called when the page opens: reads the recipe book.</summary>
     public void Open()
     {
