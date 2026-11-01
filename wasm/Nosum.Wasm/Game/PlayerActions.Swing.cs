@@ -53,11 +53,9 @@ internal sealed partial class PlayerActions
     private int _queuedFloatY;
     private int _firedCost;
 
-    // Whether the queued use came from the action key with an item in hand (not the wide key or a drag), the item, and the tiles: the action key's
-    // harvest of a ripe crop with another item in hand is named on the message line (ActionKeyHarvested).
-    private bool _queuedByActionKey;
+    // The item in hand of the queued and the fired use, and the tiles: a harvest of a ripe crop with another item in hand is named on the
+    // message line whichever key or tap made it (HarvestedWithOtherItem, docs/adr/ADR-095 D2).
     private int _queuedItemId;
-    private bool _firedByActionKey;
     private int _firedItemId;
     private int _firedTiles;
     private int _firedFloatX;
@@ -172,10 +170,9 @@ internal sealed partial class PlayerActions
     }
 
     // Queues a use of the held item for the hit frame of the swing just begun; the tiles of a wide use are one request.
-    private void QueueUse(int slot, int tileX, int tileY, int tiles, ToolKind tool, int tileSize, bool byActionKey = false)
+    private void QueueUse(int slot, int tileX, int tileY, int tiles, ToolKind tool, int tileSize)
     {
         _useQueued = true;
-        _queuedByActionKey = byActionKey;
         _queuedItemId = _swingItemId;
         _useAtSeconds = _swingStartSeconds + (_swingSeconds * ToolPacing.HitFraction);
         _queuedSlot = slot;
@@ -255,7 +252,6 @@ internal sealed partial class PlayerActions
         _useQueued = false;
         _audio?.Play(AudioCatalog.ToolSound(_queuedTool));
         _firedCost = _queuedCost;
-        _firedByActionKey = _queuedByActionKey;
         _firedItemId = _queuedItemId;
         _firedTiles = _queuedTiles;
         _firedFloatX = _queuedFloatX;
@@ -277,12 +273,12 @@ internal sealed partial class PlayerActions
     {
         _ = daysLeft;
 
-        // The action key harvested a ripe crop while another item was in hand: the player is told the key did it (not the item in hand).
-        bool keyHarvest = status == FarmStatus.Ok && action == FarmAction.Harvested && _firedByActionKey && _firedTiles == 1 && _firedItemId is not (0 or ItemCatalog.Scythe);
-        _firedByActionKey = false;
-        if (keyHarvest)
+        // A ripe crop harvested while another item is in hand (E or a tap) is named on the message line: the item in hand did not do it.
+        // A use that worked says so on the message line (docs/adr/ADR-095 D2 and D4): the key of the line, if the action has one.
+        string? doneKey = Nosum.Wasm.ViewModels.Feedback.FarmDoneNotice.KeyOf(status, action, _firedTiles, _firedItemId);
+        if (doneKey is not null)
         {
-            this.ActionKeyHarvested?.Invoke();
+            this.FarmUseSucceeded?.Invoke(doneKey);
         }
 
         // The server charged the cost of each tile that worked, so the label is the cost of one tile times the count (docs/adr/ADR-088).

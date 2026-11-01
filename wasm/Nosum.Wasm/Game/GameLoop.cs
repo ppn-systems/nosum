@@ -147,8 +147,8 @@ internal static partial class GameLoop
     /// <summary>Raised with a resource key when a skill press is refused on the client, so the player is told why (docs/adr/ADR-056 D5).</summary>
     public static event Action<string>? SkillPressRefused;
 
-    /// <summary>Raised when the action key harvests a ripe crop with another item in hand (docs/adr/ADR-094 backlog item 3); the message line says so.</summary>
-    public static event Action? ActionKeyHarvested;
+    /// <summary>Raised with the resource key of the message line when a farm use worked (docs/adr/ADR-095 D2 and D4).</summary>
+    public static event Action<string>? FarmUseSucceeded;
 
     /// <summary>Raised when the crop under the mouse changes: the zero-based growth stage and the stage count, or (-1, 0) for none (backlog item 4).</summary>
     public static event Action<int, int>? CropHovered;
@@ -303,7 +303,7 @@ internal static partial class GameLoop
         PlayerActions? actions = s_farm is not null && s_inventory is not null && s_market is not null ? new PlayerActions(s_farm, s_inventory, s_market, s_progress, s_chests, s_buildings, s_audio, s_combat, s_calendar, s_nodes) : null;
         actions?.PanelToggleRequested += kind => PanelToggleRequested?.Invoke(kind);
         actions?.SkillPressRefused += key => SkillPressRefused?.Invoke(key);
-        actions?.ActionKeyHarvested += () => ActionKeyHarvested?.Invoke();
+        actions?.FarmUseSucceeded += key => FarmUseSucceeded?.Invoke(key);
         actions?.CropHovered += (stage, count) => CropHovered?.Invoke(stage, count);
         actions?.ShopRequested += shopId => ShopRequested?.Invoke(shopId);
         actions?.CounterLeft += counterId => CounterLeft?.Invoke(counterId);
@@ -485,12 +485,12 @@ internal static partial class GameLoop
     /// <param name="keys">Held directions (<see cref="InputState"/> bits) and the keys pressed since the last frame, packed by <see cref="InputPacking"/>.</param>
     /// <param name="width">Canvas width, CSS pixels.</param>
     /// <param name="height">Canvas height, CSS pixels.</param>
-    /// <param name="pointerX">Mouse x over the canvas, CSS pixels (drag-to-sow).</param>
-    /// <param name="pointerY">Mouse y over the canvas, CSS pixels (drag-to-sow).</param>
+    /// <param name="pointerX">Mouse x over the canvas, CSS pixels, possibly fractional on a scaled screen (drag-to-sow; rounded, docs/adr/ADR-095 D1).</param>
+    /// <param name="pointerY">Mouse y over the canvas, CSS pixels, possibly fractional (drag-to-sow; rounded, docs/adr/ADR-095 D1).</param>
     /// <param name="pointerHeld">Bit <see cref="MouseHeldFlag"/> while the mouse button is down over the canvas; bit <see cref="UseHeldFlag"/> while the use button (touch) or the
     /// use key is held down (hold-to-repeat, backlog item 5). Other bits are zero.</param>
     [JSExport]
-    internal static void Frame(double timeMs, int keys, int width, int height, int pointerX, int pointerY, int pointerHeld)
+    internal static void Frame(double timeMs, int keys, int width, int height, double pointerX, double pointerY, int pointerHeld)
     {
         if (s_scene is null || width <= 0 || height <= 0)
         {
@@ -542,7 +542,7 @@ internal static partial class GameLoop
 
         // A drag works the farm only while the world takes input: no overlay, dialog or lost connection in front of it.
         bool worldOpen = !s_connectionBlocked && !s_overlayOpen && !s_modalOpen;
-        s_scene.SetPointer(pointerX, pointerY, (pointerHeld & MouseHeldFlag) != 0 && worldOpen);
+        s_scene.SetPointer(Nosum.Wasm.ViewModels.Input.PointerPixel.Of(pointerX), Nosum.Wasm.ViewModels.Input.PointerPixel.Of(pointerY), (pointerHeld & MouseHeldFlag) != 0 && worldOpen);
         s_scene.SetUseHeld((pointerHeld & UseHeldFlag) != 0 && worldOpen);
         if (s_worldMap is not null)
         {
