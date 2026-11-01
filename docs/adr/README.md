@@ -100,4 +100,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-089](ADR-089-gathering-review-tier-energy-and-feedback.md) | Gathering review: the tool tier discounts energy for axes and pickaxes, damaged nodes show a health bar, the level-up banner names the energy perk, the tool tooltip shows area and energy per use; amends ADR-023, ADR-026, ADR-081 (no wire change) | Accepted |
 | [ADR-090](ADR-090-audio-mix-loudness-targets.md) | Audio mix: every file measured, one target level per class of sound (music, action, footstep, interface, stinger, ambience), applied once as a gain at load; no change to the cues or the wire (ADR-039 amended) | Accepted |
 | [ADR-091](ADR-091-hazard-label-clustering.md) | Hazard overhead labels of the same text are placed once per cluster (96 × 16 px), so a magma field does not stack its label; amends ADR-061, ADR-063 (no wire change) | Accepted |
+| [ADR-092](ADR-092-world-labels-clear-the-hud-and-touch-controls.md) | World labels clear the HUD, the bottom band and the touch controls; stacked labels keep a gap; amends ADR-063, ADR-091 (no wire change) | Proposed |
 
