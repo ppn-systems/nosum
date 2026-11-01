@@ -272,9 +272,28 @@ internal sealed partial class MapScene
         {
             _labelIds[_labelCount] = id;
             _labelX[_labelCount] = feetX;
-            _labelY[_labelCount] = feetY;
+            _labelY[_labelCount] = feetY - this.NameLift(feetX, feetY);
             _labelCount++;
         }
+    }
+
+    // A name plate is lifted above the direction label of an exit the farmer stands by: the exit's label sits over its tile (WayfindingDecorator),
+    // so a plate drawn at the head would cover it. Lifted by the label's band; the plate keeps its place everywhere else (docs/adr/ADR-089 D4).
+    private int NameLift(int feetX, int feetY)
+    {
+        TileMap map = _content.Map;
+        for (int i = 0; i < _content.Warps.Count; i++)
+        {
+            MapWarp warp = _content.Warps[i];
+            int exitX = (warp.FromX * map.TileWidth) + (map.TileWidth / 2);
+            int exitY = (warp.FromY * map.TileHeight) + (map.TileHeight / 2);
+            if (Math.Abs(feetX - exitX) <= NameLiftReach && Math.Abs(feetY - exitY) <= NameLiftReach)
+            {
+                return NameLiftPixels;
+            }
+        }
+
+        return 0;
     }
 
     // One label command per player: the bitmap was uploaded when the name arrived, so the frame still crosses to the browser once.

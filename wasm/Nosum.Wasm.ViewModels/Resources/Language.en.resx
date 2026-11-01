@@ -879,6 +879,12 @@
   <data name="Npc_seed_keeper_Line_14" xml:space="preserve"><value>Your first harvest looked wonderful. Try a different crop next time.</value></data>
   <data name="Npc_seed_keeper_Line_15" xml:space="preserve"><value>The spring morning is cool. Seeds sown now sprout quickly.</value></data>
   <data name="Npc_seed_keeper_Line_16" xml:space="preserve"><value>Summer midday is hot. Take water with you to the fields.</value></data>
+  <data name="Npc_seed_keeper_Quest_buy_seeds" xml:space="preserve"><value>Planning what to grow? The seeds are right here on this counter.</value></data>
+  <data name="Npc_blacksmith_Quest_upgrade_tool" xml:space="preserve"><value>Want a tool upgraded? Hand it over and I'll take care of the rest.</value></data>
+  <data name="Npc_carpenter_Quest_build_coop" xml:space="preserve"><value>Thinking of a coop? Pick a plan here, then set it down on your farm.</value></data>
+  <data name="Npc_carpenter_Quest_buy_animal" xml:space="preserve"><value>Once you have a coop, you'll want a first animal. Choose one here.</value></data>
+  <data name="Npc_furnisher_Quest_decorate" xml:space="preserve"><value>Decorating? Buy a piece of furniture here and set it down.</value></data>
+  <data name="Npc_board_keeper_Quest_fill_request" xml:space="preserve"><value>There's a request on the board. Bring what they want and it's done.</value></data>
   <data name="Npc_tailor_Name" xml:space="preserve"><value>Hanh</value></data>
   <data name="Npc_tailor_Role" xml:space="preserve"><value>Tailor</value></data>
   <data name="Npc_tailor_Line_01" xml:space="preserve"><value>Come in and look around. The new shirts are cut to fit.</value></data>
@@ -1171,9 +1177,9 @@
   <data name="Furniture_WalkOver" xml:space="preserve"><value>Walk over</value></data>
   <data name="Furniture_Detail" xml:space="preserve"><value>{0} · {1} · {2}</value></data>
   <data name="Toolbar_Backpack" xml:space="preserve"><value>Backpack</value></data>
-  <data name="Npc_Action_Wardrobe" xml:space="preserve"><value>Wardrobe</value></data>
+  <data name="Npc_Action_Wardrobe" xml:space="preserve"><value>Change clothes</value></data>
   <data name="Npc_Action_Coop" xml:space="preserve"><value>Co-op</value></data>
-  <data name="Npc_Action_Backpack" xml:space="preserve"><value>Backpack</value></data>
+  <data name="Npc_Action_Backpack" xml:space="preserve"><value>More bag space</value></data>
   <data name="Backpack_Size" xml:space="preserve"><value>Your backpack holds {0} slots.</value></data>
   <data name="Backpack_Next" xml:space="preserve"><value>Next size: {0} slots for {1} coins. One more row.</value></data>
   <data name="Backpack_Upgrade" xml:space="preserve"><value>Upgrade backpack</value></data>

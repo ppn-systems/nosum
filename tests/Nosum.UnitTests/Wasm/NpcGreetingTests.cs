@@ -153,6 +153,32 @@ public sealed class NpcGreetingTests
     }
 
     [Fact]
+    public void KeyFor_TheActiveQuestIsAtThisMerchant_TheGreetingNamesIt()
+    {
+        NpcLineContext moment = NpcLineContext.Of(3, Season.Spring, WeatherKind.Sun, 9, false, false, false, "buy_seeds");
+
+        NpcGreeting.KeyFor(Merchant("seed_keeper"), moment, 0, _ => true).Should().Be("Npc_seed_keeper_Quest_buy_seeds");
+        NpcGreeting.KeyFor(Merchant("seed_keeper"), moment, 1, _ => true).Should().NotBe("Npc_seed_keeper_Quest_buy_seeds", "the Talk lines go on as before");
+    }
+
+    [Fact]
+    public void KeyFor_TheActiveQuestIsElsewhere_TheGreetingIsWhatItWasWithoutAQuest()
+    {
+        NpcLineContext withQuest = NpcLineContext.Of(3, Season.Spring, WeatherKind.Sun, 9, false, false, false, "buy_seeds");
+        NpcLineContext without = Moment(3, Season.Spring, WeatherKind.Sun, 9);
+
+        NpcGreeting.KeyFor(Merchant("tailor"), withQuest, 0, _ => true).Should().Be(NpcGreeting.KeyFor(Merchant("tailor"), without, 0, _ => true));
+    }
+
+    [Fact]
+    public void KeyFor_TheQuestLineHasNoText_FallsBackToThePool()
+    {
+        NpcLineContext moment = NpcLineContext.Of(3, Season.Spring, WeatherKind.Sun, 9, false, false, false, "buy_seeds");
+
+        NpcGreeting.KeyFor(Merchant("seed_keeper"), moment, 0, key => key != "Npc_seed_keeper_Quest_buy_seeds").Should().StartWith("Npc_seed_keeper_Line_");
+    }
+
+    [Fact]
     public void KeyFor_SkipsALineWhoseTextIsMissing()
     {
         NpcLineContext moment = Moment(2, Season.Winter, WeatherKind.Snow, 8);

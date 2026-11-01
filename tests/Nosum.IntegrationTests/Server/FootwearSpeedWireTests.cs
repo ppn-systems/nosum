@@ -28,8 +28,10 @@ namespace Nosum.IntegrationTests.Server;
 
 /// <summary>
 /// Walking speed over real Nalix WebSocket sessions (docs/adr/ADR-084): boots worn on the feet raise the pace the server accepts, and a claim
-/// above that pace is refused with a correction. The validator reads the server's real clock, so the walk is paced in real time and each
-/// claim takes at least as long as it covers (the server then never refills less than the claim spends).
+/// above that pace is refused with a correction. The validator reads the server's real clock, and that clock keeps running under load, so the
+/// outcome of a timed walk can only be decided with a bound: an accepted walk waits at least one step between claims (the budget then
+/// refills at least as fast as the walk spends it), and a refusal is one claim further than any budget can hold (a refill never raises the
+/// budget above its cap, so no timing lets it through).
 /// </summary>
 [Collection(NalixHostSerial.Name)]
 public sealed class FootwearSpeedWireTests : IClassFixture<PostgresFixture>
@@ -55,8 +57,8 @@ public sealed class FootwearSpeedWireTests : IClassFixture<PostgresFixture>
         LookRow[] looks = await player.GetLooksAsync(server.Token);
         looks.Single(l => l.PlayerId == join.PlayerId).FeetItemId.Should().Be(0);
 
-        // A pace of 1.5 is above what bare feet allow (+0%) and clear of timing jitter: the budget runs out within a few claims.
-        await WalkAsync(server, player, join, 1.5);
+        // One claim further than the budget can hold: bare feet cannot cover it, however long the walk took.
+        await OverCapAsync(server, player, join, running: false);
         (await CorrectionsAsync(player, server.Token)).Should().Contain(c => c.Reason == MoveRefusal.TooFast, "bare feet walk at the base speed");
     }
 
@@ -85,8 +87,8 @@ public sealed class FootwearSpeedWireTests : IClassFixture<PostgresFixture>
         JoinMapResult join = await player.JoinAsync(server.Token);
         await WearAsync(player, ItemCatalog.WingedBoots, server.Token);
 
-        // Above the boots' +20% the server refuses, so the multiplier is the authority and the client's claim is not.
-        await WalkAsync(server, player, join, 1.5);
+        // A claim beyond the boots' cap is refused, so the multiplier is the authority and the client's claim is not.
+        await OverCapAsync(server, player, join, running: false);
         (await CorrectionsAsync(player, server.Token)).Should().Contain(c => c.Reason == MoveRefusal.TooFast);
     }
 
@@ -105,8 +107,8 @@ public sealed class FootwearSpeedWireTests : IClassFixture<PostgresFixture>
         await WalkAsync(server, player, join, 1.5);
         (await CorrectionsAsync(player, server.Token)).Should().BeEmpty("walking at the boosted stack is accepted");
 
-        // Walking at the running pace (1.8) is refused: the run factor is what the cap is raised for.
-        await WalkAsync(server, player, join, MovementSpeed.MaxFactor);
+        // Walking past the boosted cap (1.5) is refused: the run factor is what the cap is raised for.
+        await OverCapAsync(server, player, join, running: false);
         (await CorrectionsAsync(player, server.Token)).Should().Contain(c => c.Reason == MoveRefusal.TooFast);
     }
 
@@ -132,11 +134,19 @@ public sealed class FootwearSpeedWireTests : IClassFixture<PostgresFixture>
         await WearAsync(player, ItemCatalog.WingedBoots, server.Token);
 
         // Above the cap the server refuses a run, whatever the client claims.
-        await WalkAsync(server, player, join, 2.0, running: true);
+        await OverCapAsync(server, player, join, running: true);
         (await CorrectionsAsync(player, server.Token)).Should().Contain(c => c.Reason == MoveRefusal.TooFast);
     }
 
-    // Walks back and forth between two points, each claim covering pace × walking speed × step seconds, advancing the fake clock between claims.
+    // One claim that covers more ground than any budget can hold: the budget never rises above its cap, which is MaxBudgetSeconds of walking at the
+    // fastest pace (the running pace), so twice that is refused at every pace and every moment.
+    private static Task OverCapAsync(Server server, SocialClient player, JoinMapResult join, bool running)
+    {
+        double distance = 2 * MoveValidator.MaxBudgetSeconds * Walker.Speed * MovementSpeed.MaxFactor;
+        return player.SendMoveAsync(Steps + 1, join.SpawnX + (float)distance, join.SpawnY, server.Token, running);
+    }
+
+    // Walks back and forth between two points, each claim covering pace × walking speed × step seconds, in real time between claims.
     private static async Task WalkAsync(Server server, SocialClient player, JoinMapResult join, double pace, bool running = false)
     {
         double distance = pace * Walker.Speed * s_step.TotalSeconds;
@@ -145,7 +155,8 @@ public sealed class FootwearSpeedWireTests : IClassFixture<PostgresFixture>
             float x = join.SpawnX + (step % 2 == 0 ? 0 : (float)distance);
             await player.SendMoveAsync((uint)step, x, join.SpawnY, server.Token, running);
 
-            // Real time between claims: the validator refills the budget from the server's clock, and the server rate-limits bursts.
+            // At least one step of real time between claims: the validator refills the budget from the server's clock, so an accepted walk is
+            // never starved of budget, however slowly the machine answers.
             await Task.Delay(s_step, server.Token);
         }
     }
@@ -157,10 +168,11 @@ public sealed class FootwearSpeedWireTests : IClassFixture<PostgresFixture>
         (await player.EquipAsync(slot, itemId, ct)).Should().Be(LookStatus.Ok);
     }
 
-    // The refusals the server sent: the replies are real time, so give them a moment to arrive.
+    // The refusals the server sent. A request answered on the same connection comes after the claims sent before it, so once it returns
+    // their corrections are in the inbox; no fixed wait is needed.
     private static async Task<MoveCorrection[]> CorrectionsAsync(SocialClient player, CancellationToken ct)
     {
-        await Task.Delay(TimeSpan.FromMilliseconds(500), ct);
+        _ = await player.GetInventoryAsync(ct);
         MoveCorrection[] seen = [];
         while (player.Corrections.TryTake(out MoveCorrection correction))
         {

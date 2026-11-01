@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Npcs;
+using Nosum.Gameplay.Quests;
 using Nosum.Gameplay.Weather;
 
 namespace Nosum.Wasm.ViewModels.Npc;
@@ -12,7 +13,8 @@ namespace Nosum.Wasm.ViewModels.Npc;
 /// <summary>The moment a merchant speaks in: the day, and the tags that are true now (docs/adr/ADR-080 D2).</summary>
 /// <param name="DayNumber">The game day (<see cref="GameCalendar.DayNumberAt"/>), or zero while the calendar is not known.</param>
 /// <param name="Tags">The season, weather, time of day and progress that hold now. Unknown parts are left out, so only untagged lines fit them.</param>
-public readonly record struct NpcLineContext(long DayNumber, NpcLineTags Tags)
+/// <param name="ActiveQuestKey">The key of the quest the farmer is working on, or <see langword="null"/> when none is (docs/adr/ADR-089 D3).</param>
+public readonly record struct NpcLineContext(long DayNumber, NpcLineTags Tags, string? ActiveQuestKey = null)
 {
     /// <summary>The mine floor a farmer must reach for the <see cref="NpcLineTags.DeepMiner"/> progress.</summary>
     public const int DeepMinerFloor = 10;
@@ -25,8 +27,9 @@ public readonly record struct NpcLineContext(long DayNumber, NpcLineTags Tags)
     /// <param name="newcomer">Whether no quest is finished yet.</param>
     /// <param name="harvested">Whether the first harvest quest is finished.</param>
     /// <param name="deepMiner">Whether the farmer has reached <see cref="DeepMinerFloor"/>.</param>
+    /// <param name="activeQuestKey">The key of the quest the farmer is working on, or <see langword="null"/> when none is.</param>
     /// <returns>The moment.</returns>
-    public static NpcLineContext Of(long dayNumber, Season? season, WeatherKind? weather, int? hour, bool newcomer, bool harvested, bool deepMiner)
+    public static NpcLineContext Of(long dayNumber, Season? season, WeatherKind? weather, int? hour, bool newcomer, bool harvested, bool deepMiner, string? activeQuestKey = null)
     {
         NpcLineTags tags = NpcLineTags.None;
         if (season is { } current)
@@ -59,7 +62,7 @@ public readonly record struct NpcLineContext(long DayNumber, NpcLineTags Tags)
             tags |= NpcLineTags.DeepMiner;
         }
 
-        return new NpcLineContext(dayNumber, tags);
+        return new NpcLineContext(dayNumber, tags, activeQuestKey);
     }
 
     /// <summary>Gets the tag of a season.</summary>
@@ -112,6 +115,16 @@ public static class NpcGreeting
         ArgumentNullException.ThrowIfNull(npc);
         ArgumentNullException.ThrowIfNull(exists);
         ArgumentOutOfRangeException.ThrowIfNegative(slot);
+
+        // The greeting names the farmer's quest when this merchant is where the quest sends them (docs/adr/ADR-089 D3); the Talk lines go on as before.
+        if (slot == 0 && context.ActiveQuestKey is { } questKey && QuestWaypoints.PlaceOf(questKey) == npc.Id)
+        {
+            string questLine = npc.TextKey("Quest_" + questKey);
+            if (exists(questLine))
+            {
+                return questLine;
+            }
+        }
 
         List<NpcLine> fitting = [];
         foreach (NpcLine line in NpcLineCatalog.PoolOf(npc.Id))
