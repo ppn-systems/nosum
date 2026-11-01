@@ -786,6 +786,7 @@
   <data name="Craft_Heading" xml:space="preserve"><value>Công thức</value></data>
   <data name="Craft_Materials" xml:space="preserve"><value>Nguyên liệu</value></data>
   <data name="Craft_Makes" xml:space="preserve"><value>Tạo ra: {0} x{1}</value></data>
+  <data name="Craft_Crafted" xml:space="preserve"><value>Đã chế tạo {0} x{1}. Đã vào túi của bạn.</value></data>
   <data name="Craft_Button" xml:space="preserve"><value>Chế tạo</value></data>
   <data name="Craft_ButtonMax" xml:space="preserve"><value>Tối đa x{0}</value></data>
   <data name="Craft_ButtonMany" xml:space="preserve"><value>Chế tạo x{0}</value></data>
