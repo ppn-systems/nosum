@@ -423,7 +423,7 @@
   <data name="Settings_PanelScaleLabel" xml:space="preserve"><value>Tỉ lệ</value></data>
   <data name="Settings_Display" xml:space="preserve"><value>Hiển thị</value></data>
   <data name="Settings_Music" xml:space="preserve"><value>Nhạc nền</value></data>
-  <data name="Settings_SoundFx" xml:space="preserve"><value>Hiệu ứng âm thanh</value></data>
+  <data name="Settings_SoundFx" xml:space="preserve"><value>Hiệu ứng</value></data>
   <data name="Settings_Mute" xml:space="preserve"><value>Tắt toàn bộ âm thanh</value></data>
   <data name="Settings_SoundNote" xml:space="preserve"><value>Âm thanh sẽ có ở bản sau; mức bạn chọn đã được lưu.</value></data>
   <data name="Settings_Percent" xml:space="preserve"><value>{0}%</value></data>
@@ -623,6 +623,10 @@
   <data name="Mail_Collected" xml:space="preserve"><value>Đã nhận quà.</value></data>
   <data name="Mail_CollectedTag" xml:space="preserve"><value>Đã nhận</value></data>
   <data name="Mail_Delete" xml:space="preserve"><value>Xóa thư</value></data>
+  <data name="Mail_DeleteTitle" xml:space="preserve"><value>Xóa thư</value></data>
+  <data name="Mail_DeleteMessage" xml:space="preserve"><value>Xóa thư "{0}"? Thư đã xóa không thể khôi phục.</value></data>
+  <data name="Mail_DeleteConfirm" xml:space="preserve"><value>Xóa</value></data>
+  <data name="Mail_DeleteCancel" xml:space="preserve"><value>Giữ lại</value></data>
   <data name="Mail_Attachments" xml:space="preserve"><value>Đính kèm</value></data>
   <data name="Mail_Coins" xml:space="preserve"><value>{0} xu</value></data>
   <data name="Mail_Expiry" xml:space="preserve"><value>Còn {0} ngày</value></data>
