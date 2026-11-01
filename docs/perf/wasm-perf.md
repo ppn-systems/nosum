@@ -149,7 +149,7 @@ Ranked by the evidence they have.
 3. **Full-canvas passes.** Every frame fills the whole canvas black, and at dusk and night the ambient pass clears, fills and composites a
    full-canvas layer, then draws the lights. Each is a per-pixel pass. Skipping the black fill where the map covers the canvas changes nothing
    visible, but the cover has to be proven first.
-4. **Attribute the remaining allocation, outside the frame body.** About 116 bytes a frame when idle, on the same thread between two frames: the
+4. **Attribute the remaining allocation, outside the frame body (round 5: the reporter's timer was measured, about 4 bytes; the rest is open).** About 112 bytes a frame when idle, on the same thread between two frames: the
    1 Hz and 10 Hz timers (`PlayerChannel`'s position reporter wakes even when nothing changed), the connection overlay, the socket and Blazor.
    The frame body itself is at zero when idle (ADR-099). The `[JSExport]` entry allocates nothing (measured: 0 bytes a call).
 5. **A deterministic farm fixture for "many entities".** The harness's block is small and uncounted. A fixed set of plots, crops and placed objects
@@ -191,6 +191,33 @@ of the same harness on master (with the `renderer.js` fix only) and on this bran
 
 **Outside the frame body** the thread still allocates about 116 bytes a frame when idle. The calendar part was the one attributed and fixed (about 23).
 The rest is on the same thread between two frames (timers, the socket, Blazor), and needs per-source probes (open, item 4 above).
+
+## Round 5: walk grids rebuilt in place, and a position report that sleeps while idle (ADR-100)
+
+Decision record: [ADR-100](../adr/ADR-100-browser-load-guard-and-in-place-walk-grids.md). Same harness and method as round 4 (`bench/wasm-perf/frame.cjs`, tester
+build, 1280 × 720, `vi-VN`, the farm, 8 s idle then 8 s walking). Three runs of `master` and three of this branch, run one after the other on the shared container
+with the same server; the medians are below, the spread in brackets.
+
+| Measure (bytes a frame) | `master` | This branch | Change |
+|:--|--:|--:|--:|
+| Whole thread, idle | 116 (116–118) | 112 (112–112) | −4 (−3%) |
+| Frame body, idle | 0 | 0 | gate passes |
+| Whole thread, walking | 276 (236–286) | 269 (266–282) | within noise |
+| Frame body, walking | 91 (51–92) | 25 (22–33) | −73% |
+| Callback p50, idle / walking (ms) | 4.1 / 4.1 | 4.1 / 4.0 | within noise |
+
+What changed: the node collision grid and the placed-furniture grid are rebuilt into buffers the client owns instead of a fresh copy of the map's grid on
+every chunk change (`NodeField.BuildGridInto`, `PlacedSet.BuildGridInto`, `CompositeWalkGrid`); and the position report waits for a change instead of
+ticking at 10 Hz (`PlayerChannel`).
+
+**The idle target is not met.** The whole thread still allocates about 112 bytes a frame when idle; the reporter's timer was about 4 of them. No JavaScript
+timer calls into .NET on a schedule, so the rest is on the .NET side (the one-second timers, Blazor, the socket). The next step is per-source probes in the
+tester build, not another guess. The walk's remaining frame-body allocation (about 25 bytes a frame) is not the grids and is not attributed.
+
+Verification: `dotnet build` of every solution (engine, gameplay, contracts, server, wasm, bench, tools): 0 warnings, 0 errors. `dotnet test
+tests/Nosum.UnitTests`: 3,644 passed, 0 failed (including the new `BuildGridInto` tests). `node --test tests/browser/label-fit/*.mjs
+tests/browser/modules/*.mjs`: 40 passed. Browser smoke (`tests/browser/smoke/boot-smoke.cjs`) against the published client and the Development server: no
+page or console error, 49 frames, 33 colours on the canvas at the first frame check. The frame gate (`--max-idle-body 0`) passed on every run.
 
 ## Reproduce
 
