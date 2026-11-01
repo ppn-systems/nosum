@@ -21,6 +21,10 @@ const at = (dx, dy) => ({ x: CENTER.x + dx * TILE, y: CENTER.y + dy * TILE });
   await page.waitForFunction(() => globalThis.nosumQa !== undefined, null, { timeout: 30000 });
   await wait(2500);
   await page.evaluate(() => window.nosumQa.springReset()); await wait(2000);
+  // The parsnip grows in spring, fall and winter: move off summer first, as the capture script does.
+  for (let i = 0; i < 3 && /Summer|Hè/i.test(await page.locator('.calendar-line .calendar-season').first().innerText().catch(() => '')); i++) {
+    await page.evaluate(() => window.nosumQa.season(1)); await wait(3000);
+  }
   await page.evaluate(() => window.nosumQa.teleport('farm', 46, 18)); await wait(2500);
   await page.evaluate(() => { window.nosumQa.grant(100, 10, 0); }); await wait(1000);
   const names = () => page.$$eval('.hotbar-slots > *', els => els.map(e => e.getAttribute('aria-label') || ''));

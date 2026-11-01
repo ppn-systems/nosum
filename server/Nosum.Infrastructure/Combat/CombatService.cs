@@ -55,6 +55,7 @@ public sealed partial class CombatService : ICombatService, IDisposable
     private readonly IBestiaryService? _bestiary;
     private readonly IQuestService? _quests;
     private readonly GameCalendar? _calendar;
+    private readonly TimeProvider _clock;
 
     private readonly ConcurrentDictionary<Guid, PlayerVitalsState> _vitals = new();
     private readonly ConcurrentDictionary<string, InstanceMonsters> _instances = new(StringComparer.Ordinal);
@@ -88,7 +89,8 @@ public sealed partial class CombatService : ICombatService, IDisposable
         IPlayerProgress? progress = null,
         IBestiaryService? bestiary = null,
         GameCalendar? calendar = null,
-        IQuestService? quests = null)
+        IQuestService? quests = null,
+        TimeProvider? clock = null)
     {
         ArgumentNullException.ThrowIfNull(presence);
         ArgumentNullException.ThrowIfNull(maps);
@@ -111,6 +113,7 @@ public sealed partial class CombatService : ICombatService, IDisposable
         _bestiary = bestiary;
         _quests = quests;
         _calendar = calendar;
+        _clock = clock ?? TimeProvider.System;
         if (_progress is not null)
         {
             _progress.Combat = this;

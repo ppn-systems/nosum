@@ -1,5 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -141,6 +142,44 @@ public sealed class PlacedSetTests
     }
 
     [Fact]
+    public void BuildGridInto_MatchesBuildGrid_AndAllocatesNothingOnARebuild()
+    {
+        WalkGrid map = Room();
+        PlacedSet set = new();
+        set.Add(new PlacedItem(1, ItemCatalog.OakTable, 2, 2, 0));
+        set.Add(new PlacedItem(2, ItemCatalog.OakTable, 6, 4, 0));
+        WalkGrid copy = set.BuildGrid(map);
+        WalkGrid scratch = map.Clone();
+        scratch.Block(0, 0, 1, 1); // a stale tile: the rebuild clears it
+
+        WalkGrid written = set.BuildGridInto(map, scratch);
+
+        written.Should().BeSameAs(scratch);
+        for (int y = 0; y < map.Height; y++)
+        {
+            for (int x = 0; x < map.Width; x++)
+            {
+                written.IsBlocked(x, y).Should().Be(copy.IsBlocked(x, y), $"tile {x},{y} matches the copying build");
+            }
+        }
+
+        // A placed-object change on a chunk change rebuilds into the same buffer; the walk must not allocate for it (docs/perf/wasm-perf.md, round 5).
+        long smallest = long.MaxValue;
+        for (int window = 0; window < 5 && smallest != 0; window++)
+        {
+            long before = GC.GetAllocatedBytesForCurrentThread();
+            for (int i = 0; i < 20; i++)
+            {
+                set.BuildGridInto(map, scratch);
+            }
+
+            smallest = Math.Min(smallest, GC.GetAllocatedBytesForCurrentThread() - before);
+        }
+
+        smallest.Should().Be(0);
+    }
+
+    [Fact]
     public void TryFindAt_ReturnsThePieceCoveringTheTile()
     {
         PlacedSet set = new();
@@ -268,6 +307,38 @@ public sealed class PlacedSetTests
         PlaceableView view = Definition(ItemCatalog.OakChair).View(0);
 
         PlacedSet.CoversFeet(view, 2, 3, feetX, feetY, 16).Should().Be(covers);
+    }
+
+    [Fact]
+    public void TryFindClearAnchor_AimedTileUnderTheFeet_StepsToTheNearestClearNeighbour()
+    {
+        // Finding 16 (ADR-103): the feet stand on the aimed tile (2, 3); the chair steps one tile right, to (3, 3).
+        PlacedSet set = new();
+
+        set.TryFindClearAnchor(Definition(ItemCatalog.OakChair), 0, 2, 3, Room(), new HashSet<(int X, int Y)>(), 40, 63, 0, out int x, out int y).Should().BeTrue();
+
+        (x, y).Should().Be((3, 3));
+    }
+
+    [Fact]
+    public void TryFindClearAnchor_NeighbourReserved_StepsToTheNextOne()
+    {
+        PlacedSet set = new();
+
+        set.TryFindClearAnchor(Definition(ItemCatalog.OakChair), 0, 2, 3, Room(), new HashSet<(int X, int Y)> { (3, 3) }, 40, 63, 0, out int x, out int y).Should().BeTrue();
+
+        (x, y).Should().Be((1, 3));
+    }
+
+    [Fact]
+    public void TryFindClearAnchor_AimedTileClear_ReturnsTheAimedTile()
+    {
+        // The feet are far away: the aimed tile is the first candidate and it fits.
+        PlacedSet set = new();
+
+        set.TryFindClearAnchor(Definition(ItemCatalog.OakChair), 0, 2, 3, Room(), new HashSet<(int X, int Y)>(), 120, 20, 0, out int x, out int y).Should().BeTrue();
+
+        (x, y).Should().Be((3, 3));
     }
 
     [Fact]

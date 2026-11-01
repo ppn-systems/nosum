@@ -1,4 +1,4 @@
-// Farming round four captures (docs/design/critique-farming.md, round-4 addendum; ADR-104).
+// Farming round four captures (docs/design/critique-farming.md, round-4 addendum; ADR-105).
 // Replays the sprinkler and the shipping bin, which round three did not reach, and reads the scythe TAP on an unripe crop (round-3 finding 1).
 // Needs a Development server (DOTNET_ENVIRONMENT=Development, dotnet run --project server/Nosum.Host, PostgreSQL role nosum_dev) and a client
 // published with -p:NosumDevTools=true, opened at ?qa=1.

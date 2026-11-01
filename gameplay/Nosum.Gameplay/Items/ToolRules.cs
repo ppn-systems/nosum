@@ -72,7 +72,7 @@ public static class ToolRules
 
     /// <summary>
     /// Whether a held item works the tile under a pointer press (a tap, or a drag over tiles): seeds, a hoe, a watering can and a scythe
-    /// (docs/adr/ADR-104 D1). A tap is one use of the held item on that tile, so the scythe's tap harvests or names why it cannot.
+    /// (docs/adr/ADR-105 D1). A tap is one use of the held item on that tile, so the scythe's tap harvests or names why it cannot.
     /// </summary>
     /// <param name="kind">The item's kind.</param>
     /// <param name="tool">The item's tool kind, <see cref="ToolKind.None"/> for a non-tool.</param>

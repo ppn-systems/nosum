@@ -64,7 +64,7 @@ internal sealed partial class PlayerActions
     /// <param name="combat">Sends monster attacks and potion drinking; <see langword="null"/> when combat is not wired.</param>
     /// <param name="calendar">The server calendar, so withered crops do not block eating or drinking potions.</param>
     /// <param name="nodes">The map's resource nodes, so a gathering swing knows what it gave experience for (docs/adr/ADR-089 D5); <see langword="null"/> for none.</param>
-    /// <param name="placeables">The placed pieces, so the growth stage the mouse names counts a sprinkler beside the tile (docs/adr/ADR-104 D2); <see langword="null"/> for none.</param>
+    /// <param name="placeables">The placed pieces, so the growth stage the mouse names counts a sprinkler beside the tile (docs/adr/ADR-105 D2); <see langword="null"/> for none.</param>
     public PlayerActions(FarmChannel farm, InventoryChannel inventory, MarketChannel market, ProgressChannel? progress = null, ChestChannel? chests = null, BuildingChannel? buildings = null, GameAudio? audio = null, CombatChannel? combat = null, CalendarChannel? calendar = null, NodeChannel? nodes = null, PlaceableChannel? placeables = null)
     {
         ArgumentNullException.ThrowIfNull(farm);
@@ -386,7 +386,7 @@ internal sealed partial class PlayerActions
             return;
         }
 
-        // The scythe works the tile a press lands on, once: a press dragged over a row does not harvest on the way or refuse every bare tile (docs/adr/ADR-104 D1).
+        // The scythe works the tile a press lands on, once: a press dragged over a row does not harvest on the way or refuse every bare tile (docs/adr/ADR-105 D1).
         if (_dragging && this.HeldTool() == ToolKind.Scythe)
         {
             return;
@@ -446,7 +446,7 @@ internal sealed partial class PlayerActions
                 return false;
             }
 
-            // A sprinkler beside the tile waters it from the day after it was placed, so the stage the mouse names is the server's (docs/adr/ADR-104 D2).
+            // A sprinkler beside the tile waters it from the day after it was placed, so the stage the mouse names is the server's (docs/adr/ADR-105 D2).
             stage = FarmRules.StageAt(tile, nowMs, rules, _outdoors, _placeables?.SprinklerWateredSinceMs(tileX, tileY));
             stageCount = crop.StageCount;
             return stage >= 0;

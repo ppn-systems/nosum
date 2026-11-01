@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Wasm;
 
-/// <summary>A piece that was set down says so on the message line (docs/adr/ADR-104 D3), in both languages.</summary>
+/// <summary>A piece that was set down says so on the message line (docs/adr/ADR-105 D3), in both languages.</summary>
 public sealed class PlaceDoneKeyTests
 {
     [Fact]

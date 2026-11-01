@@ -30,6 +30,7 @@
                         <GameButton Variant="tab" Active="choice.IsCurrent" Text="@id.ToString(System.Globalization.CultureInfo.CurrentCulture)" Title="@choice.Label" OnClick="@(() => Vm.SetHairStyle(id))" />
                     }
                 </GameRow>
+                <p>@Vm.CurrentHairStyleText</p>
             </GameSection>
             <GameSection Title="@Vm.Text("Wardrobe_HairDye_Heading")">
                 <GameRow>

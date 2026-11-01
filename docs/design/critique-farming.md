@@ -156,9 +156,9 @@ No wire change: protocol 32 stays. The tests: `PointerPixelTests`, `FarmHarvestN
 3. Finding 5: check that drag-to-sow covers a line of three, and make it the taught way to plant.
 4. Finding 4: the growth stage readable without hover (a sprite or a label on the tile).
 
-## Round four addendum (ADR-104)
+## Round four addendum (ADR-105)
 
-Replayed on `claude/farming-round4` (from master `b60835ed`), 1280x720 and 390x844 (a width-override test copy, the product still gates phones at
+Replayed on `claude/farming-round4` (from master `b60835ed`, merged with master `d4fba266` before the PR), 1280x720 and 390x844 (a width-override test copy, the product still gates phones at
 1024 px), vi and en. Captures and grades: `docs/qa/farming-round4/` (README there). Script: `tests/browser/farm-round4-capture.cjs`; drag check:
 `tests/browser/farm-round4-drag-probe.cjs`.
 
@@ -171,10 +171,10 @@ three. Not played: a ripe harvest by tap with the scythe, the scythe drag, the c
 1. **The scythe tap on an unripe crop was silent. Root cause found.** A tap goes through `PlayerActions.DragSow`, which returned before any use when the
    held item was not a seed, a hoe or a can. The scythe was not one of them, so every scythe tap, ripe or not, sent no request. The round-three note
    read this as a missing reply; it was the client gate. Fixed: `ToolRules.PointerWorksTile` names the four pointer tools, the scythe works one tile
-   per press (ADR-104 D1). Before/after: `before/en-05` silent, `after/en-05` "Not ready, 2 days left".
+   per press (ADR-105 D1). Before/after: `before/en-05` silent, `after/en-05` "Not ready, 2 days left".
 2. **The hover stage ignored a sprinkler** (round-three finding 4's note, backlog item 4). The hover now passes the sprinkler time to `StageAt`, the
-   rule the server uses (ADR-104 D2).
-3. **A placed piece was silent.** "Placed." / "Đã đặt xuống." on success; refusals keep their own line (ADR-104 D3).
+   rule the server uses (ADR-105 D2).
+3. **A placed piece was silent.** "Placed." / "Đã đặt xuống." on success; refusals keep their own line (ADR-105 D3).
 4. **Checked, no change needed:** the sprinkler waters the crop beside it (master too: "The soil is already wet today."); the shipping bin sells the stack
    ("Sold for 80 coins."); drag-to-sow covers a line of three ("Seeds planted. ×3", seeds 18 to 15). The bin check needed a longer walk in the
    script (120 ms only turned the farmer; 400 ms crossed the tile), which is a script fault, not a game one.
@@ -188,5 +188,5 @@ three. Not played: a ripe harvest by tap with the scythe, the scythe drag, the c
 2. Finding 4 (round one, round three): the growth stage is readable only on hover; a sprite or label on the tile is an art decision.
 3. Round-three finding 5, second half: teach the drag in the first-run hint (copy, owner decision).
 4. Phones: the device gate (round-one finding 8) is still open; the owner decides whether the 390x844 layout ships.
-5. A scythe drag over a row works one tile per press (ADR-104 D1); a player who wants a harvest along a row uses the wide key (R) or repeats taps.
+5. A scythe drag over a row works one tile per press (ADR-105 D1); a player who wants a harvest along a row uses the wide key (R) or repeats taps.
    Not played in a frame this round.

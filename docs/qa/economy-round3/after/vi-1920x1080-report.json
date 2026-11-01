@@ -1,0 +1,42 @@
+{
+  "lang": "vi",
+  "base": "http://localhost:5810",
+  "captured": [
+    "1920x1080/vi-seller-sell-empty.png",
+    "1920x1080/vi-seller-sell-picked.png",
+    "1920x1080/vi-seller-listed.png",
+    "1920x1080/vi-buyer-browse.png",
+    "1920x1080/vi-buyer-sell-picked.png",
+    "1920x1080/vi-buyer-sell-priced.png"
+  ],
+  "skipped": [
+    {
+      "screen": "buyer-browse-sorted",
+      "reason": "no sort control in this build"
+    }
+  ],
+  "errors": [],
+  "measures": [
+    {
+      "viewport": "1920x1080",
+      "clientHeight": 751,
+      "scrollHeight": 908,
+      "listings": 8,
+      "kids": [
+        "DIV.game-row:70",
+        "DIV.market-filter:78",
+        "DIV.listing-list:630",
+        "DIV.game-row:70"
+      ],
+      "filter": {
+        "h": 78,
+        "w": 1015,
+        "kids": [
+          "INPUT.game-input market-search:385x78",
+          "BUTTON.game-button primary  :95x70",
+          "DIV.game-row :515x70"
+        ]
+      }
+    }
+  ]
+}

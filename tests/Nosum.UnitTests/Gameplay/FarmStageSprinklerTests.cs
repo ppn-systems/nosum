@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Gameplay;
 
-/// <summary>A sprinkler beside a crop waters it, so the growth stage the mouse names counts those days (docs/adr/ADR-104 D2).</summary>
+/// <summary>A sprinkler beside a crop waters it, so the growth stage the mouse names counts those days (docs/adr/ADR-105 D2).</summary>
 public sealed class FarmStageSprinklerTests
 {
     private static readonly GameCalendar s_calendar = GameCalendar.Default;
