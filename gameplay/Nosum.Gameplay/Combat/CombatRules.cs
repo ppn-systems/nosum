@@ -78,6 +78,12 @@ public static class CombatRules
     /// <summary>Cooldown in milliseconds between one boss ground slam and the next from the same boss.</summary>
     public const int GroundSlamCooldownMs = 6000;
 
+    /// <summary>
+    /// Wind-up in milliseconds between an ordinary monster's strike telegraph and its landing (docs/adr/ADR-097). The player may step away
+    /// during it; the strike lands only if the player is still in reach when it does.
+    /// </summary>
+    public const int MonsterStrikeWindupMs = 400;
+
     /// <summary>Maximum duration in milliseconds to maintain a combat combo streak.</summary>
     public const int ComboTimeoutMs = 3500;
 
@@ -141,6 +147,15 @@ public static class CombatRules
             && MonsterCatalog.TryGet(monster.Kind, out MonsterDefinition? def)
             && def.EnrageThresholdPercent > 0
             && monster.Hp * 100 <= monster.MaxHp * def.EnrageThresholdPercent;
+
+    /// <summary>
+    /// Whether a monster can land a melee strike on a player standing <paramref name="dx"/>, <paramref name="dy"/> tiles away (Chebyshev reach
+    /// of one tile, docs/adr/ADR-097). Used when a windup ends, so a player who stepped away takes no damage.
+    /// </summary>
+    /// <param name="dx">Tile distance on X between the monster and the player.</param>
+    /// <param name="dy">Tile distance on Y between the monster and the player.</param>
+    /// <returns><see langword="true"/> when the strike reaches.</returns>
+    public static bool IsMeleeInReach(int dx, int dy) => Math.Max(Math.Abs(dx), Math.Abs(dy)) <= 1;
 
     /// <summary>Damage dealt by a boss ground slam to each player inside its radius (heavy attack, twice the contact damage).</summary>
     /// <param name="kind">Monster species.</param>

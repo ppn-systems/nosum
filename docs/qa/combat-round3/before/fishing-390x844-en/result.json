@@ -1,0 +1,11 @@
+{
+  "mode": "fishing",
+  "size": "390x844",
+  "locale": "en-US",
+  "bite": {
+    "statusAtBite": "Something is biting! Press Space or click to reel in!",
+    "inputMode": "touch"
+  },
+  "afterPress": "You caught Anchovy!",
+  "errors": []
+}

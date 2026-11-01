@@ -1120,6 +1120,7 @@
   <data name="Fishing_Waiting" xml:space="preserve"><value>Waiting for a bite...</value></data>
   <data name="Fishing_Bite" xml:space="preserve"><value>Something is biting!</value></data>
   <data name="Fishing_Press" xml:space="preserve"><value>Press Space or click to reel in!</value></data>
+  <data name="Fishing_PressTouch" xml:space="preserve"><value>Tap to reel in!</value></data>
   <data name="Fishing_Reeling" xml:space="preserve"><value>Reeling in...</value></data>
   <data name="Fishing_NotYet" xml:space="preserve"><value>Not yet. Wait for the bite.</value></data>
   <data name="Fishing_Caught" xml:space="preserve"><value>You caught {0}!</value></data>
