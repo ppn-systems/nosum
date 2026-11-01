@@ -1,0 +1,38 @@
+## 1280x720 (vi)
+1. Thư
+2. Cài đặt
+3. Túi đồ [I]
+4. Tủ đồ [C]
+5. Chế tạo
+6. Giao dịch [T]
+7. Hợp tác xã [G]
+8. Khách
+9. Bạn bè
+10. Kỹ năng
+11. Thú cưng
+12. Hồ sơ [N]
+13. Bản đồ thế giới [Tab]
+14. Sổ sưu tập [J]
+15. Biểu cảm [B]
+.hud-player-bar: x=1166 y=72 w=102 h=372
+.hud-minimap: x=980 y=72 w=180 h=132
+
+## 390x844 (vi)
+1. Thư
+2. Cài đặt
+3. Túi đồ [I]
+4. Tủ đồ [C]
+5. Chế tạo
+6. Giao dịch [T]
+7. Hợp tác xã [G]
+8. Khách
+9. Bạn bè
+10. Kỹ năng
+11. Thú cưng
+12. Hồ sơ [N]
+13. Bản đồ thế giới [Tab]
+14. Sổ sưu tập [J]
+15. Biểu cảm [B]
+.hud-player-bar: x=322 y=48 w=60 h=220
+.hud-minimap: absent
+
