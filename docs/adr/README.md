@@ -105,4 +105,5 @@ Consequences, and Revisit when. An ADR written by an agent lands as `Proposed` a
 | [ADR-094](ADR-094-scythe-line-days-left-and-one-watering-rule.md) | The scythe works a line of three (five at copper and iron), an unripe crop names the days left (protocol 31), and one rule decides a watering (`FarmRules.WaterVerdict`) | Accepted |
 | [ADR-095](ADR-095-world-labels-clear-the-hud-and-touch-controls.md) | World labels clear the HUD, the bottom band and the touch controls; stacked labels keep a gap; amends ADR-063, ADR-091 (no wire change) | Proposed |
 | [ADR-096](ADR-096-waypoint-arrow-off-the-hud-and-the-round-three-check.md) | Quest waypoint arrow slides off the HUD, Forest and Mine waypoints at their nodes, the hint's idle count costs nothing per frame, browser check of ADR-093 (no wire change); amends ADR-093 | Accepted |
+| [ADR-097](ADR-097-market-listing-rows-and-expiry-on-my-listings.md) | Market listing rows are compact (12 u slot, one line), search and sort on one row, My listings shows the hours left (no wire change); amends ADR-013 and ui-standard section 3 | Accepted |
 

@@ -54,12 +54,6 @@
     align-items: center;
 }
 
-.listing-main {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
 .listing-price {
     color: var(--nosum-ink);
 }
@@ -68,10 +62,37 @@
     color: var(--nosum-ink-soft);
 }
 
-/* One line each: a long name or seller ends in an ellipsis instead of wrapping, so a listing row is one item slot tall (docs/design/critique-economy.md, round 2). */
-.listing-name,
-.listing-seller {
+/* The search and the sort share one row (ADR-097): the field takes the room the buttons leave, the sort wraps only on a phone. */
+.market-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--u) * 2);
+    align-items: center;
+}
+
+.market-filter ::deep .market-search {
+    flex: 1 1 0;
+    /* At least 40 u, so on a phone the sort wraps below the field instead of squeezing the placeholder. */
+    min-width: calc(var(--u) * 40);
+}
+
+/* On a phone the field takes its own line, so its placeholder is not squeezed (the sort wraps under it). */
+@media (max-width: 640px) {
+    .market-filter ::deep .market-search {
+        flex-basis: 100%;
+    }
+}
+
+/* One line each: "Name x3 Seller: name" ends in an ellipsis instead of wrapping (ADR-097). */
+.listing-main {
+    display: block;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.listing-name,
+.listing-seller {
     white-space: nowrap;
 }

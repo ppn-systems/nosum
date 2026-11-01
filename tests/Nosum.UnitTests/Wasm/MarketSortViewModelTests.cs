@@ -189,6 +189,34 @@ public sealed class MarketSortViewModelTests
         socket.Requests.OfType<BuyListing>().Should().BeEmpty();
     }
 
+    [Fact]
+    public void Browsed_OwnListing_SaysHowManyHoursItHasLeft()
+    {
+        using CultureScope scope = new("en", "en-US");
+        long now = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        ListingsPage page = new() { Total = 2 };
+        page.Rows.Add(new ListingRow { ListingId = System.Guid.NewGuid(), ItemId = ItemCatalog.Parsnip, Quantity = 1, Price = 30, IsMine = true, ExpiresAtMs = now + 150 * 60 * 1000 });
+        page.Rows.Add(new ListingRow { ListingId = System.Guid.NewGuid(), ItemId = ItemCatalog.Parsnip, Quantity = 1, Price = 30, IsMine = true, ExpiresAtMs = now - 60 * 1000 });
+        (MarketViewModel vm, _) = Create(page);
+
+        vm.Open();
+
+        vm.Browsed.Select(l => l.ExpiryText).Should().Equal("3 hours left", "Expired");
+    }
+
+    [Fact]
+    public void Browsed_OthersListing_HasNoExpiryLine()
+    {
+        using CultureScope scope = new("en", "en-US");
+        ListingsPage page = new() { Total = 1 };
+        page.Rows.Add(new ListingRow { ListingId = System.Guid.NewGuid(), ItemId = ItemCatalog.Parsnip, Quantity = 1, Price = 30, ExpiresAtMs = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + 3600_000 });
+        (MarketViewModel vm, _) = Create(page);
+
+        vm.Open();
+
+        vm.Browsed.Single().ExpiryText.Should().BeEmpty();
+    }
+
     private static (MarketViewModel Vm, FakeGameSocket Socket) Create(ListingsPage page, int parsnips = 0, MarketStatus listingResult = MarketStatus.Ok)
     {
         FakeGameSocket socket = new();
