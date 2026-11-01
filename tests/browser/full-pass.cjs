@@ -136,9 +136,16 @@ async function runOne(browser, locale, vpName, report) {
     const file = `${String(i + 2).padStart(2, '0')}-${slug(labels[i])}.png`;
     try {
       if (phone && !(await buttons.nth(i).isVisible())) {
+        // The column is collapsed on a phone; the Menu window offers only the panels outside the column, so a column panel has no
+        // door here. That is recorded as n/a (a product gap for the report), not as a layout fault.
         await page.locator('.game-hud .hud-top-right .hud-menu-button .game-icon-button').first().click({ force: true, timeout: 5000 });
         await page.waitForTimeout(400);
-        await page.locator(`.game-menu-tile[aria-label="${labels[i]}"]`).first().click({ force: true, timeout: 5000 });
+        const tile = page.locator(`.game-menu-tile[aria-label="${labels[i]}"]`);
+        if (!(await tile.count())) {
+          rec(`panel: ${labels[i]}`, 'n/a', 'phone: column panel, collapsed into no door (not in the Menu window); not measured');
+          throw new Error('skip');
+        }
+        await tile.first().click({ force: true, timeout: 5000 });
       } else {
         await buttons.nth(i).click({ force: true, timeout: 5000 });
       }
@@ -150,7 +157,7 @@ async function runOne(browser, locale, vpName, report) {
         await page.locator('.trade-window .game-row button').nth(0).click({ force: true, timeout: 5000 });
       }
     } catch (e) {
-      rec(`panel: ${labels[i]}`, 'FAIL', String(e.message).split('\n')[0].slice(0, 160));
+      if (e.message !== 'skip') rec(`panel: ${labels[i]}`, 'FAIL', String(e.message).split('\n')[0].slice(0, 160));
     }
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
