@@ -64,5 +64,8 @@ public sealed partial class CombatService
 
         /// <summary>Tick time (ms) before which each boss may start its next ground slam, keyed by monster id. Guarded by <see cref="Gate"/>.</summary>
         public Dictionary<int, long> SlamReadyAt { get; } = [];
+
+        /// <summary>Ordinary monsters with a melee strike in its wind-up (docs/adr/ADR-097), keyed by monster id. Guarded by <see cref="Gate"/>.</summary>
+        public HashSet<int> StrikeWindingUp { get; } = [];
     }
 }

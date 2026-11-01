@@ -404,7 +404,7 @@ internal sealed partial class MapScene
         }
 
         FarmerSprite.Draw(_world, _farmerTextures, hasOwn ? LookSprites.Resolve(ownLook) : this.Look, effectiveFacing, walkFrame, farmerPx, farmerPy, 0, heldItemId, swingProgress, _actions?.Exhausted ?? false);
-        // The local sprite's box and feet go to the renderer, so a world label keeps off the sprite; the own name plate is anchored at the feet (docs/adr/ADR-097).
+        // The local sprite's box and feet go to the renderer, so a world label keeps off the sprite; the own name plate is anchored at the feet (docs/adr/ADR-099).
         _commands.PlayerBox(farmerPx - (FarmerSprite.Width / 2) - _camera.Left, farmerPy - FarmerSprite.Height - _camera.Top, FarmerSprite.Width, FarmerSprite.Height, farmerPx - _camera.Left, farmerPy - _camera.Top);
         this.AddEnergyFloats();
         if (hasSkillEffect)

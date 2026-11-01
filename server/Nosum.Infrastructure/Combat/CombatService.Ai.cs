@@ -36,6 +36,7 @@ public sealed partial class CombatService
         List<PlayerPresence> players = new(16);
         List<MonsterSpawn> moved = new(8);
         List<(int X, int Y, int MonsterId, MonsterKind Kind)> slams = new(2);
+        List<int> windups = new(4);
         List<PendingContact> contacts = new(4);
         List<PendingHazard> hazardHits = new(4);
         List<PendingShrine> shrineHits = new(2);
@@ -74,6 +75,7 @@ public sealed partial class CombatService
                     InstanceMonsters instance = entry.Value;
                     moved.Clear();
                     slams.Clear();
+                    windups.Clear();
                     contacts.Clear();
                     hazardHits.Clear();
                     shrineHits.Clear();
@@ -127,7 +129,16 @@ public sealed partial class CombatService
                                     slams.Add((targetTileX, targetTileY, m.MonsterId, m.Kind));
                                 }
 
-                                if (bestDist <= 1)
+                                if (bestDist <= 1 && !CombatRules.IsBoss(m.Kind))
+                                {
+                                    // An ordinary monster winds up its strike first (docs/adr/ADR-097): the player can step out of reach in the meantime.
+                                    // One wind-up at a time per monster; the next one starts after the strike lands.
+                                    if (instance.StrikeWindingUp.Add(m.MonsterId))
+                                    {
+                                        windups.Add(m.MonsterId);
+                                    }
+                                }
+                                else if (bestDist <= 1)
                                 {
                                     // Strikes are collected under the gate and awaited after it is released (issue #149).
                                     contacts.Add(new PendingContact(nearest, CombatRules.MonsterDamage(m.Kind), m.Kind, m.MonsterId));
@@ -229,6 +240,14 @@ public sealed partial class CombatService
                     {
                         PendingShrine shrine = shrineHits[shIdx];
                         await this.ApplyShrineBlessingAsync(shrine.PlayerId, instanceKey, instance, shrine.Shrine, shrine.Now, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    for (int wIdx = 0; wIdx < windups.Count; wIdx++)
+                    {
+                        int windupMonsterId = windups[wIdx];
+                        await this.BroadcastStrikeTelegraphAsync(instanceKey, windupMonsterId, cancellationToken).ConfigureAwait(false);
+                        // Detached like a slam: the wind-up outlives the tick, and its failures are reported, never dropped.
+                        _ = this.ResolveMonsterStrikeAsync(instanceKey, instance, windupMonsterId, onError, cancellationToken);
                     }
 
                     for (int sIdx = 0; sIdx < slams.Count; sIdx++)
@@ -403,6 +422,113 @@ public sealed partial class CombatService
             }
 
             await this.ApplyMonsterContactAttackAsync(p, damage, kind, instanceKey, instance, monsterId, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Waits out an ordinary monster's wind-up, then strikes the player if that player is still in reach of the monster (docs/adr/ADR-097).
+    /// The wind-up flag is cleared whatever happens, so a cancelled or failed wind-up never blocks the monster's next strike.
+    /// </summary>
+    [SuppressMessage("Design", "CA1031", Justification = "A detached strike must report every failure to the AI error callback instead of leaking it unobserved.")]
+    private async Task ResolveMonsterStrikeAsync(
+        string instanceKey,
+        InstanceMonsters instance,
+        int monsterId,
+        Action<Exception>? onError,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await this.ResolveMonsterStrikeCoreAsync(instanceKey, instance, monsterId, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            onError?.Invoke(ex);
+        }
+        finally
+        {
+            lock (instance.Gate)
+            {
+                _ = instance.StrikeWindingUp.Remove(monsterId);
+            }
+        }
+    }
+
+    private async Task ResolveMonsterStrikeCoreAsync(
+        string instanceKey,
+        InstanceMonsters instance,
+        int monsterId,
+        CancellationToken cancellationToken)
+    {
+        await Task.Delay(CombatRules.MonsterStrikeWindupMs, cancellationToken).ConfigureAwait(false);
+
+        // The monster may have been struck down or moved during the wind-up; it strikes from where it stands now.
+        MonsterSpawn? monster = null;
+        lock (instance.Gate)
+        {
+            for (int i = 0; i < instance.Monsters.Count; i++)
+            {
+                if (instance.Monsters[i].MonsterId == monsterId)
+                {
+                    monster = instance.Monsters[i];
+                    break;
+                }
+            }
+        }
+
+        if (monster is not { Hp: > 0 } live)
+        {
+            return;
+        }
+
+        List<PlayerPresence> present = [];
+        _presence.CopyPlayers(instanceKey, present);
+        if (present.Count == 0 || !_maps.TryGet(present[0].MapId, out MapDefinition? map))
+        {
+            return;
+        }
+
+        int tileSize = Math.Max(1, map.Grid.TileSize);
+        for (int i = 0; i < present.Count; i++)
+        {
+            PlayerPresence p = present[i];
+            double px;
+            double py;
+            lock (p.Gate)
+            {
+                px = p.Motion.X;
+                py = p.Motion.Y;
+            }
+
+            int pTileX = (int)Math.Floor(px / tileSize);
+            int pTileY = (int)Math.Floor(py / tileSize);
+            if (!CombatRules.IsMeleeInReach(pTileX - live.X, pTileY - live.Y))
+            {
+                continue;
+            }
+
+            await this.ApplyMonsterContactAttackAsync(p, CombatRules.MonsterDamage(live.Kind), live.Kind, instanceKey, instance, monsterId, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private async ValueTask BroadcastStrikeTelegraphAsync(string instanceKey, int monsterId, CancellationToken cancellationToken)
+    {
+        List<PlayerPresence> present = [];
+        _presence.CopyPlayers(instanceKey, present);
+        if (present.Count == 0 || _notifier is null)
+        {
+            return;
+        }
+
+        foreach (PlayerPresence p in present)
+        {
+            using PacketScope<StrikeTelegraph> lease = PacketFactory<StrikeTelegraph>.Acquire();
+            lease.Value.MonsterId = monsterId;
+            lease.Value.DelayMs = (ushort)CombatRules.MonsterStrikeWindupMs;
+            _ = await _notifier.TrySendAsync(p.AccountId, lease.Value, cancellationToken).ConfigureAwait(false);
         }
     }
 

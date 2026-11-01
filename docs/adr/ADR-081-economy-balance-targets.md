@@ -76,3 +76,22 @@ The simulation (`tests/Nosum.UnitTests/Gameplay/EconomyReportTests.cs`, see docs
 - **Left alone:** fiber stays free (the owner's open question on free feed); the animal prices, the crop and fish bands (D1, D2, D5), the energy rules (D3), and the milk pail (300).
 - **Consequence.** Players with a herd and no scythe grass can now keep their animals fed profitably; the coin sink from feeding is smaller than the sink in the 30-coin version
   (a fed herd of six pays about 1,700 coins a season for hay, where it paid about 5,000).
+
+## Amendment (2026-11-01, round 2): the herd pays for its feed, the late tiers cost more, the backpack step is retuned
+
+The second economy pass (docs/design/critique-economy.md, sections 2 and 7) read the simulation's numbers again. Data only; no mechanic, opcode or wire
+field changes, and `NosumProtocol.Version` stays 30.
+
+- **D9 - Feed is the recurring sink (energy-free herds).** Animals use no energy, so a herd earned 156 coins a game day with none (critique section 2). Feed is the
+  only coin cost that grows with the herd, so it is the lever the data has: **hay 10 → 12** a ration (`ShopCatalog`, carpenter). A fed season is still positive for every
+  animal (chicken +84, duck +224, cow +420, goat +560, sheep +384, pig +644), and a ration still costs less than the chicken's egg (15).
+  The herd is still uncapped and fiber is still free: capping herds, or tying animals to energy, is a mechanic and stays an owner decision.
+- **D10 - Backpack step (ADR-083).** The second step 1 500 → **1 000** coins (54 slots). The step prices are now 600 for nine slots (67 each) and 1 000 for nine (111 each),
+  a ratio of 1.67 where it was 2.5. `BackpackRules`, locked by `BackpackRulesTests`.
+- **D11 - Late tool tier (ADR-026).** The iron upgrade 5 000 → **8 000** coins (plus five iron bars, unchanged); copper stays 2 000. `BlacksmithRules.IronCoins`,
+  locked by `BlacksmithRulesTests`.
+- **What this does to the sink.** One-time sinks move from about 27 000 to about 29 500 coins (−500 backpack, +3 000 iron). Feed adds about 20 % to the recurring sink.
+  This is not the fix the critique asked for: a late-game sink that scales with a season's income (about 19 000) needs a recurring cost (upkeep, a building, a town project),
+  which is a new system, so it stays open for the owner.
+- **Locked by tests.** `EconomyBalanceTests.HayRation_*` (season positive for every animal, ration below the egg), `BackpackRulesTests`, `BlacksmithRulesTests`.
+- **Left alone:** the crop and fish bands (D1, D2, D5), animal prices, the energy rules (D3), the milk pail, the market fee.

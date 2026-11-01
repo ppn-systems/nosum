@@ -6,7 +6,7 @@
 // decode and draw synchronously, never keep the view.
 
 import { audioCommand } from "./audio.js";
-import { fitLabel, hudRect, labelAvoidCount, stackLabel, LABEL_EDGE } from "./label-fit.js";
+import { LABEL_EDGE, hudRect, labelAvoidCount, placeLabel } from "./label-fit.js";
 // The sound commands (-7 sound, -8 music, -9 ambient loop; docs/adr/ADR-039) go to audio.js; these are the module's exports .NET calls.
 export { loadAudio, setAudioLevels, setUiClickSound } from "./audio.js";
 
@@ -14,9 +14,9 @@ const textures = [];          // texture id -> ImageBitmap
 const placed = new Int32Array(256); // rectangles of the labels drawn this frame (x, y, w, h), to stack names that overlap
 let placedCount = 0;
 // A world label stays on screen and off the HUD and the touch controls (docs/design/ui-standard.md sections 2 and 4; label-fit.js, docs/adr/ADR-095).
-// The HUD rectangles (left, top, right, bottom, canvas pixels) are read from the DOM at most every 250 ms, never per label; fitLabel() leaves the
+// The HUD rectangles (left, top, right, bottom, canvas pixels) are read from the DOM at most every 250 ms, never per label; placeLabel() leaves the
 // result in labelPlace (no allocation).
-const hudRects = new Int32Array(4 * 17); // the HUD rectangles, then the local player's sprite box (docs/adr/ADR-097)
+const hudRects = new Int32Array(4 * 17); // the HUD rectangles, then the local player's sprite box (docs/adr/ADR-099)
 let hudCount = 0;
 let hudStamp = -Infinity;
 const labelPlace = new Int32Array(2);
@@ -335,10 +335,6 @@ function refreshHud(now) {
     }
 }
 
-function clampTo(v, lo, hi) {
-    return v < lo ? lo : v > hi ? hi : v;
-}
-
 // The index of the first HUD rectangle that the box (x, y, w, h) overlaps, or -1.
 function hudHit(x, y, w, h) {
     for (let k = 0; k < hudCount; k++) {
@@ -421,7 +417,7 @@ export function submitFrame(view) {
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
     placedCount = 0;
     lightCount = 0;
-    // The local player's sprite box (command -13, docs/adr/ADR-097) goes in the slot after the HUD rectangles, for the labels only. Its feet are kept for
+    // The local player's sprite box (command -13, docs/adr/ADR-099) goes in the slot after the HUD rectangles, for the labels only. Its feet are kept for
     // the own name plate, which is anchored there.
     let playerOn = false, playerFeetX = 0, playerFeetY = 0;
     for (let i = 0, p = 2; i < count; i++, p += 9) {
@@ -515,9 +511,8 @@ export function submitFrame(view) {
                 const lw = label.width, lh = label.height;
                 const x0 = Math.round(dx * scale - lw / 2);
                 const y0 = Math.round(dy * scale - lh);
-                stackLabel(labelPlace, placed, placedCount, x0, y0, lw, lh);
                 const avoid = labelAvoidCount(hudCount, playerOn, dx, dy, playerFeetX, playerFeetY);
-                fitLabel(labelPlace, hudRects, avoid, canvas.width, canvas.height, labelPlace[0], labelPlace[1], lw, lh);
+                placeLabel(labelPlace, hudRects, avoid, placed, placedCount, canvas.width, canvas.height, x0, y0, lw, lh);
                 const x = labelPlace[0];
                 const y = labelPlace[1];
                 if (placedCount + 4 <= placed.length) {

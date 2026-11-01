@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed (2026-11-01). Amends ADR-063 (localized world labels) and ADR-091 (hazard label clustering). Extends the HUD placement that PR #274
+Proposed (2026-11-01); amended in round 4 (D6). Amends ADR-063 (localized world labels) and ADR-091 (hazard label clustering). Extends the HUD placement that PR #274
 added to `renderer.js`. No wire change; no render command change; no new interop crossing (`NosumProtocol.Version` stays as it is). Evidence:
 [docs/qa/world-ambience-round3/](../qa/world-ambience-round3/) (before and after, 1280 × 720 and 390 × 844, English and Vietnamese).
 
@@ -52,3 +52,26 @@ Round 2 of the world-ambience critique found two label faults on the bottom edge
 
 A design pass wants labels inside the hotbar's own frame, or the touch layout changes its regions (the rules read them from the DOM, so only the
 selector and `BOTTOM_BAND` need to change).
+
+## Amendment (round 4): one placement per label (D6)
+
+**Context.** The round-3 capture left a stray letter before some labels on mine floor 35 ("SFLAME AURA", "SVITALITY SHRINE"). Round 4 found a placement fault that
+fits that picture (the frame itself was not re-measured pixel by pixel). In `renderer.js`: a label was stacked off the labels already drawn (D4) and then fitted off the HUD (D1–D3), and the HUD fit does not
+look at the placed labels. A label moved beside a HUD rectangle could land on a label drawn earlier, so the two printed one over the other, and the
+edge of the one underneath showed. This is the likely cause, not a proven one: it is the only placement path found that puts two labels on each other. A node reproduction with a label at (560, 200) beside a HUD rectangle (560–600, 180–230) and a placed label at
+(470, 200, 80 × 14) gives a fit at (478, 200), which overlaps the placed label (`overlapsPlaced` true).
+
+**Decision.**
+
+- **D6 — One placement function.** `placeLabel` (`label-fit.js`) stacks the label, fits it off the HUD, and, when the fit landed on a placed label,
+  stacks it again from the fit result. The stacked spot is used when it is clear of the placed labels and on the canvas; otherwise the fit result
+  stands. A label on the HUD edge is preferred to two labels on each other. `renderer.js` calls `placeLabel` once per label; it no longer calls
+  `stackLabel` and `fitLabel` directly. The rule stays pure, allocation-free (results in the caller's `Int32Array`) and in the browser test
+  (`tests/browser/label-fit/label-fit.test.mjs`: three new cases, including the reproduction above).
+
+**Consequences.** Same interop and allocation as before (one `drawImage` per label, no new crossing). In the case above the label moves up beside the
+HUD rectangle (478, 184), clear of both. On a crowded HUD edge the fallback can still leave a label on the HUD, as before.
+
+**Evidence and limits.** The round-4 frame `docs/qa/world-ambience-round4/` shows mine floor 35 without the stray letter after the change. The
+before and after frames are not the same moment (the clock and the player's tile differ between runs), so the frame is supporting evidence only;
+the reproduction is the proof.

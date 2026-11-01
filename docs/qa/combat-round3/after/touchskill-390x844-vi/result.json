@@ -1,0 +1,20 @@
+{
+  "mode": "touchskill",
+  "size": "390x844",
+  "locale": "vi-VN",
+  "fireballButtonBox": [
+    151,
+    798,
+    16,
+    28
+  ],
+  "xKey": {
+    "cooldownOverlays": 1,
+    "toasts": []
+  },
+  "buttonTap": {
+    "cooldownOverlays": 1,
+    "toasts": []
+  },
+  "errors": []
+}

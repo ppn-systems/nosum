@@ -1,4 +1,4 @@
-// The bus stop's direction label next to the local player's sprite at the farm door (critique finding 5; docs/adr/ADR-097). Vietnamese and
+// The bus stop's direction label next to the local player's sprite at the farm door (critique finding 5; docs/adr/ADR-099). Vietnamese and
 // English at 1280x720. Needs the Development host on PostgreSQL and a client published with -p:NosumDevTools=true (window.nosumQa), served at
 // the base URL with ?qa=1. Writes <outDir>/bus-stop-label-<lang>-1280x720.png.
 // Run: NODE_PATH=$(npm root -g) node tests/browser/bus-stop-label-capture.cjs <outDir> [base url]

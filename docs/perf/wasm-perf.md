@@ -14,7 +14,7 @@ named, and the spread is given where it matters. Treat the frame numbers as a re
 | Frame callback, farm, walking, p50 / p95 (8 s) | 14.3 / 17.7 ms | 11.0 / 13.9 ms | −23% / −21% |
 | `drawImage` calls per frame, idle / walking | 475 / 484 | 50 / 62 | −89% |
 | Managed allocation per frame, idle / walking | 202 / 428 B | 195 / 330 B | not zero (see below) |
-| Frame body allocation per frame, idle / walking (ADR-097) | about 52 / 102 B (per-stage probes) | **0** / 50 B | idle zero, gated in `frame.cjs` |
+| Frame body allocation per frame, idle / walking (ADR-099) | about 52 / 102 B (per-stage probes) | **0** / 50 B | idle zero, gated in `frame.cjs` |
 | Time to playable (median, 5 runs) | 5,271 ms | 5,361 ms | within noise (runs 5,072–5,615 ms) |
 
 Time to playable does not move beyond the noise of this machine: the runs of every build fall between about 4.6 and 5.6 s. The byte count is the
@@ -123,7 +123,7 @@ the baseline's total by about 118 KB. Fresh directories give the table above; th
   exception is `UploadLabel`, which uploads a nickname or a label the first time it is drawn (rare, not per frame).
 - **`StateHasChanged` on the frame path: none.** The game code does not call it. The view models that raise change events (fishing, map loading,
   the connection badge, the inventory) raise them on a transition, not per frame, and the UI re-renders only on those events.
-- **Zero allocation.** The frame body (`GameLoop.Frame`) allocates nothing when idle, from ADR-097 on; walking allocates about 50 bytes a frame on
+- **Zero allocation.** The frame body (`GameLoop.Frame`) allocates nothing when idle, from ADR-099 on; walking allocates about 50 bytes a frame on
   average, from node-grid rebuilds on a chunk change. The whole thread still allocates about 116 bytes a frame when idle, outside the frame body (see
   the round 4 section).
 
@@ -151,7 +151,7 @@ Ranked by the evidence they have.
    visible, but the cover has to be proven first.
 4. **Attribute the remaining allocation, outside the frame body.** About 116 bytes a frame when idle, on the same thread between two frames: the
    1 Hz and 10 Hz timers (`PlayerChannel`'s position reporter wakes even when nothing changed), the connection overlay, the socket and Blazor.
-   The frame body itself is at zero when idle (ADR-097). The `[JSExport]` entry allocates nothing (measured: 0 bytes a call).
+   The frame body itself is at zero when idle (ADR-099). The `[JSExport]` entry allocates nothing (measured: 0 bytes a call).
 5. **A deterministic farm fixture for "many entities".** The harness's block is small and uncounted. A fixed set of plots, crops and placed objects
    (a bench seed on the server, or a fixture in the tester build) would make the frame numbers comparable across runs and across the next changes.
 6. **AOT measured again.** The runtime share in the profile is about 10%; the frame gain from AOT is therefore bounded by that share, but the load
@@ -162,9 +162,9 @@ Ranked by the evidence they have.
 9. **Plan a WebGL backend.** The per-call cost measured above is the case for a backend that batches draws on the GPU. The command buffer is the
    contract that allows it (ADR-002 D6). A separate ADR.
 
-## Round 4: the frame body allocates nothing when idle (ADR-097)
+## Round 4: the frame body allocates nothing when idle (ADR-099)
 
-Decision record: [ADR-097](../adr/ADR-097-zero-allocation-frame-body-and-labels-off-the-player.md). Captures: [`docs/qa/zero-alloc-labels/`](../qa/zero-alloc-labels/README.md).
+Decision record: [ADR-099](../adr/ADR-099-zero-allocation-frame-body-and-labels-off-the-player.md). Captures: [`docs/qa/zero-alloc-labels/`](../qa/zero-alloc-labels/README.md).
 
 The frame body is `GameLoop.Frame`, the code the browser runs once per animation frame. A counter around it (`FrameAllocations`, tester build) and the
 gate in `bench/wasm-perf/frame.cjs` (`--max-idle-body`, default 0) now measure it. Three causes were found with per-stage probes (temporary, removed):
@@ -176,7 +176,7 @@ gate in `bench/wasm-perf/frame.cjs` (`--max-idle-body`, default 0) now measure i
 | The calendar tick rebuilt its strings every second | `CalendarViewModel.Refresh` (about 23 B a frame, between frames) | rebuilt only when the date, the weather or the culture changes |
 
 Also fixed on the way: `renderer.js` declared a second `fitLabel` next to the imported one, so the module did not parse and no frame rendered on master
-(ADR-097 D6).
+(ADR-099 D6).
 
 | Measure (bytes a frame; farm, 1280 × 720, `vi-VN`, 8 s idle then 8 s walking) | Before | After |
 |:--|--:|--:|

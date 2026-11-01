@@ -5,7 +5,7 @@ using System;
 namespace Nosum.Wasm.Game;
 
 /// <summary>
-/// Counts the managed bytes the frame's own work allocates, one call of <see cref="GameLoop.Frame"/> at a time (docs/adr/ADR-097 D1). The
+/// Counts the managed bytes the frame's own work allocates, one call of <see cref="GameLoop.Frame"/> at a time (docs/adr/ADR-099 D1). The
 /// counter is read through the tester build's QA hook; a frame that allocates shows up in the frame benchmark (bench/wasm-perf/frame.cjs) and
 /// fails its idle gate. Reading the counter allocates nothing.
 /// </summary>

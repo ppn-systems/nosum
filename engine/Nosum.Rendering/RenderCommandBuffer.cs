@@ -82,7 +82,7 @@ public sealed class RenderCommandBuffer
     public const int EdgeArrowTexture = -12;
 
     /// <summary>
-    /// Texture id of the command that records the local player's sprite box (docs/adr/ADR-097): <c>srcX</c> and <c>srcY</c> the box's top left,
+    /// Texture id of the command that records the local player's sprite box (docs/adr/ADR-099): <c>srcX</c> and <c>srcY</c> the box's top left,
     /// <c>width</c> and <c>height</c> its size, and (<c>dstX</c>, <c>dstY</c>) the feet, all in view pixels. Nothing is drawn; the renderer keeps
     /// the world labels off the box, except the player's own name plate, which is anchored at the feet.
     /// </summary>

@@ -5,7 +5,7 @@
 //     (the game loop is the one rAF callback that submits a frame; Blazor's own callbacks are rare and small);
 //  3. allocations per frame: GC.GetAllocatedBytesForCurrentThread() before and after each phase, through nosumQa.allocatedBytes(). The frame's
 //     own work (GameLoop.Frame) is counted apart, through nosumQa.frameBodyBytes(): that is the number the idle gate reads.
-//  4. --max-idle-body N (default 0): exit 1 when the idle phase's frame body allocates more than N bytes a frame (docs/adr/ADR-097 D1).
+//  4. --max-idle-body N (default 0): exit 1 when the idle phase's frame body allocates more than N bytes a frame (docs/adr/ADR-099 D1).
 const fs = require('fs');
 const { chromium } = require('playwright');
 

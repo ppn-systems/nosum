@@ -154,3 +154,22 @@ rebuild passes it, and the test is unchanged.
 
 Still open, for the owner: the late-game sink (section 2), the energy-free herd and fishing at the margin (section 3), the backpack's second step (section 4),
 a confirm for large buys (section 6), and the expiry on "My listings" (section 6).
+
+## 10. Round 2: what changed, what did not
+
+Branch `claude/economy-round2`. Captures and grading: [`docs/qa/economy-round2/`](../qa/economy-round2/README.md). The numbers are the simulation's
+(`docs/qa/economy-round2/economy-report-after.txt`).
+
+| Section | Item | Result |
+|:--|:--|:--|
+| 2, 7 | Late-game coin sink | **Partly.** Iron tool upgrade 5 000 → 8 000 (one-time, ADR-081 round-2 D11); the backpack step is in §4. One-time sinks go from about 27 000 to about 29 500. A sink that recurs and scales with a season's income (about 19 000) is a new system (upkeep, a building, a town project): **open for the owner**. |
+| 2, 7 | Energy-free herds | **Partly.** Feed is the only recurring cost that grows with a herd: hay 10 → 12 a ration (ADR-081 D9). A fed season is still positive for every animal (chicken +84 to pig +644). The herd's gross income (156 a game day) and the lack of a cap are unchanged: **open for the owner**. |
+| 4 | Backpack step price | **Done.** The second step 1 500 → 1 000 (ADR-081 D10). Per slot 67 then 111 (was 67 then 167). |
+| 6, 7 | Confirm for a large buy | **Done.** A purchase of 1 000 coins or more asks first in a `ConfirmDialog` (ADR-013 A10). |
+| 6 | Six rows at 1280×720 without an inner scroll | **Not met.** Six rows now fit at 720 px, but the pager falls below the panel and a page of ten scrolls. Fixing it needs a layout decision (the 18-unit item slot in the rows, or the search and sort on one row). See the QA README. |
+
+Not changed: fiber stays free (the owner's question on free feed), fishing against the farm (section 3), the expiry on "My listings" (section 6), and the
+price history (section 6).
+
+Tests: `EconomyBalanceTests.HayRation_*`, `BackpackRulesTests`, `BlacksmithRulesTests`, `MineViewModelTests` (iron offers), `BackpackServiceTests`
+(the second step is 1 000 on the wire and in the balance), `MarketSortViewModelTests.Buy_*` (the confirm), `MarketSortPacketTests` (protocol 30, the test renamed to match).

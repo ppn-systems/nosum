@@ -29,7 +29,7 @@ public sealed class RenderingTests
     [Fact]
     public void PlayerBox_RecordsOneCommandWithTheBoxAndTheFeet_AndDrawsNothing()
     {
-        // docs/adr/ADR-097: the renderer reads the box and the feet of the local sprite; the command itself is not drawn.
+        // docs/adr/ADR-099: the renderer reads the box and the feet of the local sprite; the command itself is not drawn.
         RenderCommandBuffer buffer = new(4);
         buffer.Begin(scale: 3);
         buffer.PlayerBox(x: 92, y: 70, width: 16, height: 32, feetX: 100, feetY: 102);

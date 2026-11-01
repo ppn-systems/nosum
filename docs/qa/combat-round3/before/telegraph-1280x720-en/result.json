@@ -1,0 +1,31 @@
+{
+  "mode": "telegraph",
+  "size": "1280x720",
+  "locale": "en-US",
+  "landings": [
+    {
+      "atRelMs": 0,
+      "from": 92,
+      "to": 84
+    },
+    {
+      "atRelMs": 1505,
+      "from": 84,
+      "to": 76
+    }
+  ],
+  "frameOffsetsMs": [
+    816,
+    901,
+    979,
+    1050,
+    1133,
+    1229,
+    1311,
+    1385,
+    1480,
+    1577,
+    1647
+  ],
+  "errors": []
+}

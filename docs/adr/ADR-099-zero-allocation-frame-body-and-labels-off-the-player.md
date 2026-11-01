@@ -1,4 +1,4 @@
-# ADR-097: The frame's own work allocates nothing when idle, the calendar text is rebuilt only on change, and world labels keep off the local sprite
+# ADR-099: The frame's own work allocates nothing when idle, the calendar text is rebuilt only on change, and world labels keep off the local sprite
 
 ## Status
 
@@ -34,7 +34,7 @@ second when idle, and the bus stop's direction label sat over the farmer's head 
   values of the last build, and rebuilds the summary and forecast only when one of them moved. A language change is seen at the next tick.
 - **D4 — World labels keep off the local sprite (amends ADR-095).** The scene emits one `PlayerBox` command per frame (`RenderCommandBuffer.PlayerBox`, id -13):
   the sprite's box (16 × 32 view pixels, from the feet) and the feet. The renderer reads it before the labels (`submitFrame`) and stores it after the HUD
-  rectangles, so a label counts it as one more box to avoid (`labelAvoidCount` in `label-fit.js`, pure and tested in `tests/browser/label-fit/`). A label
+  rectangles, so a label counts it as one more box to avoid: `labelAvoidCount` in `label-fit.js` gives the count, and `placeLabel` (ADR-095 D6, as merged with master) takes it as the HUD count. Pure, tested in `tests/browser/label-fit/`. A label
   anchored at the player's feet is the player's own name plate and does not count the sprite. The command draws nothing.
 - **D5 — The round three check's grades stand.** The name plate lift (ADR-096 D4) and the waypoint arrow are unchanged.
 - **D6 — A fix on master.** `renderer.js` declared its own `fitLabel` next to the imported one (ADR-095 moved the function to `label-fit.js` and left the old

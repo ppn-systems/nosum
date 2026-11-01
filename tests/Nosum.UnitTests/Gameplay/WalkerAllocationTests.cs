@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Gameplay;
 
-/// <summary>The walker runs once a frame in the browser, so a step must not allocate (docs/adr/ADR-097 D2; csharp-style "Allocation").</summary>
+/// <summary>The walker runs once a frame in the browser, so a step must not allocate (docs/adr/ADR-099 D2; csharp-style "Allocation").</summary>
 public sealed class WalkerAllocationTests
 {
     // 20 x 10 tiles of 16 px, open ground.

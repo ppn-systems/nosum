@@ -25,7 +25,7 @@ export function hudRect(out, o, left, top, right, bottom, canvasHeight) {
 
 // The number of rectangles of `hud` that a world label must keep off. The local player's sprite box, when the frame has one, is stored right
 // after the HUD rectangles (at index hudCount), so it counts as one more rectangle. The player's own name plate is anchored at the player's feet
-// and is drawn over the sprite by design, so it does not count that box (docs/adr/ADR-097). Pure: the renderer passes its own state.
+// and is drawn over the sprite by design, so it does not count that box (docs/adr/ADR-099). Pure: the renderer passes its own state.
 export function labelAvoidCount(hudCount, hasPlayer, labelX, labelY, feetX, feetY) {
     return hasPlayer && !(labelX === feetX && labelY === feetY) ? hudCount + 1 : hudCount;
 }
@@ -115,4 +115,37 @@ export function stackLabel(out, placed, placedCount, x, y, w, h) {
     }
     out[0] = x;
     out[1] = y;
+}
+
+// Whether the box (x, y, w, h), grown by STACK_GAP, overlaps one of the placed boxes (the labels drawn this frame, as (x, y, w, h)).
+export function overlapsPlaced(placed, placedCount, x, y, w, h) {
+    for (let k = 0; k < placedCount; k += 4) {
+        if (x < placed[k] + placed[k + 2] + STACK_GAP && x + w > placed[k] - STACK_GAP
+            && y < placed[k + 1] + placed[k + 3] + STACK_GAP && y + h > placed[k + 1] - STACK_GAP) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// The one placement a world label gets (docs/adr/ADR-095 D6). The HUD fit moves a label beside a HUD rectangle, and that spot can be on a label
+// already drawn: the two then print one over the other, and a letter of the one underneath shows at the edge ("SFLAME AURA"). So the label is
+// stacked off the placed labels, fitted off the HUD, and, if the fit landed on a placed label, stacked again from there. The stacked spot wins
+// when it is clear of the placed labels and on the canvas; otherwise the fit stands (a label on the HUD edge is better than two on each other).
+// Result in out[0] (x) and out[1] (y).
+export function placeLabel(out, hud, hudCount, placed, placedCount, canvasWidth, canvasHeight, x, y, w, h) {
+    stackLabel(out, placed, placedCount, x, y, w, h);
+    fitLabel(out, hud, hudCount, canvasWidth, canvasHeight, out[0], out[1], w, h);
+    if (!overlapsPlaced(placed, placedCount, out[0], out[1], w, h)) {
+        return;
+    }
+
+    const fitX = out[0];
+    const fitY = out[1];
+    stackLabel(out, placed, placedCount, fitX, fitY, w, h);
+    const onCanvas = out[0] >= 0 && out[1] >= 0 && out[0] + w <= canvasWidth && out[1] + h <= canvasHeight;
+    if (!onCanvas || overlapsPlaced(placed, placedCount, out[0], out[1], w, h)) {
+        out[0] = fitX;
+        out[1] = fitY;
+    }
 }

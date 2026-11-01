@@ -6,7 +6,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fitLabel, hudRect, labelAvoidCount, stackLabel, boxHits, LABEL_EDGE, LABEL_GAP, STACK_GAP, BOTTOM_BAND } from "../../../engine/Nosum.Rendering.Web/wwwroot/label-fit.js";
+import { fitLabel, hudRect, stackLabel, placeLabel, overlapsPlaced, boxHits, LABEL_EDGE, LABEL_GAP, STACK_GAP, BOTTOM_BAND, labelAvoidCount } from "../../../engine/Nosum.Rendering.Web/wwwroot/label-fit.js";
 
 const W = 1280;
 const H = 720;
@@ -166,6 +166,37 @@ test("stackLabel_ChainOfLabels_EachClearsTheOthers", () => {
     const box = { x: out[0], y: out[1], w: 50, h: 12 };
     assert.equal(overlaps(box, { x: 100, y: 100, w: 50, h: 12 }), false);
     assert.equal(overlaps(box, { x: 100, y: 88, w: 50, h: 12 }), false);
+});
+
+// ADR-095 D6: a label moved beside a HUD rectangle must not land on a label already drawn (the "stray letter" fault, round 4).
+function placeOf(hud, placedList, x, y, w, h) {
+    const placed = new Int32Array(placedList.length * 4);
+    placedList.forEach(([px, py, pw, ph], k) => { placed[k * 4] = px; placed[k * 4 + 1] = py; placed[k * 4 + 2] = pw; placed[k * 4 + 3] = ph; });
+    const out = new Int32Array(2);
+    placeLabel(out, hud, hud.length / 4, placed, placed.length, W, H, x, y, w, h);
+    return { x: out[0], y: out[1], w, h, placed };
+}
+
+test("placeLabel_HudFitOntoPlacedLabel_StaysClearOfIt", () => {
+    // The label at (560, 200) hits the HUD; fitting it to the left lands it on the label at (470, 200), which is already drawn.
+    const hud = rects([560, 180, 600, 230]);
+    const r = placeOf(hud, [[470, 200, 80, 14]], 560, 200, 80, 14);
+    assert.equal(overlapsPlaced(r.placed, r.placed.length, r.x, r.y, r.w, r.h), false);
+    assert.equal(boxHits(hud, 1, r.x, r.y, r.w, r.h, 0), -1);
+});
+
+test("placeLabel_FreeSpot_KeepsTheFitResult", () => {
+    const hud = rects([0, 0, 40, 40]);
+    const r = placeOf(hud, [], 300, 300, 80, 14);
+    assert.deepEqual([r.x, r.y], [300, 300]);
+});
+
+test("placeLabel_NoClearSpotOnCanvas_KeepsTheFitResult", () => {
+    // A crowded corner: the stacked spot would leave the canvas, so the fit result stands (no label is pushed off screen).
+    const hud = rects([0, 0, 40, 40]);
+    const placed = [[1200, 700, 60, 14]];
+    const r = placeOf(hud, placed, 1200, 700, 60, 14);
+    assert.ok(r.x >= 0 && r.y >= 0 && r.x + r.w <= W && r.y + r.h <= H, `on canvas: ${r.x},${r.y}`);
 });
 
 // The local player's sprite box, as the renderer stores it: 16 x 32 canvas pixels, feet at (300, 332), in the slot after the HUD rectangles.
