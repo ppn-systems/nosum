@@ -179,10 +179,10 @@ internal static class NodeSprites
             case NodeKind.LargeStump:
             case NodeKind.Twig:
             {
-                int chipTint = unchecked((int)0xd4a359f0);
-                int barkTint = unchecked((int)0x8d5524f0);
-                int leafTint = node.Variant == TreeVariant.Maple ? unchecked((int)0xff7043f0) : unchecked((int)0x66bb6af0);
-                int flashTint = unchecked((int)0xffffffdc);
+                int chipTint = Rgba.From(0xd4, 0xa3, 0x59, 0xf0);
+                int barkTint = Rgba.From(0x8d, 0x55, 0x24, 0xf0);
+                int leafTint = node.Variant == TreeVariant.Maple ? Rgba.From(0xff, 0x70, 0x43, 0xf0) : Rgba.From(0x66, 0xbb, 0x6a, 0xf0);
+                int flashTint = Rgba.From(0xff, 0xff, 0xff, 0xdc);
 
                 world.Add(RenderCommandBuffer.FillTexture, 0, 0, 8, 2, centerX - 4, baseY - 10, sortY, sortX, node.Id + 5000, tint: flashTint);
                 world.Add(RenderCommandBuffer.FillTexture, 0, 0, 3, 2, centerX - burst - 2, baseY - 12 - (burst / 2), sortY, sortX, node.Id + 5001, tint: chipTint);
@@ -203,14 +203,14 @@ internal static class NodeSprites
             case NodeKind.CopperOre:
             case NodeKind.IronOre:
             {
-                int sparkTint = unchecked((int)0xffd54ff0);
+                int sparkTint = Rgba.From(0xff, 0xd5, 0x4f, 0xf0);
                 int shardTint = (NodeKind)node.Kind == NodeKind.CopperOre
                     ? unchecked((int)0xff8a65f0)
                     : (NodeKind)node.Kind == NodeKind.IronOre
                         ? unchecked((int)0xcfd8dcf0)
                         : unchecked((int)0x90a4aef0);
 
-                world.Add(RenderCommandBuffer.FillTexture, 0, 0, 4, 4, centerX - 2, baseY - 10, sortY, sortX, node.Id + 5010, tint: unchecked((int)0xffffffeb));
+                world.Add(RenderCommandBuffer.FillTexture, 0, 0, 4, 4, centerX - 2, baseY - 10, sortY, sortX, node.Id + 5010, tint: Rgba.From(0xff, 0xff, 0xff, 0xeb));
                 world.Add(RenderCommandBuffer.FillTexture, 0, 0, 3, 2, centerX - burst, baseY - 10 - (burst / 2), sortY, sortX, node.Id + 5011, tint: shardTint);
                 world.Add(RenderCommandBuffer.FillTexture, 0, 0, 3, 2, centerX + burst - 2, baseY - 10 - (burst / 2), sortY, sortX, node.Id + 5012, tint: shardTint);
                 world.Add(RenderCommandBuffer.FillTexture, 0, 0, 2, 2, centerX - (burst / 2), baseY - 14 - (burst / 2), sortY, sortX, node.Id + 5013, tint: sparkTint);
@@ -221,8 +221,8 @@ internal static class NodeSprites
             case NodeKind.Weed:
             case NodeKind.Grass:
             {
-                int grassTint = unchecked((int)0x66bb6af0);
-                int bladeTint = unchecked((int)0xa5d6a7f0);
+                int grassTint = Rgba.From(0x66, 0xbb, 0x6a, 0xf0);
+                int bladeTint = Rgba.From(0xa5, 0xd6, 0xa7, 0xf0);
                 world.Add(RenderCommandBuffer.FillTexture, 0, 0, 2, 4, centerX - burst, baseY - 10 - (burst / 2), sortY, sortX, node.Id + 5020, tint: grassTint);
                 world.Add(RenderCommandBuffer.FillTexture, 0, 0, 2, 4, centerX + burst - 1, baseY - 10 - (burst / 2), sortY, sortX, node.Id + 5021, tint: grassTint);
                 world.Add(RenderCommandBuffer.FillTexture, 0, 0, 2, 3, centerX, baseY - 12 - burst, sortY, sortX, node.Id + 5022, tint: bladeTint);

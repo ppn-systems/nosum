@@ -39,9 +39,9 @@ internal static partial class FarmerSprite
             {
                 // 360-degree crimson-gold ground vortex ring + 4 orbiting spectral blades.
                 int radius = 14 + (int)(progress * 8f);
-                int goldTint = unchecked((int)0xffd54fe6);
-                int crimsonTint = unchecked((int)0xff5252d8);
-                int whiteTint = unchecked((int)0xffffffeb);
+                int goldTint = Rgba.From(0xff, 0xd5, 0x4f, 0xe6);
+                int crimsonTint = Rgba.From(0xff, 0x52, 0x52, 0xd8);
+                int whiteTint = Rgba.From(0xff, 0xff, 0xff, 0xeb);
 
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, radius * 2, 2, feetX - radius, feetY - 2, feetY - 1, feetX, 9300, tint: crimsonTint);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, (radius * 2) - 6, 2, feetX - radius + 3, feetY + 1, feetY + 1, feetX, 9301, tint: goldTint);
@@ -70,8 +70,8 @@ internal static partial class FarmerSprite
             {
                 // Blazing pyromancy rune ring at the feet + rising flame embers.
                 int ringRadius = 10 + (int)(MathF.Sin(progress * MathF.PI) * 5f);
-                int flameTint = unchecked((int)0xff5722e0);
-                int emberTint = unchecked((int)0xffca28f0);
+                int flameTint = Rgba.From(0xff, 0x57, 0x22, 0xe0);
+                int emberTint = Rgba.From(0xff, 0xca, 0x28, 0xf0);
 
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, ringRadius * 2, 2, feetX - ringRadius, feetY - 2, feetY - 1, feetX, 9340, tint: flameTint);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, ringRadius, 2, feetX - (ringRadius / 2), feetY - 6, feetY - 1, feetX, 9341, tint: emberTint);
@@ -93,8 +93,8 @@ internal static partial class FarmerSprite
             {
                 // Radiant emerald-gold sanctuary aura + ascending healing crosses.
                 int haloW = 18 + (int)(MathF.Sin(progress * MathF.PI) * 6f);
-                int emeraldTint = unchecked((int)0x69f0aeeb);
-                int goldTint = unchecked((int)0xfff176f0);
+                int emeraldTint = Rgba.From(0x69, 0xf0, 0xae, 0xeb);
+                int goldTint = Rgba.From(0xff, 0xf1, 0x76, 0xf0);
 
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, haloW, 2, feetX - (haloW / 2), feetY - 2, feetY - 1, feetX, 9360, tint: emeraldTint);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, haloW - 4, 2, feetX - ((haloW - 4) / 2), feetY + 1, feetY + 1, feetX, 9361, tint: goldTint);
@@ -205,7 +205,7 @@ internal static partial class FarmerSprite
         };
 
         // Sweeping crescent motion trail along the tool/weapon swing arc
-        int arcTint = unchecked((int)0xfff8e1d8);
+        int arcTint = Rgba.From(0xff, 0xf8, 0xe1, 0xd8);
         for (int s = 0; s < 3; s++)
         {
             int step = (s - 1) * 4;
@@ -246,8 +246,8 @@ internal static partial class FarmerSprite
         {
             case ToolKind.WateringCan:
             {
-                int waterTint = unchecked((int)0x29b6f6f0);
-                int foamTint = unchecked((int)0xb3e5fcf0);
+                int waterTint = Rgba.From(0x29, 0xb6, 0xf6, 0xf0);
+                int foamTint = Rgba.From(0xb3, 0xe5, 0xfc, 0xf0);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 3, 3, tx - burst, ty - 2, sortY, feetX, 9210, tint: waterTint);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 3, 3, tx + burst - 2, ty - 2, sortY, feetX, 9211, tint: waterTint);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 2, 3, tx, ty - (burst / 2), sortY, feetX, 9212, tint: waterTint);
@@ -258,8 +258,8 @@ internal static partial class FarmerSprite
 
             case ToolKind.Hoe:
             {
-                int soilTint = unchecked((int)0x8d5524f0);
-                int pebbleTint = unchecked((int)0xc68b59f0);
+                int soilTint = Rgba.From(0x8d, 0x55, 0x24, 0xf0);
+                int pebbleTint = Rgba.From(0xc6, 0x8b, 0x59, 0xf0);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 3, 3, tx - burst, ty - (burst / 2), sortY, feetX, 9220, tint: soilTint);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 3, 3, tx + burst - 2, ty - (burst / 2), sortY, feetX, 9221, tint: soilTint);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 2, 2, tx, ty - burst, sortY, feetX, 9222, tint: pebbleTint);
@@ -269,10 +269,10 @@ internal static partial class FarmerSprite
 
             case ToolKind.Axe:
             {
-                int chipTint = unchecked((int)0xd4a359f0);
-                int barkTint = unchecked((int)0x8d5524f0);
-                int leafTint = unchecked((int)0x66bb6af0);
-                int flashTint = unchecked((int)0xffffffe0);
+                int chipTint = Rgba.From(0xd4, 0xa3, 0x59, 0xf0);
+                int barkTint = Rgba.From(0x8d, 0x55, 0x24, 0xf0);
+                int leafTint = Rgba.From(0x66, 0xbb, 0x6a, 0xf0);
+                int flashTint = Rgba.From(0xff, 0xff, 0xff, 0xe0);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 8, 2, tx - 4, ty - 1, sortY, feetX, 9230, tint: flashTint);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 3, 2, tx - burst, ty - burst, sortY, feetX, 9231, tint: chipTint);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 3, 2, tx + burst - 2, ty - (burst / 2), sortY, feetX, 9232, tint: chipTint);
@@ -283,10 +283,10 @@ internal static partial class FarmerSprite
 
             case ToolKind.Pickaxe:
             {
-                int sparkTint = unchecked((int)0xffd54ff0);
-                int emberTint = unchecked((int)0xff7043f0);
-                int shardTint = unchecked((int)0xb0bec5f0);
-                batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 4, 4, tx - 2, ty - 2, sortY, feetX, 9240, tint: unchecked((int)0xfffffff0));
+                int sparkTint = Rgba.From(0xff, 0xd5, 0x4f, 0xf0);
+                int emberTint = Rgba.From(0xff, 0x70, 0x43, 0xf0);
+                int shardTint = Rgba.From(0xb0, 0xbe, 0xc5, 0xf0);
+                batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 4, 4, tx - 2, ty - 2, sortY, feetX, 9240, tint: Rgba.From(0xff, 0xff, 0xff, 0xf0));
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 2, 2, tx - burst, ty - burst, sortY, feetX, 9241, tint: sparkTint);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 2, 2, tx + burst, ty - burst, sortY, feetX, 9242, tint: sparkTint);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 2, 2, tx - (burst / 2), ty + (burst / 2), sortY, feetX, 9243, tint: emberTint);
@@ -296,7 +296,7 @@ internal static partial class FarmerSprite
 
             default:
             {
-                int swipeTint = unchecked((int)0xfff3b0c8);
+                int swipeTint = Rgba.From(0xff, 0xf3, 0xb0, 0xc8);
                 batch.AddOverlay(RenderCommandBuffer.FillTexture, 0, 0, 6, 2, tx - 3, ty - 1, sortY, feetX, 9250, tint: swipeTint);
                 break;
             }

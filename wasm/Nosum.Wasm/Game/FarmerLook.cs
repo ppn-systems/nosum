@@ -1,5 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using Nosum.Rendering;
+
 namespace Nosum.Wasm.Game;
 
 /// <summary>
@@ -15,4 +17,4 @@ namespace Nosum.Wasm.Game;
 /// <param name="Boots">Boots tier 1 to 4 (boots.png band), or 0 for bare feet (docs/adr/ADR-084).</param>
 /// <param name="HatTint">Hat colour, <c>0xRRGGBBAA</c>.</param>
 /// <param name="ShirtTint">Shirt colour, <c>0xRRGGBBAA</c>.</param>
-internal readonly record struct FarmerLook(int Hairstyle, int HairTint, int Shirt, int Pants, int PantsTint, int SkinTint = unchecked((int)0xFFFFFFFF), int Hat = -1, int HatTint = unchecked((int)0xFFFFFFFF), int ShirtTint = unchecked((int)0xFFFFFFFF), int Boots = 0);
+internal readonly record struct FarmerLook(int Hairstyle, int HairTint, int Shirt, int Pants, int PantsTint, int SkinTint = RenderCommandBuffer.NoTint, int Hat = -1, int HatTint = RenderCommandBuffer.NoTint, int ShirtTint = RenderCommandBuffer.NoTint, int Boots = 0);
