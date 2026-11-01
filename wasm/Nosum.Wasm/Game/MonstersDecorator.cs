@@ -28,6 +28,12 @@ internal sealed partial class MonstersDecorator : IMapDecorator
     private const int HitStopMs = 60;
     private const int KnockSlideMs = 100;
 
+    // Strike wind-up (docs/adr/ADR-092): the monster rises a few pixels over the wind-up and flashes white every 80 ms, so the player
+    // sees the strike coming and can step out of reach. Reduced motion keeps the flash and drops the rise.
+    private const int WindupFlashPeriodMs = 80;
+    private const int WindupMaxRisePx = 3;
+    private const int WindupFlashAlpha = 160;
+
     private readonly string _mapId;
     private readonly CombatChannel _combat;
     private readonly CombatLabels? _labels;
@@ -38,6 +44,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
     private readonly List<DeathEffectClientRow> _deathEffectsScratch = new(16);
     private readonly List<FloatingTextClientRow> _floatingTextsScratch = new(32);
     private readonly List<HazardClientRow> _hazardsScratch = new(8);
+    private readonly List<StrikeWindupClientRow> _windupScratch = new(16);
     private Camera2D _camera;
     private bool _hasCamera;
     private long _clockMs;
@@ -104,6 +111,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
     private void DrawMonsters(WorldSpriteBatch world, long now)
     {
         _combat.CopyMonsters(_scratch);
+        _combat.CopyStrikeWindups(_windupScratch);
         for (int i = 0; i < _scratch.Count; i++)
         {
             MonsterClientRow m = _scratch[i];
@@ -147,6 +155,30 @@ internal sealed partial class MonstersDecorator : IMapDecorator
                 {
                     motionNow = hitTick;
                 }
+            }
+
+            // A monster in its strike wind-up rises and flashes until the strike lands (docs/adr/ADR-092).
+            int windupRise = 0;
+            for (int w = 0; w < _windupScratch.Count; w++)
+            {
+                StrikeWindupClientRow windup = _windupScratch[w];
+                long windupElapsed = now - windup.StartMs;
+                if (windup.MonsterId != m.MonsterId || windupElapsed < 0 || windupElapsed >= windup.DelayMs)
+                {
+                    continue;
+                }
+
+                if (!reduceMotion)
+                {
+                    windupRise = 1 + (int)((windupElapsed * WindupMaxRisePx) / windup.DelayMs);
+                }
+
+                if (((windupElapsed / WindupFlashPeriodMs) & 1) == 1)
+                {
+                    flashAlpha = Math.Max(flashAlpha, WindupFlashAlpha);
+                }
+
+                break;
             }
 
             int kindIndex = Math.Clamp(m.Kind - 1, 0, 11);
@@ -213,7 +245,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
                 FrameSize,
                 FrameSize,
                 worldX,
-                worldY - 2,
+                worldY - 2 - windupRise,
                 worldY + FrameSize,
                 worldX + (FrameSize / 2),
                 m.MonsterId,

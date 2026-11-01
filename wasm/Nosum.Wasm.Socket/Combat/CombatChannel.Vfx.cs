@@ -15,6 +15,7 @@ namespace Nosum.Wasm.Socket.Combat;
 public sealed partial class CombatChannel
 {
     private const int MaxGroundTelegraphs = 8;
+    private const int MaxStrikeWindups = 16;
 
     /// <summary>Gets whether the currently firing <see cref="LevelledUp"/> event originated from Combat XP rather than an external skill.</summary>
     public bool IsCombatSkillLevelUp { get; private set; }
@@ -578,6 +579,28 @@ public sealed partial class CombatChannel
             }
 
             _telegraphs.Add(new GroundTelegraphClientRow(packet.X, packet.Y, packet.RadiusTiles, now, packet.DelayMs));
+        }
+    }
+
+    private void OnStrikeTelegraph(StrikeTelegraph packet)
+    {
+        long now = Environment.TickCount64;
+        lock (_gate)
+        {
+            for (int i = _strikeWindups.Count - 1; i >= 0; i--)
+            {
+                if (now - _strikeWindups[i].StartMs >= _strikeWindups[i].DelayMs || _strikeWindups[i].MonsterId == packet.MonsterId)
+                {
+                    _strikeWindups.RemoveAt(i);
+                }
+            }
+
+            if (_strikeWindups.Count >= MaxStrikeWindups)
+            {
+                _strikeWindups.RemoveAt(0);
+            }
+
+            _strikeWindups.Add(new StrikeWindupClientRow(packet.MonsterId, now, packet.DelayMs));
         }
     }
 

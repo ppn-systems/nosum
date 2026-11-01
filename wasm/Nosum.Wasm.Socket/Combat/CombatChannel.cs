@@ -25,6 +25,7 @@ public sealed partial class CombatChannel : IDisposable
     private readonly List<ProjectileClientRow> _projectiles = [];
     private readonly List<DeathEffectClientRow> _deathEffects = [];
     private readonly List<GroundTelegraphClientRow> _telegraphs = [];
+    private readonly List<StrikeWindupClientRow> _strikeWindups = [];
     private readonly List<FloatingTextClientRow> _floatingTexts = [];
     private readonly List<HazardClientRow> _hazards = [];
     private readonly Dictionary<byte, long> _skillReadyAt = new();
@@ -100,6 +101,7 @@ public sealed partial class CombatChannel : IDisposable
             socket.Subscribe<MonstersSnapshot>(this.OnMonstersSnapshot),
             socket.Subscribe<MonsterChanged>(this.OnMonsterChanged),
             socket.Subscribe<GroundTelegraph>(this.OnGroundTelegraph),
+            socket.Subscribe<StrikeTelegraph>(this.OnStrikeTelegraph),
         ];
     }
 
@@ -198,6 +200,18 @@ public sealed partial class CombatChannel : IDisposable
                     destination.Add(row);
                 }
             }
+        }
+    }
+
+    /// <summary>Copies the monsters in a melee wind-up into <paramref name="destination"/> without allocating (docs/adr/ADR-092).</summary>
+    /// <param name="destination">Destination list to populate.</param>
+    public void CopyStrikeWindups(List<StrikeWindupClientRow> destination)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        destination.Clear();
+        lock (_gate)
+        {
+            destination.AddRange(_strikeWindups);
         }
     }
 
@@ -620,6 +634,7 @@ public sealed partial class CombatChannel : IDisposable
                 _projectiles.Clear();
                 _deathEffects.Clear();
                 _telegraphs.Clear();
+                _strikeWindups.Clear();
                 _floatingTexts.Clear();
                 Volatile.Write(ref _activeSkillId, 0);
                 Volatile.Write(ref _activeSkillTick, 0);

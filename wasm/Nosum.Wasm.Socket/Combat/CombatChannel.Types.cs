@@ -23,6 +23,12 @@ public readonly record struct MonsterClientRow(int MonsterId, byte Kind, int X, 
 /// <param name="DelayMs">Milliseconds from receipt until the impact.</param>
 public readonly record struct GroundTelegraphClientRow(int X, int Y, int RadiusTiles, long StartMs, int DelayMs);
 
+/// <summary>An ordinary monster's melee strike in its wind-up (docs/adr/ADR-092), shown until the strike lands.</summary>
+/// <param name="MonsterId">Monster id within the map/floor.</param>
+/// <param name="StartMs">Local tick time when the telegraph was received.</param>
+/// <param name="DelayMs">Milliseconds from receipt until the strike lands.</param>
+public readonly record struct StrikeWindupClientRow(int MonsterId, long StartMs, int DelayMs);
+
 /// <summary>One environmental hazard on the current map or dungeon floor (docs/adr/ADR-061).</summary>
 /// <param name="HazardId">Hazard id.</param>
 /// <param name="Kind">Hazard kind (1=SporeVent, 2=SpikeTrap, 3=MagmaFissure).</param>
