@@ -1,7 +1,7 @@
 # Economy round 3: captures and grading
 
 Before and after captures of the market Browse page in Vietnamese and English at **1280×720**, **1920×1080** and **390×844**
-(round 3 of the market layout: [ADR-097](../../adr/ADR-097-market-listing-rows-and-expiry-on-my-listings.md),
+(round 3 of the market layout: [ADR-101](../../adr/ADR-101-market-listing-rows-and-expiry-on-my-listings.md),
 [`critique-economy.md`](../../design/critique-economy.md) section 11).
 
 - `before/`: `origin/master` (0d0b383) with **one** change, the `renderer.js` fix from this branch (commit 9a27c60). Without that fix master's
@@ -40,7 +40,7 @@ Grades: **P** pass, **F** fail, **N/A** not applicable. Checked on the final `af
 | 3 | Menu column | N/A | N/A | N/A | Not touched. |
 | 4 | Edges line up | P | P | P | Listing rows share the left edge; the filter row and the list share the body's edges. |
 | 5 | `GamePanel`, one of the four widths | P | P | P | Width unchanged. |
-| 6 | Three font sizes, no word-by-word wrap, nothing clipped | P | P | P | Long seller names end in an ellipsis on one line (by design, ADR-097 D2). The search placeholder is shorter (`Search items`, `Tìm vật phẩm`), so it is not clipped at 1280 (it was: `Search by item r`). |
+| 6 | Three font sizes, no word-by-word wrap, nothing clipped | P | P | P | Long seller names end in an ellipsis on one line (by design, ADR-101 D2). The search placeholder is shorter (`Search items`, `Tìm vật phẩm`), so it is not clipped at 1280 (it was: `Search by item r`). |
 | 7 | No inner scrollbar at 1280×720 and above | **F** | **F** | P | 31 px at 720, 157 px at 1080. See "Open". |
 | 8 | Item icons whole and centred | P | P | P | The compact picture (8 u) is the whole sprite, scaled to fit. |
 | 9 | Spacing uses `--u` multiples and gap tokens only | P | P | P | |
@@ -69,8 +69,9 @@ below. Touch targets are the same `GameButton`s as before.
 
 ## Other findings in this pass
 
-- **Master does not load in the browser.** `renderer.js` imported `fitLabel` from `label-fit.js` (c49a67e) and kept its own `fitLabel`, so the
-  module failed to parse. The fix (commit 9a27c60) removes the local copy; the call site already uses the imported version.
+- **Master at 0d0b383 does not load in the browser.** `renderer.js` imported `fitLabel` from `label-fit.js` (c49a67e) and kept its own
+  `fitLabel`, so the module failed to parse. This branch's fix (9a27c60) removed the local copy. Master has since rewritten both files
+  (ADR-098 and ADR-099 work, #311 and #312); the merge keeps master's version, so the fix adds nothing to the PR.
 - **Dev database:** the captures use a local PostgreSQL role `nosum` and the database `nosum_dev` (the dev defaults in the repo). These are the
   sandbox's local settings, not repository changes.
 

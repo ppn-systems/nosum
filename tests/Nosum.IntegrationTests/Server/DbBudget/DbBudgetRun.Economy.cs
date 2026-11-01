@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Nosum.Abstractions.Accounts;
+using Nosum.Abstractions.Calendar;
 using Nosum.Abstractions.Shops;
 using Nosum.Contracts.Goals;
 using Nosum.Contracts.Goals.C2S;
@@ -25,6 +26,7 @@ using Nosum.Contracts.Trade.S2C;
 using Nosum.Core;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Pets;
 
 namespace Nosum.IntegrationTests.Server.DbBudget;
 
@@ -73,6 +75,20 @@ public sealed partial class DbBudgetRun
     }
 
     private static (double X, double Y) TileCentre(int tx, int ty) => ((tx + 0.5) * 16, (ty + 0.5) * 16);
+
+    /// <summary>
+    /// Moves the fake clock on, one game day at a time, until <see cref="PetRules.ForageOf"/> gives <paramref name="playerId"/> nothing for the day the
+    /// clock is on. The forage roll is a pure function of the farmer and the day, so this is the same stop on every run whatever the farmer's id is.
+    /// </summary>
+    /// <param name="playerId">The farmer who is about to pet a pet for the first time that day.</param>
+    private void StepToDayWithoutForage(Guid playerId)
+    {
+        ICalendarService calendar = BudgetRig.Service<ICalendarService>();
+        while (PetRules.ForageOf(playerId, calendar.Calendar.DayNumberAt(calendar.NowMs())) != 0)
+        {
+            _rig.Clock.Advance(TimeSpan.FromMilliseconds(calendar.Calendar.DayLengthMs));
+        }
+    }
 
     private async Task<int> SlotOfAsync(BudgetPlayer p, int itemId)
     {

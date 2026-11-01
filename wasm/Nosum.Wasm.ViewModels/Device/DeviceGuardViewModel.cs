@@ -37,6 +37,9 @@ public sealed class DeviceGuardViewModel : IObservableViewModel
     /// <summary>Gets whether the device is blocked (phone or tablet).</summary>
     public bool IsBlocked => this.Verdict == DeviceVerdict.TouchBlocked;
 
+    /// <summary>Gets whether the primary input is a finger, by the same test that decides a touch device (<see cref="DeviceGate.IsTouchDevice"/>).</summary>
+    public bool IsTouchInput => DeviceGate.IsTouchDevice(_signals);
+
     /// <summary>Gets whether the browser window is narrower than <see cref="MinimumWidth"/>.</summary>
     public bool IsTooNarrow => this.Verdict == DeviceVerdict.TooNarrow;
 

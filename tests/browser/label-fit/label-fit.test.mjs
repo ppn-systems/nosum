@@ -6,7 +6,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fitLabel, hudRect, stackLabel, boxHits, LABEL_EDGE, LABEL_GAP, STACK_GAP, BOTTOM_BAND } from "../../../engine/Nosum.Rendering.Web/wwwroot/label-fit.js";
+import { fitLabel, hudRect, stackLabel, placeLabel, overlapsPlaced, boxHits, LABEL_EDGE, LABEL_GAP, STACK_GAP, BOTTOM_BAND, labelAvoidCount } from "../../../engine/Nosum.Rendering.Web/wwwroot/label-fit.js";
 
 const W = 1280;
 const H = 720;
@@ -167,3 +167,70 @@ test("stackLabel_ChainOfLabels_EachClearsTheOthers", () => {
     assert.equal(overlaps(box, { x: 100, y: 100, w: 50, h: 12 }), false);
     assert.equal(overlaps(box, { x: 100, y: 88, w: 50, h: 12 }), false);
 });
+
+// ADR-095 D6: a label moved beside a HUD rectangle must not land on a label already drawn (the "stray letter" fault, round 4).
+function placeOf(hud, placedList, x, y, w, h) {
+    const placed = new Int32Array(placedList.length * 4);
+    placedList.forEach(([px, py, pw, ph], k) => { placed[k * 4] = px; placed[k * 4 + 1] = py; placed[k * 4 + 2] = pw; placed[k * 4 + 3] = ph; });
+    const out = new Int32Array(2);
+    placeLabel(out, hud, hud.length / 4, placed, placed.length, W, H, x, y, w, h);
+    return { x: out[0], y: out[1], w, h, placed };
+}
+
+test("placeLabel_HudFitOntoPlacedLabel_StaysClearOfIt", () => {
+    // The label at (560, 200) hits the HUD; fitting it to the left lands it on the label at (470, 200), which is already drawn.
+    const hud = rects([560, 180, 600, 230]);
+    const r = placeOf(hud, [[470, 200, 80, 14]], 560, 200, 80, 14);
+    assert.equal(overlapsPlaced(r.placed, r.placed.length, r.x, r.y, r.w, r.h), false);
+    assert.equal(boxHits(hud, 1, r.x, r.y, r.w, r.h, 0), -1);
+});
+
+test("placeLabel_FreeSpot_KeepsTheFitResult", () => {
+    const hud = rects([0, 0, 40, 40]);
+    const r = placeOf(hud, [], 300, 300, 80, 14);
+    assert.deepEqual([r.x, r.y], [300, 300]);
+});
+
+test("placeLabel_NoClearSpotOnCanvas_KeepsTheFitResult", () => {
+    // A crowded corner: the stacked spot would leave the canvas, so the fit result stands (no label is pushed off screen).
+    const hud = rects([0, 0, 40, 40]);
+    const placed = [[1200, 700, 60, 14]];
+    const r = placeOf(hud, placed, 1200, 700, 60, 14);
+    assert.ok(r.x >= 0 && r.y >= 0 && r.x + r.w <= W && r.y + r.h <= H, `on canvas: ${r.x},${r.y}`);
+});
+
+// The local player's sprite box, as the renderer stores it: 16 x 32 canvas pixels, feet at (300, 332), in the slot after the HUD rectangles.
+const SPRITE = [292, 300, 308, 332];
+
+test("labelAvoidCount_OtherLabelWithAPlayer_CountsTheSpriteBox", () => {
+    assert.equal(labelAvoidCount(2, true, 100, 50, 300, 332), 3);
+});
+
+test("labelAvoidCount_OwnNamePlate_DoesNotCountTheSpriteBox", () => {
+    // The own name plate is anchored at the feet, so it is drawn over the sprite and keeps its place.
+    assert.equal(labelAvoidCount(2, true, 300, 332, 300, 332), 2);
+});
+
+test("labelAvoidCount_NoPlayerInTheFrame_CountsOnlyTheHud", () => {
+    assert.equal(labelAvoidCount(2, false, 100, 50, 300, 332), 2);
+});
+
+test("fitLabel_LabelOverTheSprite_MovesOffTheSprite", () => {
+    // A direction label on the sprite's body (the bus stop's label, in critique finding 5) moves off the box, not over it.
+    const hud = rects(HOTBAR, SPRITE);
+    const out = new Int32Array(2);
+    fitLabel(out, hud, labelAvoidCount(1, true, 0, 0, 300, 332), W, H, 290, 310, 40, 12);
+    const p = { x: out[0], y: out[1] };
+    assert.equal(boxHits(hud, 2, p.x, p.y, 40, 12, LABEL_GAP), -1);
+    assert.equal(overlaps(p, { x: 292, y: 300, w: 16, h: 32 }), false);
+});
+
+test("fitLabel_OwnNamePlate_StaysOnItsSprite", () => {
+    // The own name plate is anchored at the feet (300, 332): it is not moved off the sprite it is drawn over.
+    const hud = rects(HOTBAR, SPRITE);
+    const out = new Int32Array(2);
+    const x = 300 - 20, y = 332 - 12;
+    fitLabel(out, hud, labelAvoidCount(1, true, 300, 332, 300, 332), W, H, x, y, 40, 12);
+    assert.deepEqual([out[0], out[1]], [x, y]);
+});
+

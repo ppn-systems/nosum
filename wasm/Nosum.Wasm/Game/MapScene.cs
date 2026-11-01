@@ -294,7 +294,9 @@ internal sealed partial class MapScene
         // Tools work wherever the ground can be farmed or nothing can be placed; in a room the action key places furniture instead.
         // While carrying a piece, the rotate key turns it and the action key sets it down rather than swinging a tool or opening a container.
         bool placeableMap = content.Spec.Placeable;
-        InputEdges toolEdges = _placement is { CarryingId: not 0 } ? liveEdges & ~(InputEdges.Rotate | InputEdges.Action) : liveEdges;
+        // A piece in hand or carried takes the action key on a placeable map: E places it, and a chest or a furnace in front is not opened by it (finding 15).
+        // Elsewhere (the town, the mine) the key keeps its talk and use meanings.
+        InputEdges toolEdges = _placement is { CarryingId: not 0 } || (placeableMap && _placement?.HoldsPlaceable == true) ? liveEdges & ~(InputEdges.Rotate | InputEdges.Action) : liveEdges;
         BuildingDefinition? interior = content.Spec.IsInterior && BuildingCatalog.TryGet(content.Spec.InteriorOf, out BuildingDefinition? building) ? building : null;
         _actions?.SetOutdoors(!content.Spec.Indoors);
         _actions?.SetUseHeld(_useHeld && _phase != Phase.FadingOut);
@@ -404,6 +406,8 @@ internal sealed partial class MapScene
         }
 
         FarmerSprite.Draw(_world, _farmerTextures, hasOwn ? LookSprites.Resolve(ownLook) : this.Look, effectiveFacing, walkFrame, farmerPx, farmerPy, 0, heldItemId, swingProgress, _actions?.Exhausted ?? false);
+        // The local sprite's box and feet go to the renderer, so a world label keeps off the sprite; the own name plate is anchored at the feet (docs/adr/ADR-099).
+        _commands.PlayerBox(farmerPx - (FarmerSprite.Width / 2) - _camera.Left, farmerPy - FarmerSprite.Height - _camera.Top, FarmerSprite.Width, FarmerSprite.Height, farmerPx - _camera.Left, farmerPy - _camera.Top);
         this.AddEnergyFloats();
         if (hasSkillEffect)
         {

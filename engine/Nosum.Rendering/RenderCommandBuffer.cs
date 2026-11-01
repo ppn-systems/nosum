@@ -81,6 +81,13 @@ public sealed class RenderCommandBuffer
     /// </summary>
     public const int EdgeArrowTexture = -12;
 
+    /// <summary>
+    /// Texture id of the command that records the local player's sprite box (docs/adr/ADR-099): <c>srcX</c> and <c>srcY</c> the box's top left,
+    /// <c>width</c> and <c>height</c> its size, and (<c>dstX</c>, <c>dstY</c>) the feet, all in view pixels. Nothing is drawn; the renderer keeps
+    /// the world labels off the box, except the player's own name plate, which is anchored at the feet.
+    /// </summary>
+    public const int PlayerBoxTexture = -13;
+
     /// <summary>Most light sources one frame may carry; further ones are dropped (docs/adr/ADR-027 D5).</summary>
     public const int MaxLights = 64;
 
@@ -160,6 +167,15 @@ public sealed class RenderCommandBuffer
         _data[i + 8] = tint;
         this.Count++;
     }
+
+    /// <summary>Records the local player's sprite box and feet, in view pixels (see <see cref="PlayerBoxTexture"/>).</summary>
+    /// <param name="x">Box left, view pixels.</param>
+    /// <param name="y">Box top, view pixels.</param>
+    /// <param name="width">Box width, view pixels.</param>
+    /// <param name="height">Box height, view pixels.</param>
+    /// <param name="feetX">Feet x, view pixels (the anchor of the player's own name plate).</param>
+    /// <param name="feetY">Feet y, view pixels.</param>
+    public void PlayerBox(int x, int y, int width, int height, int feetX, int feetY) => this.Draw(PlayerBoxTexture, x, y, width, height, feetX, feetY);
 
     /// <summary>
     /// Records a black rectangle over everything drawn so far, for fades between scenes. Nothing is recorded for zero opacity.

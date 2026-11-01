@@ -29,6 +29,7 @@ using Nosum.Contracts.Visit.C2S;
 using Nosum.Contracts.Visit.S2C;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
+using Nosum.Gameplay.Trade;
 
 namespace Nosum.IntegrationTests.Server.DbBudget;
 
@@ -89,6 +90,9 @@ public sealed partial class DbBudgetRun
         _ = await _rig.ProbeAsync<TradeResult>(b, "Trade", TradeOpCode.TradeRespond, "TradeRespond", "accept", () => new TradeRespond { Accept = true });
         _ = await _rig.ProbeAsync<TradeResult>(a, "Trade", TradeOpCode.TradeSetOffer, "TradeSetOffer", "items and coins", () => new TradeSetOffer { Items = [new TradeItemRow { ItemId = ItemCatalog.Parsnip, Quantity = 2 }], Coins = 10 });
         _ = await _rig.ProbeAsync<TradeResult>(b, "Trade", TradeOpCode.TradeSetOffer, "TradeSetOffer", "items", () => new TradeSetOffer { Items = [new TradeItemRow { ItemId = ItemCatalog.Parsnip, Quantity = 1 }], Coins = 0 });
+        // A confirmation waits out TradeSession.ConfirmLock of server time after the last offer changed; the rig's clock is fake and does not move by itself,
+        // so it is moved past the lock here. Without this both confirms were refused as TooSoon and the swap was never measured.
+        _rig.Clock.Advance(TradeSession.ConfirmLock + TimeSpan.FromSeconds(1));
         _ = await _rig.ProbeAsync<TradeResult>(a, "Trade", TradeOpCode.TradeConfirm, "TradeConfirm", "first side confirms", () => new TradeConfirm());
         _ = await _rig.ProbeAsync<TradeResult>(b, "Trade", TradeOpCode.TradeConfirm, "TradeConfirm", "second side confirms: the swap", () => new TradeConfirm());
 

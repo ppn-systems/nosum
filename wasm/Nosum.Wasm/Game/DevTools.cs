@@ -57,6 +57,14 @@ internal static partial class DevTools
     [JSExport]
     internal static double AllocatedBytes() => GC.GetAllocatedBytesForCurrentThread();
 
+    /// <summary>Managed bytes the frame's own work allocated since the page started (<see cref="FrameAllocations"/>).</summary>
+    [JSExport]
+    internal static double FrameBodyBytes() => FrameAllocations.Bytes;
+
+    /// <summary>Frames counted by <see cref="FrameBodyBytes"/>.</summary>
+    [JSExport]
+    internal static double FrameBodyFrames() => FrameAllocations.Frames;
+
     /// <summary>Passes season starts on the server clock.</summary>
     /// <param name="seasons">Season starts to pass, 1 to 4.</param>
     [JSExport]
