@@ -1,0 +1,12 @@
+vi 1280x720 | column: Thư | Cài đặt | Túi đồ [I] | Chế tạo | Giao dịch [T] | Bạn bè | Kỹ năng | Bản đồ thế giới [Tab] | Sổ sưu tập [J] | Menu
+vi 1280x720 | chest: captured | errors: none
+vi 1920x1080 | column: Thư | Cài đặt | Túi đồ [I] | Chế tạo | Giao dịch [T] | Bạn bè | Kỹ năng | Bản đồ thế giới [Tab] | Sổ sưu tập [J] | Menu
+vi 1920x1080 | chest: captured | errors: none
+vi 390x844 | column: Thư | Cài đặt | Bản đồ nhỏ: bấm để mở bản đồ thế giới | Túi đồ [I] | Chế tạo | Giao dịch [T] | Bạn bè | Kỹ năng | Bản đồ thế giới [Tab] | Sổ sưu tập [J] | Menu
+vi 390x844 | chest: captured | errors: none
+en 1280x720 | column: Mail | Settings | Inventory [I] | Crafting | Trade [T] | Friends | Skills | World map [Tab] | Journal [J] | Menu
+en 1280x720 | chest: captured | errors: none
+en 1920x1080 | column: Mail | Settings | Inventory [I] | Crafting | Trade [T] | Friends | Skills | World map [Tab] | Journal [J] | Menu
+en 1920x1080 | chest: captured | errors: none
+en 390x844 | column: Mail | Settings | Minimap: click to open the world map | Inventory [I] | Crafting | Trade [T] | Friends | Skills | World map [Tab] | Journal [J] | Menu
+en 390x844 | chest: captured | errors: none

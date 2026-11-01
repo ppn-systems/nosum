@@ -1,0 +1,29 @@
+## 1280x720 (vi)
+1. Thư
+2. Cài đặt
+3. Túi đồ [I]
+4. Chế tạo
+5. Giao dịch [T]
+6. Bạn bè
+7. Kỹ năng
+8. Bản đồ thế giới [Tab]
+9. Sổ sưu tập [J]
+10. Menu
+.hud-player-bar: absent
+.hud-minimap: x=1076 y=84 w=180 h=132
+
+## 390x844 (vi)
+1. Thư
+2. Cài đặt
+3. Bản đồ nhỏ: bấm để mở bản đồ thế giới
+4. Túi đồ [I]
+5. Chế tạo
+6. Giao dịch [T]
+7. Bạn bè
+8. Kỹ năng
+9. Bản đồ thế giới [Tab]
+10. Sổ sưu tập [J]
+11. Menu
+.hud-player-bar: absent
+.hud-minimap: absent
+
