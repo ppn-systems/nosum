@@ -320,7 +320,6 @@ public sealed class NicknameServiceTests : IClassFixture<PostgresFixture>
         }
         finally
         {
-            NpgsqlConnection.ClearAllPools();
             await using NpgsqlConnection connection = new(admin.ConnectionString);
             await connection.OpenAsync();
             await using NpgsqlCommand drop = new("DROP DATABASE IF EXISTS \"" + scratch + "\" WITH (FORCE)", connection);
