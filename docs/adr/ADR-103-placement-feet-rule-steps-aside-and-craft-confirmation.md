@@ -1,4 +1,4 @@
-# ADR-100: The feet rule steps the ghost aside, and a craft names what it made
+# ADR-103: The feet rule steps the ghost aside, and a craft names what it made
 
 ## Status
 

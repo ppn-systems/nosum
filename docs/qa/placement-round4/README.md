@@ -1,7 +1,7 @@
 # Placement, round 4 (QA)
 
 Round 4 of the placement critique ([`docs/design/critique-placement.md`](../../design/critique-placement.md)): finding 16 (the feet rule: the ghost
-steps to the nearest tile that fits clear of the feet, ADR-100) and finding 17 (a craft names what it made) are fixed. The phone and desktop frames
+steps to the nearest tile that fits clear of the feet, ADR-103) and finding 17 (a craft names what it made) are fixed. The phone and desktop frames
 are at 1280×720 and 390×844, each in Vietnamese and English, before (`origin/master` at 0e37d76) and after (this branch).
 
 ## Frames
@@ -31,8 +31,8 @@ The "before" set ran on a worktree of `origin/master` with its own server and cl
 
 | # | Sev | Finding | Status |
 | :-- | :-- | :-- | :-- |
-| 16 | M (phone) | "You are standing there." on a tile that looks free (the feet box reaches into the aimed tile). | **Fixed (ADR-100).** The rule is unchanged (server and client); the ghost steps to the nearest clear tile beside the aim and E places it there. Unit-tested (`PlacedSetTests.TryFindClearAnchor_*`). **Not reproduced in the browser this round**: the walk did not stand the farmer under the aimed tile in any of the eight runs (`notes.json` `furnaceGhost` is empty in all, and round 3 hit it in 3 of 6 and 4 of 6 runs). The before and after frames therefore do not show the difference; the unit tests are the evidence. |
-| 17 | L | Crafting gives no confirmation. | **Fixed (ADR-100).** The crafting page's status line (and the message line, when the page is closed at once) names the item and the total made. Vietnamese and English. Unit-tested (`CraftingViewModelTests.Craft_Ok_*`, `Craft_Refused_*`). Frames: `after/desktop-en/22-chest-crafted.png`, `after/phone-vi/22-chest-crafted.png`. |
+| 16 | M (phone) | "You are standing there." on a tile that looks free (the feet box reaches into the aimed tile). | **Fixed (ADR-103).** The rule is unchanged (server and client); the ghost steps to the nearest clear tile beside the aim and E places it there. Unit-tested (`PlacedSetTests.TryFindClearAnchor_*`). **Not reproduced in the browser this round**: the walk did not stand the farmer under the aimed tile in any of the eight runs (`notes.json` `furnaceGhost` is empty in all, and round 3 hit it in 3 of 6 and 4 of 6 runs). The before and after frames therefore do not show the difference; the unit tests are the evidence. |
+| 17 | L | Crafting gives no confirmation. | **Fixed (ADR-103).** The crafting page's status line (and the message line, when the page is closed at once) names the item and the total made. Vietnamese and English. Unit-tested (`CraftingViewModelTests.Craft_Ok_*`, `Craft_Refused_*`). Frames: `after/desktop-en/22-chest-crafted.png`, `after/phone-vi/22-chest-crafted.png`. |
 
 ## Gaps left (logged)
 
@@ -40,7 +40,7 @@ The "before" set ran on a worktree of `origin/master` with its own server and cl
   on purpose. A deterministic check needs a position under the aimed tile (a QA teleport to a pixel position, or a sub-tile QA hook). Not built this round.
 - **The strip text is empty in every run for the placement steps** (`furnaceGhost`, `chestPlaced`, `chestOpen`, …). The strip is hidden while the
   furniture or chest panel is open, so the notes read nothing there. The frames are the record for those steps.
-- **The step-aside ghost is not labelled** as moved. The ghost is green on the tile beside the aim; a copy line for the move is an open design call (ADR-100 consequences).
+- **The step-aside ghost is not labelled** as moved. The ghost is green on the tile beside the aim; a copy line for the move is an open design call (ADR-103 consequences).
 - **Furnace and sprinkler crafting** is still not played (skill levels; the QA hook raises no skill).
 - **The Vietnamese craft line at 390** fits on one line in the status row (`after/phone-vi/22-chest-crafted.png`); at 1280 it is one line too.
 

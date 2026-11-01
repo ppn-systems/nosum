@@ -20,7 +20,9 @@ internal static class DbBudgetBaseline
         // Amended 2026-10-31 (docs/adr/ADR-035, Amendment; docs/adr/ADR-075 amendment): adopting is a purchase at the carpenter's counter, paid through the
         // transfer service in the same transaction as the pet row, as a shop buy is (BuyFromShop 4/3/3/3). The increase is the price of paying, not a leak.
         ["AdoptPet / adopt a cat"] = new(5, 4, 3, 4),
-        ["PetPet / pet the cat"] = new(1, 1, 0, 1),
+        // Amended 2026-11-01 (docs/adr/ADR-092 D2): the first petting of a game day may bring back a forage item, added to the bag in its own
+        // transaction after the petting is saved. The probe's first petting finds one, so the cost is the item's write, not a leak.
+        ["PetPet / pet the cat"] = new(1, 2, 1, 2),
         ["PetPet / pet the cat, asked again"] = new(1, 0, 0, 0),
         // Measured on the branch that adds it (docs/adr/ADR-075 amendment): the pet is given back for half its price in one transfer.
         ["RehomePet / give the cat back"] = new(3, 1, 1, 1),

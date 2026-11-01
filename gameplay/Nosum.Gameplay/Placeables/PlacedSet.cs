@@ -254,12 +254,12 @@ public sealed class PlacedSet
 
     /// <summary>
     /// The tiles tried, in order, when a piece aimed at a tile would stand on the placer's feet: the neighbours of the aimed anchor
-    /// (docs/adr/ADR-100). The first one that passes <see cref="Check"/> and leaves the feet clear is the ghost's new place.
+    /// (docs/adr/ADR-103). The first one that passes <see cref="Check"/> and leaves the feet clear is the ghost's new place.
     /// </summary>
     public static readonly (int X, int Y)[] StepAsideOffsets = [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)];
 
     /// <summary>
-    /// Finds the nearest anchor beside an aimed one where the piece fits and does not stand on a character's feet (docs/adr/ADR-100).
+    /// Finds the nearest anchor beside an aimed one where the piece fits and does not stand on a character's feet (docs/adr/ADR-103).
     /// The server still validates the anchor it is sent; this only chooses where the ghost goes.
     /// </summary>
     /// <param name="definition">The piece.</param>

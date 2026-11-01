@@ -273,7 +273,7 @@ public sealed class PlacedSetTests
     [Fact]
     public void TryFindClearAnchor_AimedTileUnderTheFeet_StepsToTheNearestClearNeighbour()
     {
-        // Finding 16 (ADR-100): the feet stand on the aimed tile (2, 3); the chair steps one tile right, to (3, 3).
+        // Finding 16 (ADR-103): the feet stand on the aimed tile (2, 3); the chair steps one tile right, to (3, 3).
         PlacedSet set = new();
 
         set.TryFindClearAnchor(Definition(ItemCatalog.OakChair), 0, 2, 3, Room(), new HashSet<(int X, int Y)>(), 40, 63, 0, out int x, out int y).Should().BeTrue();

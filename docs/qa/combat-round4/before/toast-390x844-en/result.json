@@ -1,0 +1,90 @@
+{
+  "mode": "toast",
+  "size": "390x844",
+  "locale": "en-US",
+  "tries": [
+    {
+      "try": 1,
+      "toasts": [
+        {
+          "text": "That skill is still recharging!",
+          "box": [
+            96,
+            669,
+            198,
+            37
+          ]
+        }
+      ],
+      "chip": {
+        "text": "Combo 4x (+15%)",
+        "box": [
+          269,
+          701,
+          110,
+          29
+        ]
+      },
+      "strip": [
+        269,
+        701,
+        110,
+        29
+      ],
+      "overlapToastAndChip": {
+        "px": [
+          25,
+          5
+        ]
+      },
+      "overlapToastAndStrip": {
+        "px": [
+          25,
+          5
+        ]
+      }
+    }
+  ],
+  "final": {
+    "try": 1,
+    "toasts": [
+      {
+        "text": "That skill is still recharging!",
+        "box": [
+          96,
+          669,
+          198,
+          37
+        ]
+      }
+    ],
+    "chip": {
+      "text": "Combo 4x (+15%)",
+      "box": [
+        269,
+        701,
+        110,
+        29
+      ]
+    },
+    "strip": [
+      269,
+      701,
+      110,
+      29
+    ],
+    "overlapToastAndChip": {
+      "px": [
+        25,
+        5
+      ]
+    },
+    "overlapToastAndStrip": {
+      "px": [
+        25,
+        5
+      ]
+    }
+  },
+  "errors": []
+}

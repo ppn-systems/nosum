@@ -35,7 +35,8 @@ public sealed class OpsDatabaseTests : IClassFixture<PostgresFixture>, IAsyncLif
 
     public async Task DisposeAsync()
     {
-        NpgsqlConnection.ClearAllPools();
+        using NpgsqlConnection poolKey = new(NosumDatabase.WithPoolLimits(this.EmptyConnection()));
+        NpgsqlConnection.ClearPool(poolKey);
         await ExecuteAsync(this.AdminConnection(), "DROP DATABASE IF EXISTS \"" + _emptyName + "\" WITH (FORCE)");
     }
 

@@ -1,0 +1,49 @@
+{
+  "mode": "touchskill",
+  "size": "390x844",
+  "locale": "en-US",
+  "fireballButtonBox": [
+    151,
+    798,
+    16,
+    28
+  ],
+  "skillBoxes": [
+    {
+      "label": "Whirlwind",
+      "box": [
+        133,
+        798,
+        16,
+        28
+      ]
+    },
+    {
+      "label": "Fireball",
+      "box": [
+        151,
+        798,
+        16,
+        28
+      ]
+    },
+    {
+      "label": "Divine heal",
+      "box": [
+        169,
+        798,
+        16,
+        28
+      ]
+    }
+  ],
+  "xKey": {
+    "cooldownOverlays": 1,
+    "toasts": []
+  },
+  "buttonTap": {
+    "cooldownOverlays": 1,
+    "toasts": []
+  },
+  "errors": []
+}
