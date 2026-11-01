@@ -52,6 +52,14 @@ internal sealed partial class PlayerActions
     private int _queuedFloatX;
     private int _queuedFloatY;
     private int _firedCost;
+
+    // Whether the queued use came from the action key with an item in hand (not the wide key or a drag), the item, and the tiles: the action key's
+    // harvest of a ripe crop with another item in hand is named on the message line (ActionKeyHarvested).
+    private bool _queuedByActionKey;
+    private int _queuedItemId;
+    private bool _firedByActionKey;
+    private int _firedItemId;
+    private int _firedTiles;
     private int _firedFloatX;
     private int _firedFloatY;
     private NodeKind? _queuedNodeKind;
@@ -164,9 +172,11 @@ internal sealed partial class PlayerActions
     }
 
     // Queues a use of the held item for the hit frame of the swing just begun; the tiles of a wide use are one request.
-    private void QueueUse(int slot, int tileX, int tileY, int tiles, ToolKind tool, int tileSize)
+    private void QueueUse(int slot, int tileX, int tileY, int tiles, ToolKind tool, int tileSize, bool byActionKey = false)
     {
         _useQueued = true;
+        _queuedByActionKey = byActionKey;
+        _queuedItemId = _swingItemId;
         _useAtSeconds = _swingStartSeconds + (_swingSeconds * ToolPacing.HitFraction);
         _queuedSlot = slot;
         _queuedTileX = tileX;
@@ -245,6 +255,9 @@ internal sealed partial class PlayerActions
         _useQueued = false;
         _audio?.Play(AudioCatalog.ToolSound(_queuedTool));
         _firedCost = _queuedCost;
+        _firedByActionKey = _queuedByActionKey;
+        _firedItemId = _queuedItemId;
+        _firedTiles = _queuedTiles;
         _firedFloatX = _queuedFloatX;
         _firedFloatY = _queuedFloatY;
         _firedNodeKind = _queuedNodeKind;
@@ -260,8 +273,18 @@ internal sealed partial class PlayerActions
     }
 
     // The server's answer: energy is spent only on an outcome that worked the tile, so the label floats only then.
-    private void OnFarmUseCompleted(FarmStatus status, FarmAction action, int worked)
+    private void OnFarmUseCompleted(FarmStatus status, FarmAction action, int worked, int daysLeft)
     {
+        _ = daysLeft;
+
+        // The action key harvested a ripe crop while another item was in hand: the player is told the key did it (not the item in hand).
+        bool keyHarvest = status == FarmStatus.Ok && action == FarmAction.Harvested && _firedByActionKey && _firedTiles == 1 && _firedItemId is not (0 or ItemCatalog.Scythe);
+        _firedByActionKey = false;
+        if (keyHarvest)
+        {
+            this.ActionKeyHarvested?.Invoke();
+        }
+
         // The server charged the cost of each tile that worked, so the label is the cost of one tile times the count (docs/adr/ADR-088).
         int cost = _firedCost * worked;
         _firedCost = 0;

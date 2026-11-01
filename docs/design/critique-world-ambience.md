@@ -143,3 +143,20 @@ Captures and numbers: [`docs/qa/world-ambience-round2/`](../qa/world-ambience-ro
 - **Coverage now:** fall (`fall-noon-sun`, Fall Day 5), mine floors 1, 6, 15, 25 and 35 (the four biomes), and the exits
   east, south and north of the farm. Still not covered: the other buildings, a full game day, touch play.
 - **Listening** is still not possible here; the levels come from measurement.
+
+## 7. Round 3
+
+Captures and numbers: [`docs/qa/world-ambience-round3/`](../qa/world-ambience-round3/README.md). Rule: [ADR-095](../adr/ADR-095-world-labels-clear-the-hud-and-touch-controls.md).
+Round 3 took the first open item of the round-2 list (section 6), the world labels at the bottom edge, and the north exit label that touched the
+player's name tag. Changes:
+
+- **Labels clear the bottom band and the touch controls** (ADR-095 D1, D3). The bottom-centre HUD region ends 12 px above the edge at 1280 × 720; the
+  strip under it is now part of the HUD. The phone's stick and buttons are HUD rectangles too: on `before/en/390x844/fall-noon-sun-mine15.png` the
+  trap and shrine labels sat under Chat, Run and Use.
+- **Stacked labels keep a gap** (ADR-095 D4). "↑ Backwoods" no longer touches the name tag at the farm's north exit; at the top edge a label goes
+  below the other, not above it.
+- **Winter snow and hazards at 390 × 844.** Snow graded, not changed. Hazard labels: the stacking gap covers the touching case; the final frames
+  show them clear of the touch buttons.
+
+Still open: a stray "S" before some labels on mine floor 35 (cause not known, in before and after); the minimap's unpainted cells, the exit
+beacon's strength and the listening levels (section 5, owner calls).
