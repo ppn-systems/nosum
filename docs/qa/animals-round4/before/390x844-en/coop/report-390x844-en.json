@@ -1,0 +1,35 @@
+{
+  "captured": [
+    "carpenter-buildings",
+    "carpenter-animals",
+    "carpenter-animals-after"
+  ],
+  "failed": [
+    {
+      "step": "buy-cow",
+      "reason": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /^Buy Cow / }).first()\u001b[22m\n"
+    },
+    {
+      "step": "buy-goat",
+      "reason": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /^Buy Goat / }).first()\u001b[22m\n"
+    }
+  ],
+  "scroll": {
+    "bodyScrollHeight": 335,
+    "bodyClientHeight": 335,
+    "bodyOverflowY": "visible",
+    "panelBottom": 521,
+    "viewport": 844,
+    "buttonsCut": [],
+    "buttons": [
+      "Buy blueprint",
+      "Buy blueprint",
+      "Buy Chicken · 800 coins",
+      "Buy Duck · 1,100 coins"
+    ]
+  },
+  "placedAt": [
+    40,
+    40
+  ]
+}

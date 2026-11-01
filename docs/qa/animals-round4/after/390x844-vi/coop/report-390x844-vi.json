@@ -1,0 +1,33 @@
+{
+  "captured": [
+    "carpenter-buildings",
+    "carpenter-animals",
+    "carpenter-animals-after"
+  ],
+  "failed": [
+    {
+      "step": "buy-cow",
+      "reason": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /^Mua Bò / }).first()\u001b[22m\n"
+    },
+    {
+      "step": "buy-goat",
+      "reason": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /^Mua Dê / }).first()\u001b[22m\n"
+    }
+  ],
+  "scroll": {
+    "bodyScrollHeight": 187,
+    "bodyClientHeight": 187,
+    "bodyOverflowY": "visible",
+    "panelBottom": 373,
+    "viewport": 844,
+    "buttonsCut": [],
+    "buttons": [
+      "Mua Gà · 950 xu",
+      "Mua Vịt · 1.100 xu"
+    ]
+  },
+  "placedAt": [
+    40,
+    40
+  ]
+}
