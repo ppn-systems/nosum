@@ -93,9 +93,10 @@ public interface IMarketService
     /// <param name="page">Page number, zero based.</param>
     /// <param name="itemIds">Only these items; empty for all.</param>
     /// <param name="sort">The order of the page.</param>
+    /// <param name="pageSize">Listings on the page; zero is the server's default (10), and a larger value is clamped to 20 (docs/adr/ADR-101 amendment 2026-11-01).</param>
     /// <param name="cancellationToken">Cancels the operation.</param>
     /// <returns>The page.</returns>
-    Task<ListingsPageView> BrowseAsync(int page, IReadOnlyCollection<int> itemIds, MarketSort sort = MarketSort.Newest, CancellationToken cancellationToken = default);
+    Task<ListingsPageView> BrowseAsync(int page, IReadOnlyCollection<int> itemIds, MarketSort sort = MarketSort.Newest, int pageSize = 0, CancellationToken cancellationToken = default);
 
     /// <summary>Reads the player's own active listings.</summary>
     /// <param name="playerId">The seller.</param>
