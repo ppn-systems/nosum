@@ -80,6 +80,9 @@ public enum PanelKind
 
     /// <summary>The backpack: the next size and its price, from the tailor's dialog box (docs/adr/ADR-081); not a menu tab.</summary>
     Backpack = 22,
+
+    /// <summary>The Today card: the season and day, today's and tomorrow's weather, and the crops in season; opened from the calendar bar (backlog item 7); not a menu tab.</summary>
+    Today = 23,
 }
 
 /// <summary>One toolbar button.</summary>

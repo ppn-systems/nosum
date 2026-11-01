@@ -509,6 +509,13 @@
   <data name="Weather_Storm" xml:space="preserve"><value>Storm</value></data>
   <data name="Weather_Snow" xml:space="preserve"><value>Snow</value></data>
   <data name="Calendar_Forecast" xml:space="preserve"><value>Today: {0}. Tomorrow: {1}.</value></data>
+  <data name="Today_Title" xml:space="preserve"><value>Today</value></data>
+  <data name="Today_Tip" xml:space="preserve"><value>Show today's details</value></data>
+  <data name="Today_Date" xml:space="preserve"><value>{0}, {1}</value></data>
+  <data name="Today_Weather_Today" xml:space="preserve"><value>Weather today: {0}</value></data>
+  <data name="Today_Weather_Tomorrow" xml:space="preserve"><value>Weather tomorrow: {0}</value></data>
+  <data name="Today_Crops" xml:space="preserve"><value>Crops in season: {0}</value></data>
+  <data name="Today_Crops_None" xml:space="preserve"><value>No crops grow this season</value></data>
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>That crop does not grow in this season.</value></data>
   <data name="Farm_Status_Withered" xml:space="preserve"><value>The crop withered from lack of water or the end of its season. Plant a new seed over it.</value></data>
   <data name="Farm_Thirsty_Morning" xml:space="preserve"><value>{0} crops need water</value></data>
@@ -670,6 +677,8 @@
   <data name="Eat_Status_Conflict" xml:space="preserve"><value>Try again.</value></data>
   <data name="Energy_Label" xml:space="preserve"><value>Energy {0} / {1}</value></data>
   <data name="Energy_Running" xml:space="preserve"><value>Running</value></data>
+  <data name="Energy_ToolUses" xml:space="preserve"><value>About {0} tool uses left</value></data>
+  <data name="Energy_ToolUses_None" xml:space="preserve"><value>Not enough energy for another use</value></data>
   <data name="Run_OutOfEnergy" xml:space="preserve"><value>Out of energy: you stop running.</value></data>
   <data name="Energy_Heading" xml:space="preserve"><value>Energy</value></data>
   <data name="Energy_Hint" xml:space="preserve"><value>Every tool use costs energy (the scythe is free). It refills at the start of each game day; eat produce to restore some.</value></data>
@@ -1194,6 +1203,9 @@
   <data name="Shop_Preset_Count" xml:space="preserve"><value>x{0}</value></data>
   <data name="Shop_Block_NotEnoughCoins" xml:space="preserve"><value>Not enough coins: {0} more needed.</value></data>
   <data name="Shop_Block_BagFull" xml:space="preserve"><value>Your bag is full.</value></data>
+  <data name="Shop_Block_NotInSeason" xml:space="preserve"><value>Plants in {0}</value></data>
+  <data name="Shop_Block_SoldIn" xml:space="preserve"><value>Sold in {0}</value></data>
+  <data name="Shop_Block_NotThisSeason" xml:space="preserve"><value>Not sold this season</value></data>
   <data name="Shop_Detail_Total" xml:space="preserve"><value>Total: {0} coins for {1}</value></data>
   <data name="Shop_Detail_After" xml:space="preserve"><value>Coins after: {0}</value></data>
   <data name="Market_Confirm_Text" xml:space="preserve"><value>List {1} of {0} for {2} coins?</value></data>

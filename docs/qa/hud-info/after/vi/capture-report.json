@@ -1,0 +1,95 @@
+{
+  "base_url": "http://localhost:5830",
+  "lang": "vi",
+  "captured": [
+    {
+      "screen": "hud-idle",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/1280x720/hud-idle.png",
+      "status": "captured"
+    },
+    {
+      "screen": "toast-one",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/1280x720/toast-one.png",
+      "status": "captured"
+    },
+    {
+      "screen": "toast-two",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/1280x720/toast-two.png",
+      "status": "captured"
+    },
+    {
+      "screen": "energy-tooltip",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/1280x720/energy-tooltip.png",
+      "status": "captured"
+    },
+    {
+      "screen": "today-card",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/1280x720/today-card.png",
+      "status": "captured"
+    },
+    {
+      "screen": "hud-idle",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/1920x1080/hud-idle.png",
+      "status": "captured"
+    },
+    {
+      "screen": "toast-one",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/1920x1080/toast-one.png",
+      "status": "captured"
+    },
+    {
+      "screen": "toast-two",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/1920x1080/toast-two.png",
+      "status": "captured"
+    },
+    {
+      "screen": "energy-tooltip",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/1920x1080/energy-tooltip.png",
+      "status": "captured"
+    },
+    {
+      "screen": "today-card",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/1920x1080/today-card.png",
+      "status": "captured"
+    },
+    {
+      "screen": "hud-idle",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/390x844/hud-idle.png",
+      "status": "captured"
+    },
+    {
+      "screen": "toast-one",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/390x844/toast-one.png",
+      "status": "captured"
+    },
+    {
+      "screen": "toast-two",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/390x844/toast-two.png",
+      "status": "captured"
+    },
+    {
+      "screen": "energy-tooltip",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/390x844/energy-tooltip.png",
+      "status": "captured"
+    },
+    {
+      "screen": "today-card",
+      "file": "/home/user/nosum/docs/qa/hud-info/after/vi/390x844/today-card.png",
+      "status": "captured"
+    }
+  ],
+  "not_captured": [
+    {
+      "screen": "shop-seeds",
+      "reason": "a merchant has to be reached on the map; this script does not walk there"
+    },
+    {
+      "screen": "shop-seeds",
+      "reason": "a merchant has to be reached on the map; this script does not walk there"
+    },
+    {
+      "screen": "shop-seeds",
+      "reason": "a merchant has to be reached on the map; this script does not walk there"
+    }
+  ]
+}

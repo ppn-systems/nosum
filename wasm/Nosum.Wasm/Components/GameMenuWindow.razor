@@ -1,5 +1,7 @@
 @using Nosum.Wasm.Controls.Backpack
 @using Nosum.Wasm.Controls.Building
+@using Nosum.Wasm.Controls.Calendar
+@using Nosum.Wasm.ViewModels.Calendar
 @using Nosum.Wasm.Controls.Chest
 @using Nosum.Wasm.Controls.Common
 @using Nosum.Wasm.Controls.Coop
@@ -72,6 +74,7 @@
 @inject WorldMapViewModel WorldMap
 @inject JournalViewModel Journal
 @inject BackpackViewModel Backpack
+@inject CalendarViewModel Calendar
 
 @* Standalone window hosting the currently active game panel (docs/adr/ADR-044). *@
 <TradeDialog Title="@DialogTitle()" CloseText="@Toolbar.Text("Panel_Close")" Size="@SizeOf(Panel)" OnClose="OnDialogClose">
@@ -138,6 +141,9 @@
         case PanelKind.Journal:
             <JournalPanel Vm="Journal" />
             break;
+        case PanelKind.Today:
+            <TodayPanel Vm="Calendar" />
+            break;
         case PanelKind.Menu:
             <GameMenuTiles Items="Toolbar.MenuItems" Label="@Toolbar.MenuLabel" OnOpen="OnOpenPanel" />
             break;
@@ -179,6 +185,7 @@
         PanelKind.Furnace => Toolbar.Text("Furnace_Title"),
         PanelKind.Menu => Toolbar.MenuLabel,
         PanelKind.Backpack => Toolbar.Text("Toolbar_Backpack"),
+        PanelKind.Today => Toolbar.Text("Today_Title"),
         _ => Toolbar.TitleOf(Panel),
     };
 }

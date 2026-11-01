@@ -1,0 +1,89 @@
+{
+  "base_url": "http://localhost:5831",
+  "lang": "en",
+  "captured": [
+    {
+      "screen": "hud-idle",
+      "file": "/home/user/nosum/docs/qa/hud-info/before/en/1280x720/hud-idle.png",
+      "status": "captured"
+    },
+    {
+      "screen": "toast-one",
+      "file": "/home/user/nosum/docs/qa/hud-info/before/en/1280x720/toast-one.png",
+      "status": "captured"
+    },
+    {
+      "screen": "energy-tooltip",
+      "file": "/home/user/nosum/docs/qa/hud-info/before/en/1280x720/energy-tooltip.png",
+      "status": "captured"
+    },
+    {
+      "screen": "hud-idle",
+      "file": "/home/user/nosum/docs/qa/hud-info/before/en/1920x1080/hud-idle.png",
+      "status": "captured"
+    },
+    {
+      "screen": "toast-one",
+      "file": "/home/user/nosum/docs/qa/hud-info/before/en/1920x1080/toast-one.png",
+      "status": "captured"
+    },
+    {
+      "screen": "energy-tooltip",
+      "file": "/home/user/nosum/docs/qa/hud-info/before/en/1920x1080/energy-tooltip.png",
+      "status": "captured"
+    },
+    {
+      "screen": "hud-idle",
+      "file": "/home/user/nosum/docs/qa/hud-info/before/en/390x844/hud-idle.png",
+      "status": "captured"
+    },
+    {
+      "screen": "toast-one",
+      "file": "/home/user/nosum/docs/qa/hud-info/before/en/390x844/toast-one.png",
+      "status": "captured"
+    },
+    {
+      "screen": "energy-tooltip",
+      "file": "/home/user/nosum/docs/qa/hud-info/before/en/390x844/energy-tooltip.png",
+      "status": "captured"
+    }
+  ],
+  "not_captured": [
+    {
+      "screen": "toast-two",
+      "reason": "the second refusal did not stack (1 toast on the line)"
+    },
+    {
+      "screen": "today-card",
+      "reason": "the calendar click did not open a window"
+    },
+    {
+      "screen": "shop-seeds",
+      "reason": "a merchant has to be reached on the map; this script does not walk there"
+    },
+    {
+      "screen": "toast-two",
+      "reason": "the second refusal did not stack (1 toast on the line)"
+    },
+    {
+      "screen": "today-card",
+      "reason": "the calendar click did not open a window"
+    },
+    {
+      "screen": "shop-seeds",
+      "reason": "a merchant has to be reached on the map; this script does not walk there"
+    },
+    {
+      "screen": "toast-two",
+      "reason": "the second refusal did not stack (1 toast on the line)"
+    },
+    {
+      "screen": "today-card",
+      "reason": "the calendar click did not open a window"
+    },
+    {
+      "screen": "shop-seeds",
+      "reason": "a merchant has to be reached on the map; this script does not walk there"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+@using Nosum.Wasm.Controls.Common
+@using Nosum.Wasm.Controls.Menu
+@using Nosum.Wasm.ViewModels.Calendar
+@inherits ObservingComponent<CalendarViewModel>
+
+@* The Today card (docs/design/research-hud-and-loops.md, backlog item 7): the season and day, today's and tomorrow's weather, and the crops that grow
+   this season. It is a window of its own in the centre, opened from the calendar bar. *@
+<MenuPage>
+    <GameSection>
+        <p>@Vm.DateText</p>
+    </GameSection>
+    <GameRow Class="spread">
+        <span>@Vm.Text("Today_Weather_Today", Vm.TodayName)</span>
+        <WeatherIcon Kind="@Vm.TodayKey" />
+    </GameRow>
+    <GameRow Class="spread">
+        <span>@Vm.Text("Today_Weather_Tomorrow", Vm.TomorrowName)</span>
+        <WeatherIcon Kind="@Vm.TomorrowKey" />
+    </GameRow>
+    <GameSection>
+        <p>@Vm.CropsText</p>
+    </GameSection>
+</MenuPage>
