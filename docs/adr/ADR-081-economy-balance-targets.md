@@ -63,3 +63,16 @@ they stay true.
 
 - `docs/design/economy.md`: the full before-and-after tables and the reviewed list.
 - ADR-013 (coins, escrow, market), ADR-018 (seasons, game day), ADR-023 (energy), ADR-025 (crops), ADR-028 (animals), ADR-078 (fishing).
+
+## Amendment (2026-11-01): hay is a ration that pays (economy rebuild)
+
+The simulation (`tests/Nosum.UnitTests/Gameplay/EconomyReportTests.cs`, see docs/design/critique-economy.md) found that feeding was a loss: a hay ration cost
+**30** coins, one night of feed for one animal, and the everyday product of a chicken (15), a duck (20) and a cow (27) is less than that. A fed chicken lost
+420 coins a season and a fed cow 84, so no player who had fiber (free from the scythe) would buy hay, and the purchase was a dead option.
+
+- **D8 - Hay 30 → 10** (`ShopCatalog`, carpenter). A fed season is now positive for every animal: chicken +140, duck +280, cow +476, goat +616, sheep +440, pig +700
+  (the everyday product less 28 rations). A ration still costs less than the chicken's egg (15), so the rule is the same as before: feed is a choice that pays.
+- **Locked by tests.** `EconomyBalanceTests.HayRation_EveryAnimal_SeasonProductPaysForAFedSeason` and `HayRation_CostsLessThanTheDailyEgg` read the live carpenter price.
+- **Left alone:** fiber stays free (the owner's open question on free feed); the animal prices, the crop and fish bands (D1, D2, D5), the energy rules (D3), and the milk pail (300).
+- **Consequence.** Players with a herd and no scythe grass can now keep their animals fed profitably; the coin sink from feeding is smaller than the sink in the 30-coin version
+  (a fed herd of six pays about 1,700 coins a season for hay, where it paid about 5,000).
