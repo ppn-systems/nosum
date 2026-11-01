@@ -287,7 +287,7 @@ public sealed partial class ResourceNodeService : IResourceNodeService, IChunkSt
 
             case NodeHitOutcome.Damaged:
                 {
-                    ChargeStatus charged = await _progress.TryChargeAsync(player.AccountId, tool, SkillRules.SkillOf(node.Kind), SkillRules.HitXp, cancellationToken).ConfigureAwait(false);
+                    ChargeStatus charged = await _progress.TryChargeAsync(player.AccountId, tool, SkillRules.SkillOf(node.Kind), SkillRules.HitXp, tier, cancellationToken).ConfigureAwait(false);
                     if (charged != ChargeStatus.Ok)
                     {
                         return Refused(charged == ChargeStatus.NoEnergy ? FarmStatus.NoEnergy : FarmStatus.Conflict);
@@ -312,7 +312,7 @@ public sealed partial class ResourceNodeService : IResourceNodeService, IChunkSt
                 {
                     // Energy and experience commit with the break; a player without the energy breaks nothing.
                     charge?.Dispose();
-                    charge = await _progress.ChargeAsync(unit, player.AccountId, tool, SkillRules.SkillOf(node.Kind), SkillRules.BreakXp(node.Kind), ct).ConfigureAwait(false);
+                    charge = await _progress.ChargeAsync(unit, player.AccountId, tool, SkillRules.SkillOf(node.Kind), SkillRules.BreakXp(node.Kind), tier, ct).ConfigureAwait(false);
                     if (!charge.Allowed)
                     {
                         return false;

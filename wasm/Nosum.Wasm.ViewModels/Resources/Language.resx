@@ -691,6 +691,9 @@
   <data name="Skill_Level" xml:space="preserve"><value>Cấp {0}</value></data>
   <data name="Skill_MaxLevel" xml:space="preserve"><value>Tối đa</value></data>
   <data name="Skill_LevelUp" xml:space="preserve"><value>{0} lên cấp {1}!</value></data>
+  <data name="Skill_Perk" xml:space="preserve"><value>Công cụ {0}: tốn ít hơn {1} năng lượng mỗi lần dùng</value></data>
+  <data name="Tooltip_Area" xml:space="preserve"><value>Vùng tác động: {0} ô liền nhau</value></data>
+  <data name="Tooltip_ToolEnergy" xml:space="preserve"><value>Năng lượng mỗi lần dùng: {0} (trước thưởng kỹ năng)</value></data>
   <data name="Toolbar_Skills" xml:space="preserve"><value>Kỹ năng</value></data>
   <data name="Place_Status_Tilled" xml:space="preserve"><value>Không đặt được lên đất đã cuốc.</value></data>
   <data name="Place_Status_NodeInTheWay" xml:space="preserve"><value>Có cây, đá hoặc cỏ dại chắn chỗ này.</value></data>

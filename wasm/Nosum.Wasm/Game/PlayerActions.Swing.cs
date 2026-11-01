@@ -234,8 +234,9 @@ internal sealed partial class PlayerActions
     private static bool ChargesEnergy(FarmAction action)
         => action is FarmAction.Tilled or FarmAction.Watered or FarmAction.Hit or FarmAction.Broke or FarmAction.Cleared or FarmAction.CutWithered;
 
-    // The cost the server will charge at the level the player has in the tool's skill (docs/adr/ADR-023); the server is the one that charges it.
-    private int EnergyCostOf(ToolKind tool) => tool == ToolKind.None ? 0 : EnergyRules.Cost(tool, this.SkillLevelOf(tool));
+    // The cost the server will charge at the level the player has in the tool's skill and the tier of the tool in hand (docs/adr/ADR-023, ADR-089);
+    // the server is the one that charges it.
+    private int EnergyCostOf(ToolKind tool) => tool == ToolKind.None ? 0 : EnergyRules.Cost(tool, this.SkillLevelOf(tool), ToolRules.TierOf(_swingItemId));
 
     private int SkillLevelOf(ToolKind tool)
     {

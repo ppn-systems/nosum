@@ -105,6 +105,9 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
     public SlotDisplay? Held => (uint)this.SelectedSlot < (uint)_slots.Count && !_slots[this.SelectedSlot].IsEmpty ? _slots[this.SelectedSlot] : null;
 
     /// <summary>Gets the tool in the held hotbar slot, or <see cref="ToolKind.None"/> when that slot holds no tool.</summary>
+    public ToolTier HeldTier => this.Held is { } held && ItemCatalog.TryGet(held.ItemId, out ItemDefinition? item) ? item.Tier : ToolTier.Basic;
+
+    /// <summary>Gets the tool in the held slot; <see cref="ToolKind.None"/> when the held item is not a tool.</summary>
     public ToolKind HeldTool => this.Held is { } held && ItemCatalog.TryGet(held.ItemId, out ItemDefinition? item) ? item.Tool : ToolKind.None;
 
     /// <summary>Gets the heading of the held-item card.</summary>
