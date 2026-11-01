@@ -178,7 +178,7 @@ public sealed class FishingViewModelTests
     }
 
     [Fact]
-    public void Reel_Caught_NamesTheFish()
+    public void Reel_Caught_BannerAsksForTheNextCastInsteadOfRepeatingTheCatch()
     {
         using CultureScope scope = new("en");
         Rig rig = Create(CastOk(castId: 7), new ReelResult { Status = FishingStatus.Ok, ItemId = ItemCatalog.Carp, Quantity = 1, XpGained = 10 });
@@ -188,7 +188,8 @@ public sealed class FishingViewModelTests
         rig.Vm.Press();
 
         rig.Vm.Phase.Should().Be(FishingPhase.Result);
-        rig.Vm.Message.Should().Be("You caught Carp!");
+        rig.Vm.Message.Should().Be("Cast again when you are ready.");
+        rig.Vm.Catch.Should().NotBeNull("the card, not the banner, names the fish");
     }
 
     [Fact]
@@ -294,7 +295,7 @@ public sealed class FishingViewModelTests
             "Fishing_PressTouch",
             "Fishing_Reeling",
             "Fishing_NotYet",
-            "Fishing_Caught",
+            "Fishing_CastAgain",
             "Skill_Fishing",
         ];
 

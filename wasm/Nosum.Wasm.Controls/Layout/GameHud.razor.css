@@ -179,12 +179,6 @@
     animation: game-message-life 3s linear both;
 }
 
-/* The combo chip hangs over the hotbar's top-right corner (Hotbar.razor.css, .hotbar-badges), in the same strip as the toast line. While it
-   shows, the toast line lifts above the chip's height, so a long message (the knock-out line) is not cut off under it (ui-standard section 2). */
-.hud-bottom-center:has(.hotbar-badges) ::deep .game-message {
-    margin-bottom: calc(var(--u) * 12);
-}
-
 @keyframes game-message-life {
     0%, 80% {
         opacity: 1;

@@ -44,7 +44,7 @@ public static class NosumProtocol
     /// 31: days left on an unripe crop - <c>DaysLeft</c> appended to <c>UseItemResult</c>, set on <c>FarmStatus.NotMature</c> (docs/adr/ADR-094 D2).
     /// No opcode, existing field or enum value changed. Clients built for 30 misread the reply, so they ship together.
     /// 32: monster strike telegraph - new push <c>StrikeTelegraph</c> (S2C <c>0xC249</c>): an ordinary monster's wind-up before its melee strike lands (docs/adr/ADR-097). No existing packet changed.
-    /// 33: QA friend (docs/adr/ADR-100) - new Development-only packets <c>DevBefriend</c> (C2S <c>0xF006</c>) and <c>DevBefriendResult</c> (S2C <c>0xF046</c>),
+    /// 33: QA friend (docs/adr/ADR-105) - new Development-only packets <c>DevBefriend</c> (C2S <c>0xF006</c>) and <c>DevBefriendResult</c> (S2C <c>0xF046</c>),
     /// with the new test player's nickname and session token. Production does not map them. No existing packet or field changed.
     /// </summary>
     public const ushort Version = 33;

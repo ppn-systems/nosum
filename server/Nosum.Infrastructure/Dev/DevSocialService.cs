@@ -17,7 +17,7 @@ using Nosum.Gameplay.Players;
 namespace Nosum.Infrastructure.Dev;
 
 /// <summary>
-/// <see cref="IDevSocialService"/> (docs/adr/ADR-100). The friendship is the real one: the test player asks the sender, and the sender asks back, which
+/// <see cref="IDevSocialService"/> (docs/adr/ADR-105). The friendship is the real one: the test player asks the sender, and the sender asks back, which
 /// the friend service treats as accepting. Registered by the host only in Development.
 /// </summary>
 public sealed class DevSocialService : IDevSocialService

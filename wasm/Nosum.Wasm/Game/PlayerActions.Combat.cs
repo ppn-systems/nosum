@@ -64,8 +64,8 @@ internal sealed partial class PlayerActions
     /// MP, full health for the heal), so the press is never silent (docs/adr/ADR-056 D5).</summary>
     public event Action<string>? SkillPressRefused;
 
-    /// <summary>Raised when the action key harvests a ripe crop while another item is in hand (the scythe excepted), so the player is told the key did it.</summary>
-    public event Action? ActionKeyHarvested;
+    /// <summary>Raised with the resource key of the line when a farm use worked and the line says so (docs/adr/ADR-100 D2 and D4).</summary>
+    public event Action<string>? FarmUseSucceeded;
 
     private void TryCastSkillFromEdges(InputEdges edges, int x, int y, double nowSeconds)
     {
@@ -165,7 +165,7 @@ internal sealed partial class PlayerActions
             // The swing is the action: the use reaches the server at its hit frame, and the farmer is busy until the swing and its recovery are over.
             ToolKind tool = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? swung) ? swung.Tool : ToolKind.None;
             this.BeginSwing(tool, held.ItemId, nowSeconds);
-            this.QueueUse(selected, this.TargetX, this.TargetY, 1, tool, tileSize, byActionKey: true);
+            this.QueueUse(selected, this.TargetX, this.TargetY, 1, tool, tileSize);
         }
     }
 

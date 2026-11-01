@@ -1,7 +1,7 @@
 # social-round3: two real players, end to end, and the fixes that came out of it
 
 Second browser pass on the social play (docs/design/critique-social.md; round 2 is docs/qa/social-round2/). Round 2 could not play a friend in the
-browser, because Development had only guests. This round adds a Development-only test friend (docs/adr/ADR-100) and plays two Playwright contexts
+browser, because Development had only guests. This round adds a Development-only test friend (docs/adr/ADR-105) and plays two Playwright contexts
 through: friend presence, chat, a trade with both confirmations, a visit to the friend's farm, and a co-op founded by one player with deposits from both.
 
 - `after/`: this branch. Captured with `tests/browser/social-round3-play.cjs` at 1280×720, 1920×1080 and 390×844 (iPhone 14 profile), in vi and en.
@@ -21,7 +21,7 @@ through: friend presence, chat, a trade with both confirmations, a visit to the 
 
 ## What changed
 
-- **The Development test friend** (ADR-100, protocol 33): `DevBefriend` makes the sender a registered test account and creates a registered test
+- **The Development test friend** (ADR-105, protocol 33): `DevBefriend` makes the sender a registered test account and creates a registered test
   player (`QaFriend` + four digits) that is befriended through the real request and accept. The reply carries the test player's session token, and
   the second browser context resumes as that player from its remembered session. Production does not map the opcode; `DevQaWireTests` probes it.
 - **Renderer module** (`engine/Nosum.Rendering.Web/wwwroot/renderer.js`): removed the duplicate `fitLabel` and the unused `clampTo`. Syntax checked

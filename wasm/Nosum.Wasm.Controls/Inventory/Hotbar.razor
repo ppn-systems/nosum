@@ -5,29 +5,11 @@
 @if (Vm.Slots.Count > 0)
 {
     <div class="hotbar-dock">
-        <GamePanel Class="hud hotbar" Role="toolbar" Title="">
-            <div class="hotbar-row">
-                <div class="hotbar-slots" aria-label="@Vm.HotbarLabel">
-                    @foreach (SlotDisplay slot in Vm.Hotbar)
-                    {
-                        int index = slot.Index;
-                        <ItemSlotButton Slot="slot" Hotkey="@((index + 1).ToString(System.Globalization.CultureInfo.InvariantCulture))" OnClick="() => Vm.Select(index)" />
-                    }
-                </div>
-                @if (Progress is not null)
-                {
-                    <div class="hotbar-skills" role="toolbar" aria-label="@Progress.CombatSkillsAriaLabel">
-                        <GameButton Variant="secondary" Disabled="@Progress.WhirlwindDisabled" Title="@($"{Progress.WhirlwindLabel}\n{Progress.WhirlwindTip}")" aria-label="@Progress.WhirlwindLabel" OnClick="@(() => Progress.CastSkill(1))">@if (Progress.IsSkillCoolingDown(1)) { <span class="skill-cooldown" style="@Progress.CooldownStyle(1)" aria-hidden="true"></span> }<GameKey Text="Z" /></GameButton>
-                        <GameButton Variant="secondary" Disabled="@Progress.FireballDisabled" Title="@($"{Progress.FireballLabel}\n{Progress.FireballTip}")" aria-label="@Progress.FireballLabel" OnClick="@(() => Progress.CastSkill(2))">@if (Progress.IsSkillCoolingDown(2)) { <span class="skill-cooldown" style="@Progress.CooldownStyle(2)" aria-hidden="true"></span> }<GameKey Text="X" /></GameButton>
-                        <GameButton Variant="secondary" Disabled="@Progress.DivineHealDisabled" Title="@($"{Progress.DivineHealLabel}\n{Progress.DivineHealTip}")" aria-label="@Progress.DivineHealLabel" OnClick="@(() => Progress.CastSkill(3))">@if (Progress.IsSkillCoolingDown(3)) { <span class="skill-cooldown" style="@Progress.CooldownStyle(3)" aria-hidden="true"></span> }<GameKey Text="V" /></GameButton>
-                    </div>
-                }
-            </div>
-        </GamePanel>
-        @if (Progress is not null)
-        {
-            @if (Progress.CurrentCombo > 1 || Progress.IsLevelUpActive)
+        <div class="hotbar-main">
+            @if (Progress is not null)
             {
+                @* The combo chip and the level-up badge have their own strip above the hotbar (ui-standard section 2). The toast line sits above the
+                   strip, so the two never share a region. The strip is always there, so the toast line does not jump when a badge shows. *@
                 <div class="hotbar-badges">
                     @if (Progress.CurrentCombo > 1)
                     {
@@ -39,6 +21,28 @@
                     }
                 </div>
             }
+            <GamePanel Class="hud hotbar" Role="toolbar" Title="">
+                <div class="hotbar-row">
+                    <div class="hotbar-slots" aria-label="@Vm.HotbarLabel">
+                        @foreach (SlotDisplay slot in Vm.Hotbar)
+                        {
+                            int index = slot.Index;
+                            <ItemSlotButton Slot="slot" Hotkey="@((index + 1).ToString(System.Globalization.CultureInfo.InvariantCulture))" OnClick="() => Vm.Select(index)" />
+                        }
+                    </div>
+                    @if (Progress is not null)
+                    {
+                        <div class="hotbar-skills" role="toolbar" aria-label="@Progress.CombatSkillsAriaLabel">
+                            <GameButton Variant="secondary" Disabled="@Progress.WhirlwindDisabled" Title="@($"{Progress.WhirlwindLabel}\n{Progress.WhirlwindTip}")" aria-label="@Progress.WhirlwindLabel" OnClick="@(() => Progress.CastSkill(1))">@if (Progress.IsSkillCoolingDown(1)) { <span class="skill-cooldown" style="@Progress.CooldownStyle(1)" aria-hidden="true"></span> }<GameKey Text="Z" /></GameButton>
+                            <GameButton Variant="secondary" Disabled="@Progress.FireballDisabled" Title="@($"{Progress.FireballLabel}\n{Progress.FireballTip}")" aria-label="@Progress.FireballLabel" OnClick="@(() => Progress.CastSkill(2))">@if (Progress.IsSkillCoolingDown(2)) { <span class="skill-cooldown" style="@Progress.CooldownStyle(2)" aria-hidden="true"></span> }<GameKey Text="X" /></GameButton>
+                            <GameButton Variant="secondary" Disabled="@Progress.DivineHealDisabled" Title="@($"{Progress.DivineHealLabel}\n{Progress.DivineHealTip}")" aria-label="@Progress.DivineHealLabel" OnClick="@(() => Progress.CastSkill(3))">@if (Progress.IsSkillCoolingDown(3)) { <span class="skill-cooldown" style="@Progress.CooldownStyle(3)" aria-hidden="true"></span> }<GameKey Text="V" /></GameButton>
+                        </div>
+                    }
+                </div>
+            </GamePanel>
+        </div>
+        @if (Progress is not null)
+        {
             @* The thin energy gauge stands beside the slots (docs/adr/ADR-023 D6). *@
             <EnergyBar Vm="Progress" Tool="Vm.HeldTool" Tier="Vm.HeldTier" />
         }
