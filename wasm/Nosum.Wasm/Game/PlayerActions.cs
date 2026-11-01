@@ -45,6 +45,7 @@ internal sealed partial class PlayerActions
     private int _dragTileX;
     private int _dragTileY;
     private bool _dragging;
+    private bool _useHeld;
 
     /// <summary>Initializes the actions.</summary>
     /// <param name="farm">Sends the use of an item.</param>
@@ -76,6 +77,11 @@ internal sealed partial class PlayerActions
         _calendar = calendar;
         _farm.UseCompleted += this.OnFarmUseCompleted;
     }
+
+    /// <summary>Tells the actions whether the use button or the use key is held (backlog item 5). A held tool that repeats (<see cref="ToolPacing.RepeatsWhileHeld"/>)
+    /// swings again when its previous swing is over, at the swing rate; the server still checks every use.</summary>
+    /// <param name="held">Whether the use button or key is down.</param>
+    public void SetUseHeld(bool held) => _useHeld = held;
 
     /// <summary>Raised (from the frame) when a panel key was pressed: the panel to show or hide.</summary>
     public event Action<PanelKind>? PanelToggleRequested;
@@ -160,6 +166,7 @@ internal sealed partial class PlayerActions
         this.FireDueUse(nowSeconds);
         if (edges == InputEdges.None)
         {
+            this.RepeatHeldUse(x, y, tileSize, nowSeconds, mapAllowsTools);
             return;
         }
 
@@ -242,6 +249,22 @@ internal sealed partial class PlayerActions
         {
             this.TryExecuteActionKey(x, y, nowSeconds, tileSize);
         }
+        else
+        {
+            this.RepeatHeldUse(x, y, tileSize, nowSeconds, mapAllowsTools);
+        }
+    }
+
+    // A held use button swings the tool in hand again as soon as the previous swing and its recovery are over (backlog item 5). Only the tools repeat,
+    // so a held key never eats, places or opens again; the cooldown is the same one a press waits for, so the server never sees a faster use.
+    private void RepeatHeldUse(int x, int y, int tileSize, double nowSeconds, bool mapAllowsTools)
+    {
+        if (!_useHeld || !mapAllowsTools || nowSeconds < _nextUseSeconds || !ToolPacing.RepeatsWhileHeld(this.HeldTool()))
+        {
+            return;
+        }
+
+        this.TryExecuteActionKey(x, y, nowSeconds, tileSize);
     }
 
     // Feed in hand facing the bench fills it; otherwise the animal within reach is collected from (an egg, or milk with the pail in hand) when it has produce, and petted when it has none.

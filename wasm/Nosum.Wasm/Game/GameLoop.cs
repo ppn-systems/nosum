@@ -50,6 +50,12 @@ namespace Nosum.Wasm.Game;
 [SupportedOSPlatform("browser")]
 internal static partial class GameLoop
 {
+    /// <summary>The bit of the pointer word that means the mouse button is down over the canvas (drag-to-sow).</summary>
+    internal const int MouseHeldFlag = 1;
+
+    /// <summary>The bit of the pointer word that means the use button or the use key is held (hold-to-repeat, backlog item 5). renderer.js sends it as 2.</summary>
+    internal const int UseHeldFlag = 2;
+
     private const string FarmerUrl = "assets/farmer/";
 
     private static readonly TimeSpan s_entryTimeout = TimeSpan.FromSeconds(10);
@@ -449,7 +455,8 @@ internal static partial class GameLoop
     /// <param name="height">Canvas height, CSS pixels.</param>
     /// <param name="pointerX">Mouse x over the canvas, CSS pixels (drag-to-sow).</param>
     /// <param name="pointerY">Mouse y over the canvas, CSS pixels (drag-to-sow).</param>
-    /// <param name="pointerHeld">1 while the mouse button is down over the canvas, otherwise 0.</param>
+    /// <param name="pointerHeld">Bit <see cref="MouseHeldFlag"/> while the mouse button is down over the canvas; bit <see cref="UseHeldFlag"/> while the use button (touch) or the
+    /// use key is held down (hold-to-repeat, backlog item 5). Other bits are zero.</param>
     [JSExport]
     internal static void Frame(double timeMs, int keys, int width, int height, int pointerX, int pointerY, int pointerHeld)
     {
@@ -497,7 +504,9 @@ internal static partial class GameLoop
         }
 
         // A drag works the farm only while the world takes input: no overlay, dialog or lost connection in front of it.
-        s_scene.SetPointer(pointerX, pointerY, pointerHeld != 0 && !s_connectionBlocked && !s_overlayOpen && !s_modalOpen);
+        bool worldOpen = !s_connectionBlocked && !s_overlayOpen && !s_modalOpen;
+        s_scene.SetPointer(pointerX, pointerY, (pointerHeld & MouseHeldFlag) != 0 && worldOpen);
+        s_scene.SetUseHeld((pointerHeld & UseHeldFlag) != 0 && worldOpen);
         if (s_worldMap is not null)
         {
             // Only a change raises the view model's event, so the world map is told about a new map once, not every frame.
