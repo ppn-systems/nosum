@@ -16,7 +16,7 @@ const path = require('path');
 
 const REPO = path.resolve(__dirname, '../..');
 const BASE = process.env.NOSUM_QA_URL || 'http://localhost:5080/?qa=1';
-const OUT = path.join(REPO, 'docs/qa/world-pass3');
+const OUT = path.join(REPO, process.env.NOSUM_QA_OUT || 'docs/qa/world-pass5');
 const VIEWPORTS = {
   '1280x720': { width: 1280, height: 720 },
   '1920x1080': { width: 1920, height: 1080 },
