@@ -1,6 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 //
-// Where a world label goes on the canvas (docs/design/ui-standard.md sections 2 and 4; docs/adr/ADR-092). Pure: no DOM, no imports, no
+// Where a world label goes on the canvas (docs/design/ui-standard.md sections 2 and 4; docs/adr/ADR-095). Pure: no DOM, no imports, no
 // allocation. renderer.js calls these once per label per frame; the HUD rectangles come from the DOM (refreshHud, every 250 ms). Rectangles are
 // flat Int32Arrays of (left, top, right, bottom) in canvas pixels, `count` of them used. Results go to `out[0]` (x) and `out[1]` (y).
 

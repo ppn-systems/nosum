@@ -1,6 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 //
-// Unit tests of the world-label placement rules (engine/Nosum.Rendering.Web/wwwroot/label-fit.js, docs/adr/ADR-092). The module is pure, so
+// Unit tests of the world-label placement rules (engine/Nosum.Rendering.Web/wwwroot/label-fit.js, docs/adr/ADR-095). The module is pure, so
 // it runs in plain Node with the built-in test runner (no package to install):
 //   node --test tests/browser/label-fit/
 

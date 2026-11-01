@@ -18,6 +18,7 @@ using Nosum.Wasm.Socket.Placeable;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels.Minimap;
 using Nosum.Wasm.ViewModels.Progress;
+using Nosum.Wasm.ViewModels.Quest;
 
 namespace Nosum.Wasm.Game;
 
@@ -80,6 +81,7 @@ internal sealed partial class MapScene
     // Changes with every map content swap: a chunk bitmap baked for one map is never drawn for another (docs/adr/ADR-086).
     private int _layerEpoch;
     private readonly TileChunkCache? _tileChunks;
+    private readonly QuestWaypointViewModel? _waypoint;
     private Walker _farmer;
     private Camera2D _camera;
     private Phase _phase;
@@ -118,10 +120,12 @@ internal sealed partial class MapScene
     /// <param name="combat">The combat channel whose impacts shake the view (docs/adr/ADR-076); <see langword="null"/> never shakes.</param>
     /// <param name="minimap">The minimap frame in the HUD, told whenever the canvas shows or hides the map; <see langword="null"/> has no frame.</param>
     /// <param name="tileChunks">The baked tile chunk cache for the static ground layers (docs/adr/ADR-086); <see langword="null"/> draws every tile each frame.</param>
-    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null, CombatLabels? combatLabels = null, CombatChannel? combat = null, MinimapViewModel? minimap = null, FarmerFeed? feed = null, ProgressChannel? progress = null, TileChunkCache? tileChunks = null)
+    /// <param name="waypoint">Where the active quest sends the farmer: an arrow at the screen edge and a minimap dot (docs/adr/ADR-093 D2); <see langword="null"/> shows none.</param>
+    public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null, CombatLabels? combatLabels = null, CombatChannel? combat = null, MinimapViewModel? minimap = null, FarmerFeed? feed = null, ProgressChannel? progress = null, TileChunkCache? tileChunks = null, QuestWaypointViewModel? waypoint = null)
     {
         _sky = new SkyLayer(calendar, placed);
         _tileChunks = tileChunks;
+        _waypoint = waypoint;
         _calendar = calendar;
         _combat = combat;
         _minimapFrame = minimap;
@@ -303,6 +307,11 @@ internal sealed partial class MapScene
         }
 
         int scale = ScaleFor(map, canvasWidth, canvasHeight);
+        if (content.Spec.Farmable)
+        {
+            this.HoverAtPointer(map.TileWidth, scale, canvasWidth, canvasHeight);
+        }
+
         int farmerPx = (int)Math.Round(_farmer.X);
         int farmerPy = (int)Math.Round(_farmer.Y);
         _camera.Follow(
@@ -427,6 +436,9 @@ internal sealed partial class MapScene
         EatFeedback.Draw(_commands, farmerPx - _camera.Left, farmerPy - (FarmerSprite.Height / 2) - _camera.Top, timeMs);
         _world.FlushLabels(_commands, _camera);
         this.DrawLabels();
+
+        // The quest waypoint arrow sits at the edge of the view, above the labels; the minimap is drawn over it, and the fade over both.
+        this.DrawQuestWaypoint(content, (canvasWidth + scale - 1) / scale, (canvasHeight + scale - 1) / scale);
 
         // The minimap sits in the HUD corner, above the world and the labels, and below the fade.
         this.DrawMinimap(content, edges, canvasWidth, canvasHeight, scale);

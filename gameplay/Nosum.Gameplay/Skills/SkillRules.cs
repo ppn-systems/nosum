@@ -89,4 +89,13 @@ public static class SkillRules
         NodeKind.Forage => 7,
         _ => 0,
     };
+
+    /// <summary>
+    /// Gets the experience one gathering swing gives the node it works: the hit that leaves it standing (<see cref="HitXp"/>) or the hit that
+    /// breaks it (<see cref="BreakXp"/>). Matches the server charge (docs/adr/ADR-089, the XP floater on the client).
+    /// </summary>
+    /// <param name="kind">The node kind.</param>
+    /// <param name="broke"><see langword="true"/> for the hit that breaks the node.</param>
+    /// <returns>The experience; zero for a kind that gives none.</returns>
+    public static int GatherXp(NodeKind kind, bool broke) => broke ? BreakXp(kind) : HitXp;
 }

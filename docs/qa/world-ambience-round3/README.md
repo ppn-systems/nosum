@@ -2,7 +2,7 @@
 
 Evidence for the first open item of [`docs/design/critique-world-ambience.md`](../../design/critique-world-ambience.md) (section 6, the round-2
 list): world labels at the bottom edge ran into each other and sat in the strip under the hotbar (mine floor 15), and the north exit label touched
-the player's name tag. The rules are in [ADR-092](../../adr/ADR-092-world-labels-clear-the-hud-and-touch-controls.md).
+the player's name tag. The rules are in [ADR-095](../../adr/ADR-095-world-labels-clear-the-hud-and-touch-controls.md).
 
 Same method as rounds 1 and 2: a Development server with the calendar epoch set to the state, the tester client (`-p:NosumDevTools=true`,
 `?qa=1`) in Chromium, English and Vietnamese, at 1280×720 and 390×844. `before` is master at `1a2119f` (PR #298); `after` is this branch.
@@ -23,12 +23,12 @@ buffers, and any page errors: none).
 
 ## What changed
 
-1. **Bottom band and touch controls are HUD** (ADR-092 D1, D3). The bottom-centre region (toast, hotbar, gauges) is 172 px tall at 1280×720 and
+1. **Bottom band and touch controls are HUD** (ADR-095 D1, D3). The bottom-centre region (toast, hotbar, gauges) is 172 px tall at 1280×720 and
    ends 12 px above the edge; a rectangle that close to the bottom is taken down to the edge. The touch stick and buttons join the HUD selector.
    A label that hits a rectangle moves beside it, then below, then above, then above the band; only then does it stay beside the rectangle.
    On `before/en/390x844/fall-noon-sun-mine15.png` the shrine and trap labels sat under the Chat, Run and Use buttons; on the `after` frame they
    are above the Chat button or beside the bar.
-2. **Stacked labels keep a gap** (ADR-092 D4). "↑ Backwoods" touched the name tag at the farm's north exit
+2. **Stacked labels keep a gap** (ADR-095 D4). "↑ Backwoods" touched the name tag at the farm's north exit
    (`before/en/1280x720/fall-noon-sun-exit-north.png`); with the gap they stack (`after/…`). A label at the top edge goes below the other one,
    not above it: lifting it off the canvas and clamping it back would have put it on top of the other label (found in this round's own capture,
    fixed before the final captures).

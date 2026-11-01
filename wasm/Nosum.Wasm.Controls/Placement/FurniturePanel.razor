@@ -8,28 +8,30 @@
    the world previews it; Pick up takes the piece in front back into the bag. Shown only where furniture can be placed. All text comes from the view model. *@
 @if (Vm.IsVisible)
 {
-    <TradeDialog Title="@Vm.Title" CloseText="@Vm.CloseLabel" OnClose="@(() => Vm.Exit())" Size="PanelSize.M">
-        <PlacementPanel Vm="Placement" />
-        <div class="furniture-tabs">
-            <TabBar Tabs="Vm.Tabs" Active="Vm.ActiveTab" OnSelect="@(id => Vm.SelectTab(id))" />
-        </div>
-        <GameInput Class="furniture-search" Value="@Vm.Search" ValueChanged="@(v => Vm.SetSearch(v))" Placeholder="@Vm.SearchPlaceholder" Label="@Vm.SearchPlaceholder" MaxLength="32" />
-        <div class="furniture-grid">
-            <ItemGrid Slots="Vm.Slots" Columns="6" OnSlotClick="@(i => Vm.Select(i))" />
-        </div>
-        @if (Vm.EmptyText is { } empty)
-        {
-            <p class="furniture-empty">@empty</p>
-        }
-        @if (Vm.DetailText is { } detail)
-        {
-            <p class="furniture-detail">@detail</p>
-        }
-        <div class="furniture-actions">
-            <GameButton Variant="primary" Text="@Vm.PlaceLabel" Disabled="@(Vm.Selected is null)" OnClick="@(() => Vm.Carry(Vm.SelectedItemId))" />
-            <GameButton Variant="secondary" Text="@Vm.PickUpLabel" OnClick="Vm.PickUp" />
-        </div>
-    </TradeDialog>
+    <div class="furniture-dock">
+        <TradeDialog Title="@Vm.Title" CloseText="@Vm.CloseLabel" OnClose="@(() => Vm.Exit())" Size="PanelSize.M">
+            <PlacementPanel Vm="Placement" />
+            <div class="furniture-tabs">
+                <TabBar Tabs="Vm.Tabs" Active="Vm.ActiveTab" OnSelect="@(id => Vm.SelectTab(id))" />
+            </div>
+            <GameInput Class="furniture-search" Value="@Vm.Search" ValueChanged="@(v => Vm.SetSearch(v))" Placeholder="@Vm.SearchPlaceholder" Label="@Vm.SearchPlaceholder" MaxLength="32" />
+            <div class="furniture-grid">
+                <ItemGrid Slots="Vm.Slots" Columns="6" OnSlotClick="@(i => Vm.Select(i))" />
+            </div>
+            @if (Vm.EmptyText is { } empty)
+            {
+                <p class="furniture-empty">@empty</p>
+            }
+            @if (Vm.DetailText is { } detail)
+            {
+                <p class="furniture-detail">@detail</p>
+            }
+            <div class="furniture-actions">
+                <GameButton Variant="primary" Text="@Vm.PlaceLabel" Disabled="@(Vm.Selected is null)" OnClick="@(() => Vm.Carry(Vm.SelectedItemId))" />
+                <GameButton Variant="secondary" Text="@Vm.PickUpLabel" OnClick="Vm.PickUp" />
+            </div>
+        </TradeDialog>
+    </div>
 }
 
 @code {

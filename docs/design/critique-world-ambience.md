@@ -146,14 +146,14 @@ Captures and numbers: [`docs/qa/world-ambience-round2/`](../qa/world-ambience-ro
 
 ## 7. Round 3
 
-Captures and numbers: [`docs/qa/world-ambience-round3/`](../qa/world-ambience-round3/README.md). Rule: [ADR-092](../adr/ADR-092-world-labels-clear-the-hud-and-touch-controls.md).
+Captures and numbers: [`docs/qa/world-ambience-round3/`](../qa/world-ambience-round3/README.md). Rule: [ADR-095](../adr/ADR-095-world-labels-clear-the-hud-and-touch-controls.md).
 Round 3 took the first open item of the round-2 list (section 6), the world labels at the bottom edge, and the north exit label that touched the
 player's name tag. Changes:
 
-- **Labels clear the bottom band and the touch controls** (ADR-092 D1, D3). The bottom-centre HUD region ends 12 px above the edge at 1280 × 720; the
+- **Labels clear the bottom band and the touch controls** (ADR-095 D1, D3). The bottom-centre HUD region ends 12 px above the edge at 1280 × 720; the
   strip under it is now part of the HUD. The phone's stick and buttons are HUD rectangles too: on `before/en/390x844/fall-noon-sun-mine15.png` the
   trap and shrine labels sat under Chat, Run and Use.
-- **Stacked labels keep a gap** (ADR-092 D4). "↑ Backwoods" no longer touches the name tag at the farm's north exit; at the top edge a label goes
+- **Stacked labels keep a gap** (ADR-095 D4). "↑ Backwoods" no longer touches the name tag at the farm's north exit; at the top edge a label goes
   below the other, not above it.
 - **Winter snow and hazards at 390 × 844.** Snow graded, not changed. Hazard labels: the stacking gap covers the touching case; the final frames
   show them clear of the touch buttons.

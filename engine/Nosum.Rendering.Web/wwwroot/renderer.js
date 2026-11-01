@@ -13,7 +13,7 @@ export { loadAudio, setAudioLevels, setUiClickSound } from "./audio.js";
 const textures = [];          // texture id -> ImageBitmap
 const placed = new Int32Array(256); // rectangles of the labels drawn this frame (x, y, w, h), to stack names that overlap
 let placedCount = 0;
-// A world label stays on screen and off the HUD and the touch controls (docs/design/ui-standard.md sections 2 and 4; label-fit.js, docs/adr/ADR-092).
+// A world label stays on screen and off the HUD and the touch controls (docs/design/ui-standard.md sections 2 and 4; label-fit.js, docs/adr/ADR-095).
 // The HUD rectangles (left, top, right, bottom, canvas pixels) are read from the DOM at most every 250 ms, never per label; fitLabel() leaves the
 // result in labelPlace (no allocation).
 const hudRects = new Int32Array(4 * 16);

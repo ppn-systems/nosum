@@ -40,6 +40,36 @@ public static class ToolRules
     /// <returns>The length in tiles.</returns>
     public static int AreaLength(ToolTier tier) => (2 * (int)tier) + 1;
 
+    /// <summary>
+    /// Returns the longest line the scythe works in one swing: three tiles at basic, five at copper and iron (docs/adr/ADR-094 D1). The scythe has
+    /// no blacksmith upgrade today, so basic is the only tier in play; the higher rows are there for a later upgrade, which needs no rule change.
+    /// </summary>
+    /// <param name="tier">The scythe's tier.</param>
+    /// <returns>The length in tiles.</returns>
+    public static int ScytheAreaLength(ToolTier tier) => tier == ToolTier.Basic ? 3 : 5;
+
+    /// <summary>
+    /// Returns the longest line a tool works in one swing: a hoe's or a can's by its tier (<see cref="AreaLength"/>), the scythe's by its own curve
+    /// (<see cref="ScytheAreaLength"/>), and one tile for any other tool.
+    /// </summary>
+    /// <param name="tool">The tool kind.</param>
+    /// <param name="tier">The tool's tier.</param>
+    /// <returns>The length in tiles.</returns>
+    public static int LineLength(ToolKind tool, ToolTier tier) => tool switch
+    {
+        ToolKind.Hoe or ToolKind.WateringCan => AreaLength(tier),
+        ToolKind.Scythe => ScytheAreaLength(tier),
+        _ => 1,
+    };
+
+    /// <summary>
+    /// Whether a swing along a line also harvests a ripe crop on its trailing tiles (docs/adr/ADR-094 D1). Only the scythe does: a hoe or a
+    /// watering can passing a ripe crop leaves it alone, so tilling a row never harvests by accident.
+    /// </summary>
+    /// <param name="tool">The tool kind.</param>
+    /// <returns><see langword="true"/> for the scythe.</returns>
+    public static bool HarvestsAlongALine(ToolKind tool) => tool == ToolKind.Scythe;
+
     /// <summary>Returns how much water a watering can of a tier holds: 40, 55 or 70.</summary>
     /// <param name="tier">The can's tier.</param>
     /// <returns>The capacity.</returns>
@@ -96,12 +126,12 @@ public static class ToolRules
             return AreaVerdict.Ok;
         }
 
-        if (held is null || held.Kind != ItemKind.Tool || held.Tool is not (ToolKind.Hoe or ToolKind.WateringCan))
+        if (held is null || held.Kind != ItemKind.Tool || held.Tool is not (ToolKind.Hoe or ToolKind.WateringCan or ToolKind.Scythe))
         {
             return AreaVerdict.NotAnAreaTool;
         }
 
-        return length <= AreaLength(held.Tier) ? AreaVerdict.Ok : AreaVerdict.TooWide;
+        return length <= LineLength(held.Tool, held.Tier) ? AreaVerdict.Ok : AreaVerdict.TooWide;
     }
 
     /// <summary>Returns the tiles of a line: the first tile and the ones after it, going the way the farmer faces.</summary>

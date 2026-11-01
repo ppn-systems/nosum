@@ -53,7 +53,11 @@
   <data name="Farm_Status_NotTilled" xml:space="preserve"><value>Hãy xới đất trước.</value></data>
   <data name="Farm_Status_HasCrop" xml:space="preserve"><value>Chỗ này đã có cây trồng.</value></data>
   <data name="Farm_Status_NothingToDo" xml:space="preserve"><value>Dùng vật phẩm này ở đây không có tác dụng.</value></data>
+  <data name="Farm_ActionKeyHarvested" xml:space="preserve"><value>Đã thu hoạch bằng phím E, dù đang cầm đồ khác.</value></data>
+  <data name="Farm_Hover_Stage" xml:space="preserve"><value>Giai đoạn {0}/{1}</value></data>
   <data name="Farm_Status_NotMature" xml:space="preserve"><value>Cây chưa chín.</value></data>
+  <data name="Farm_Status_NotMatureDays" xml:space="preserve"><value>Chưa chín, còn {0} ngày</value></data>
+  <data name="Farm_Status_NotMatureOneDay" xml:space="preserve"><value>Chưa chín, còn 1 ngày</value></data>
   <data name="Farm_Status_InventoryFull" xml:space="preserve"><value>Túi đồ đã đầy.</value></data>
   <data name="Farm_Status_ItemMissing" xml:space="preserve"><value>Bạn không còn vật phẩm này.</value></data>
   <data name="Farm_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
@@ -106,6 +110,7 @@
   <data name="Placement_Cancel" xml:space="preserve"><value>Hủy dời (F)</value></data>
   <data name="Placement_Carrying" xml:space="preserve"><value>Đang cầm: {0}</value></data>
   <data name="Placement_ConfirmBuild" xml:space="preserve"><value>Công trình xây xong không dời hay cất được. Nhấn E lần nữa để xây ở đây.</value></data>
+  <data name="Placement_NothingToStow" xml:space="preserve"><value>Không có gì phía trước để cất.</value></data>
   <data name="Place_Stowed" xml:space="preserve"><value>Đã cất vào túi. Đặt lại lúc nào cũng được.</value></data>
   <data name="Panel_Close" xml:space="preserve"><value>Đóng</value></data>
   <data name="Toolbar_Label" xml:space="preserve"><value>Mở bảng</value></data>
@@ -431,7 +436,7 @@
   <data name="Settings_PanelScaleLabel" xml:space="preserve"><value>Tỉ lệ</value></data>
   <data name="Settings_Display" xml:space="preserve"><value>Hiển thị</value></data>
   <data name="Settings_Music" xml:space="preserve"><value>Nhạc nền</value></data>
-  <data name="Settings_SoundFx" xml:space="preserve"><value>Hiệu ứng âm thanh</value></data>
+  <data name="Settings_SoundFx" xml:space="preserve"><value>Hiệu ứng</value></data>
   <data name="Settings_Mute" xml:space="preserve"><value>Tắt toàn bộ âm thanh</value></data>
   <data name="Settings_SoundNote" xml:space="preserve"><value>Âm thanh sẽ có ở bản sau; mức bạn chọn đã được lưu.</value></data>
   <data name="Settings_Percent" xml:space="preserve"><value>{0}%</value></data>
@@ -634,6 +639,10 @@
   <data name="Mail_Collected" xml:space="preserve"><value>Đã nhận quà.</value></data>
   <data name="Mail_CollectedTag" xml:space="preserve"><value>Đã nhận</value></data>
   <data name="Mail_Delete" xml:space="preserve"><value>Xóa thư</value></data>
+  <data name="Mail_DeleteTitle" xml:space="preserve"><value>Xóa thư</value></data>
+  <data name="Mail_DeleteMessage" xml:space="preserve"><value>Xóa thư "{0}"? Thư đã xóa không thể khôi phục.</value></data>
+  <data name="Mail_DeleteConfirm" xml:space="preserve"><value>Xóa</value></data>
+  <data name="Mail_DeleteCancel" xml:space="preserve"><value>Giữ lại</value></data>
   <data name="Mail_Attachments" xml:space="preserve"><value>Đính kèm</value></data>
   <data name="Mail_Coins" xml:space="preserve"><value>{0} xu</value></data>
   <data name="Mail_Expiry" xml:space="preserve"><value>Còn {0} ngày</value></data>
@@ -715,6 +724,8 @@
   <data name="Skill_LevelUp" xml:space="preserve"><value>{0} lên cấp {1}!</value></data>
   <data name="Skill_Perk" xml:space="preserve"><value>Công cụ {0}: tốn ít hơn {1} năng lượng mỗi lần dùng</value></data>
   <data name="Tooltip_Area" xml:space="preserve"><value>Vùng tác động: {0} ô liền nhau</value></data>
+  <data name="Tooltip_Area_One" xml:space="preserve"><value>Vùng tác động: 1 ô liền nhau</value></data>
+  <data name="Gather_Label_Xp" xml:space="preserve"><value>+{0} XP</value></data>
   <data name="Tooltip_ToolEnergy" xml:space="preserve"><value>Năng lượng mỗi lần dùng: {0} (trước thưởng kỹ năng)</value></data>
   <data name="Toolbar_Skills" xml:space="preserve"><value>Kỹ năng</value></data>
   <data name="Place_Status_Tilled" xml:space="preserve"><value>Không đặt được lên đất đã cuốc.</value></data>
@@ -896,6 +907,12 @@
   <data name="Npc_seed_keeper_Line_14" xml:space="preserve"><value>Vụ mùa đầu tiên của bạn đẹp quá. Lần sau thử trồng loại khác xem.</value></data>
   <data name="Npc_seed_keeper_Line_15" xml:space="preserve"><value>Sáng xuân mát lắm, gieo hạt lúc này cây sẽ mọc nhanh.</value></data>
   <data name="Npc_seed_keeper_Line_16" xml:space="preserve"><value>Trưa hè nóng, nhớ mang theo nước khi ra đồng.</value></data>
+  <data name="Npc_seed_keeper_Quest_buy_seeds" xml:space="preserve"><value>Đang định trồng gì? Hạt giống mua ngay trên quầy này.</value></data>
+  <data name="Npc_blacksmith_Quest_upgrade_tool" xml:space="preserve"><value>Cuốc hay rìu của bạn cần nâng cấp à? Đưa tôi, tôi lo phần còn lại.</value></data>
+  <data name="Npc_carpenter_Quest_build_coop" xml:space="preserve"><value>Muốn xây chuồng? Chọn mẫu ở đây, rồi đặt xuống nông trại.</value></data>
+  <data name="Npc_carpenter_Quest_buy_animal" xml:space="preserve"><value>Có chuồng rồi thì cần con vật đầu tiên. Chọn ở đây nhé.</value></data>
+  <data name="Npc_furnisher_Quest_decorate" xml:space="preserve"><value>Trang trí nhà cửa à? Mua một món nội thất ở đây rồi đặt xuống.</value></data>
+  <data name="Npc_board_keeper_Quest_fill_request" xml:space="preserve"><value>Có yêu cầu trên bảng đấy. Mang đúng món họ cần đến là xong.</value></data>
   <data name="Npc_tailor_Name" xml:space="preserve"><value>Chị Hạnh</value></data>
   <data name="Npc_tailor_Role" xml:space="preserve"><value>Thợ may</value></data>
   <data name="Npc_tailor_Line_01" xml:space="preserve"><value>Vào xem thử đi, áo mới cắt vừa vặn lắm.</value></data>
@@ -1042,6 +1059,9 @@
   <data name="Bestiary_Stats" xml:space="preserve"><value>HP {0} · Công {1} · +{2} XP</value></data>
   <data name="Bestiary_Drops" xml:space="preserve"><value>Rơi: {0}, {1}</value></data>
   <data name="Combat_Label_Portal" xml:space="preserve"><value>HẦM NGỤC CỔ ĐẠI (TẦNG 10)</value></data>
+  <data name="Animal_Tend_Feed" xml:space="preserve"><value>Cho ăn</value></data>
+  <data name="Animal_Tend_Collect" xml:space="preserve"><value>Thu hoạch</value></data>
+  <data name="Animal_Tend_Pet" xml:space="preserve"><value>Vuốt ve</value></data>
   <data name="Combat_Label_Elite_Flame" xml:space="preserve"><value>CUỒNG HỎA</value></data>
   <data name="Combat_Label_Elite_Swift" xml:space="preserve"><value>TỐC BIẾN</value></data>
   <data name="Combat_Label_Elite_Shielded" xml:space="preserve"><value>HỘ GIÁP</value></data>
@@ -1189,9 +1209,9 @@
   <data name="Furniture_WalkOver" xml:space="preserve"><value>Có thể đi qua</value></data>
   <data name="Furniture_Detail" xml:space="preserve"><value>{0} · {1} · {2}</value></data>
   <data name="Toolbar_Backpack" xml:space="preserve"><value>Túi đồ</value></data>
-  <data name="Npc_Action_Wardrobe" xml:space="preserve"><value>Tủ đồ</value></data>
+  <data name="Npc_Action_Wardrobe" xml:space="preserve"><value>Thay đồ</value></data>
   <data name="Npc_Action_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>
-  <data name="Npc_Action_Backpack" xml:space="preserve"><value>Túi đồ</value></data>
+  <data name="Npc_Action_Backpack" xml:space="preserve"><value>Mở rộng túi</value></data>
   <data name="Backpack_Size" xml:space="preserve"><value>Túi đồ hiện có {0} ô.</value></data>
   <data name="Backpack_Next" xml:space="preserve"><value>Cỡ tiếp theo: {0} ô, giá {1} xu. Thêm một hàng ô.</value></data>
   <data name="Backpack_Upgrade" xml:space="preserve"><value>Nâng cấp túi</value></data>

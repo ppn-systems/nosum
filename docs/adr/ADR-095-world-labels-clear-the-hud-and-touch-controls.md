@@ -1,4 +1,4 @@
-# ADR-092: World labels clear the HUD, the bottom band and the touch controls
+# ADR-095: World labels clear the HUD, the bottom band and the touch controls
 
 ## Status
 

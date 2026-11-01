@@ -70,6 +70,7 @@ internal static class SettingsWiring
         OnboardingViewModel hints = services.GetRequiredService<OnboardingViewModel>();
         GameLoop.FirstMoved += () => hints.Signal(TutorialStep.Move);
         GameLoop.FirstActed += () => hints.Signal(TutorialStep.Use);
+        GameLoop.PlayerActivity += hints.NoteActivity;
 
         // Coins going up after the first balance is known: something was sold (at the bin, at the market).
         long coins = -1;
