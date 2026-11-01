@@ -95,3 +95,34 @@ field changes, and `NosumProtocol.Version` stays 30.
   which is a new system, so it stays open for the owner.
 - **Locked by tests.** `EconomyBalanceTests.HayRation_*` (season positive for every animal, ration below the egg), `BackpackRulesTests`, `BlacksmithRulesTests`.
 - **Left alone:** the crop and fish bands (D1, D2, D5), animal prices, the energy rules (D3), the milk pail, the market fee.
+
+## Amendment (2026-11-01, round 4): the chicken pays back in about four seasons
+
+The round-4 review (docs/design/critique-animals-pets.md, finding 7) measured a chicken's payback net of its feed. The simulation
+(`tests/Nosum.UnitTests/Gameplay/EconomyReportTests.cs`, now with a `fed_payback_seasons` column; report in
+[`docs/qa/animals-round4/economy/`](../qa/animals-round4/economy/economy-report-after.txt)) gave a chicken **9.5 seasons** fed: 800 coins, an egg of 15 and a
+ration of 12 a night leave 84 coins a season. The other animals were 3.1 to 4.9. Data only; no mechanic, opcode or wire field changes, and
+`NosumProtocol.Version` stays 30.
+
+- **D12 - The egg sells for 20** (`ItemCatalog.Egg`, was 15). The duck's egg already sells for 20. The golden egg is 1.5× the everyday egg (D4), so it
+  follows to **30** (`ItemCatalog.GoldenEgg`, was 22); `AnimalRulesTests.GoldProduce_SellsForHalfMoreThanTheEverydayKind` checks it.
+- **D13 - The chicken costs 950** (`AnimalCatalog`, was 800). Its everyday product is 560 a season, 58.9 % of the price, inside the D4 band (40 to 60 %).
+- **D14 - Fed payback limit: five seasons, every animal** (`EconomyBalanceTests.Animal_FedPaybackOverASeason_IsWithinFiveSeasons`). A fed season's net
+  must pay the price back in at most five seasons.
+
+| Animal | Price (before → after) | Fed season net (before → after) | Fed payback in seasons (before → after) |
+|:--|--:|--:|--:|
+| Chicken | 800 → **950** | 84 → **224** | 9.5 → **4.2** |
+| Duck | 1,100 | 224 | 4.9 |
+| Cow | 1,500 | 420 | 3.6 |
+| Goat | 1,800 | 560 | 3.2 |
+| Sheep | 1,600 | 384 | 4.2 |
+| Pig | 2,000 | 644 | 3.1 |
+
+- **What the herd does.** Eight thousand eight hundred coins of animals (six kinds, one each) earned 156 a game day before; now 8,950 coins earn 160.7 a day.
+  Herd payback is 56 game days (unchanged to the day).
+- **Still open, for the owner.** The duck is the slowest animal now (4.9 seasons); it is the one the owner may want to lower. The late-game sink and the energy-free
+  herd (ADR-081 round 2, D9) are unchanged.
+- **Tests.** `EconomyBalanceTests` (the D4 band and the new D14 limit), `CarpenterViewModelTests` (the chicken's label reads 950), and the integration tests that grant
+  coins for a chicken (`BuildingServiceTests`, 950 each).
+- **Consequence for players.** A new player's first chicken costs 150 coins more, and a chicken's eggs pay 33 % more. Fed chickens break even in about 4 seasons, not 9.5.
