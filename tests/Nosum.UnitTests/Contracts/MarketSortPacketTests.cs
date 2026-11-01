@@ -45,7 +45,7 @@ public sealed class MarketSortPacketTests
     }
 
     [Fact]
-    public void NosumProtocol_Version_IsTwentyNine_WithTheMarketSort()
+    public void NosumProtocol_Version_IsThirty_WithTheMarketSort()
     {
         NosumProtocol.Version.Should().Be(30);
     }
