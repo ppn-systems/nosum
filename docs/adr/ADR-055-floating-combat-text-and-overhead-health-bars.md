@@ -41,3 +41,16 @@ In fast-paced MMORPG combat, players need immediate, tactile feedback on their a
 - Monsters dynamically display overhead health bars when damaged or boss-tier.
 - Zero allocations in the render frame loop and packet handling paths.
 - Verified in live browser sessions with Playwright screenshots in `docs/qa/`.
+
+## Amendments
+
+### 2026-11-01 - a monster hit shows one number on the farmer (combat critique)
+
+- A monster hit reached the client twice: in the attack reply (`AttackMonsterResult.DamageTaken`, shown as a red number) and in the vitals push
+  that carries the new HP (`VitalsState`, shown as a red number from the HP drop). Both were shown, so the farmer saw `-8` twice for one hit, and the
+  order of the two packets decided how often.
+- `CombatChannel.AnnouncePlayerDamage` is now the one place that shows the farmer's damage. A hit is keyed by the HP after it and its amount. The second
+  report of the same key within 1.5 seconds is dropped, whichever packet arrived first. A heal (a vitals push that raises HP, or a potion) starts a new
+  run, so the same hit after a heal is shown again.
+- A monster's damage on the monster itself is unchanged. No wire change: the server still sends both packets and `NosumProtocol.Version` is unchanged.
+  Covered by `CombatHitNumberTests`.

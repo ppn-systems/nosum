@@ -295,6 +295,10 @@ internal static class ClientWiring
         keeper.Authenticated += combat.LoadVitals;
         keeper.Authenticated += pets.Load;
 
+        // A map change (a ride, a warp, a knock-out carried home) ends the elevator picker: it never covers the map the player is now on.
+        ElevatorViewModel elevator = services.GetRequiredService<ElevatorViewModel>();
+        channel.Joined += _ => elevator.Close();
+
         channel.Joined += _ =>
         {
             farm.Load();
