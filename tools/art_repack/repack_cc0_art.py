@@ -21,6 +21,7 @@ import animals  # noqa: E402
 import buildings  # noqa: E402
 import crops  # noqa: E402
 import drop  # noqa: E402
+import ready  # noqa: E402
 import farmer  # noqa: E402
 import fishing_ui  # noqa: E402
 import furniture  # noqa: E402
@@ -64,6 +65,8 @@ def build_all(src, repo, only=None):
         return hearts.build()
     if only == 'drop':
         return drop.build()
+    if only == 'ready':
+        return ready.build()
     if only == 'pets':
         return pets_emotes.build()
     if only == 'fishing':
@@ -80,6 +83,7 @@ def build_all(src, repo, only=None):
     out.update(animals.build(src, size))
     out.update(hearts.build())
     out.update(drop.build())
+    out.update(ready.build())
     out.update(monsters.build(src))
     out.update(ui.build(repo, size))
     out.update(npcs.build())
@@ -91,7 +95,7 @@ def build_all(src, repo, only=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--sources')
-    parser.add_argument('--only', choices=['farmer', 'npcs', 'ui', 'tools', 'hearts', 'drop', 'pets', 'ambient', 'fishing'])
+    parser.add_argument('--only', choices=['farmer', 'npcs', 'ui', 'tools', 'hearts', 'drop', 'ready', 'pets', 'ambient', 'fishing'])
     parser.add_argument('--repo', default=os.path.abspath(os.path.join(HERE, '..', '..')))
     parser.add_argument('--check', action='store_true')
     parser.add_argument('--docs', action='store_true')
