@@ -116,6 +116,7 @@ internal sealed partial class MapScene
     /// <param name="progress">The player's energy, which gates running (docs/adr/ADR-085 D3); <see langword="null"/> means no energy is known and the farmer does not run.</param>
     /// <param name="combat">The combat channel whose impacts shake the view (docs/adr/ADR-076); <see langword="null"/> never shakes.</param>
     /// <param name="minimap">The minimap frame in the HUD, told whenever the canvas shows or hides the map; <see langword="null"/> has no frame.</param>
+    /// <param name="tileChunks">The baked tile chunk cache for the static ground layers (docs/adr/ADR-086); <see langword="null"/> draws every tile each frame.</param>
     public MapScene(MapLoader loader, MapContent content, FarmerTextures farmerTextures, FarmerLook look, MapStart start, PlayerChannel? channel = null, PlayerActions? actions = null, PlaceableChannel? placed = null, PlacementActions? placement = null, LookChannel? looks = null, NicknameLabels? labels = null, NodeChannel? nodes = null, CalendarChannel? calendar = null, GameAudio? audio = null, CombatLabels? combatLabels = null, CombatChannel? combat = null, MinimapViewModel? minimap = null, FarmerFeed? feed = null, ProgressChannel? progress = null, TileChunkCache? tileChunks = null)
     {
         _sky = new SkyLayer(calendar, placed);
