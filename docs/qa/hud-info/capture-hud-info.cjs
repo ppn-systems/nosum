@@ -37,9 +37,10 @@ async function visibleWithin(locator, ms) {
   }
 }
 
-async function shot(page, dir, name, report) {
+// Toasts fade with a CSS animation: 'disabled' would jump the fade to its end (opacity 0), so those shots keep animations running.
+async function shot(page, dir, name, report, animations = 'disabled') {
   const file = path.join(dir, `${name}.png`);
-  await page.screenshot({ path: file, animations: 'disabled' });
+  await page.screenshot({ path: file, animations });
   report.push({ screen: name, file, status: 'captured' });
   log('saved', file);
 }
@@ -79,13 +80,13 @@ async function runOne(browser, lang, vp, report, notCaptured) {
   await page.keyboard.press('Digit2');
   await page.keyboard.press('KeyE');
   if (await visibleWithin(page.locator('.game-message'), 2000)) {
-    await shot(page, dir, 'toast-one', report);
+    await shot(page, dir, 'toast-one', report, 'allow');
     await sleep(400);
     await page.keyboard.press('KeyE');
     await sleep(300);
     const count = await page.locator('.game-message').count();
     if (count >= 2) {
-      await shot(page, dir, 'toast-two', report);
+      await shot(page, dir, 'toast-two', report, 'allow');
     } else {
       notCaptured.push({ screen: 'toast-two', reason: `the second refusal did not stack (${count} toast on the line)` });
     }
