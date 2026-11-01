@@ -172,7 +172,8 @@ public sealed class CarpenterViewModelTests
 
         BuyAnimal request = socket.Requests.OfType<BuyAnimal>().Single();
         (request.BuildingId, request.Kind, request.Name).Should().Be((s_coop, (byte)AnimalKind.Chicken, "Bella"));
-        vm.Status.Should().Be("Bought, and on its way to the barn.");
+        // The notice names no building: a chicken goes to a coop, a cow to a barn (docs/adr/ADR-028 amendment 3).
+        vm.Status.Should().Be("Bought, and on its way to its new home.");
         vm.AnimalName.Should().BeEmpty();
     }
 
