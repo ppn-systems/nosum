@@ -32,7 +32,7 @@ Browser checks (no test project; plain Node, Chromium preinstalled — never run
 
 ```bash
 # Unit: label placement, and every browser module of the render backend loads as an ES module (no link or parse error),
-# every ALL_CAPS constant it uses is declared, and the host's scripts parse (tests/browser/modules, docs/adr/ADR-102).
+# every ALL_CAPS constant it uses is declared, and the host's scripts parse (tests/browser/modules, docs/adr/ADR-104).
 node --test tests/browser/label-fit/*.mjs tests/browser/modules/*.mjs
 
 # Smoke: the published client boots against the Development server, draws frames, and raises no page or console error.

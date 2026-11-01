@@ -1,6 +1,6 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 //
-// Load guard for the browser scripts (docs/adr/ADR-102). The render backend's ES modules (engine/Nosum.Rendering.Web/wwwroot/*.js) are imported
+// Load guard for the browser scripts (docs/adr/ADR-104). The render backend's ES modules (engine/Nosum.Rendering.Web/wwwroot/*.js) are imported
 // here as real modules, with minimal browser stubs, so a link or parse error fails a unit run instead of a blank page: a missing export
 // (renderer.js imported LABEL_EDGE from label-fit.js without it) and a duplicate declaration (a second fitLabel) both stop the import.
 // The scripts of the web host (wasm/Nosum.Wasm/wwwroot/*.js) are classic scripts, syntax-checked with vm.Script, except the ones
