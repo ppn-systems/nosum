@@ -8,6 +8,8 @@ using FluentAssertions;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Nosum.Contracts.Farm;
+using Nosum.Contracts.Farm.S2C;
 using Nosum.Gameplay.Items;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Inventory;
@@ -166,6 +168,38 @@ public sealed class GameMessagesViewModelTests
         }
 
         vm.Toasts.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void FarmUse_WeakTool_NamesTheToolInHandAndTheUpgrade()
+    {
+        // A copper pickaxe at iron ore is refused as too weak: the line names the held tool and says where to upgrade it (docs/adr/ADR-123 D2).
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => new UseItemResult { Status = FarmStatus.WeakTool, Action = FarmAction.None });
+        InventoryChannel inventoryChannel = WasmTestSupport.LoadedInventory(socket, (0, ItemCatalog.CopperPickaxe, 1));
+        using FarmChannel farm = new(socket);
+        GameMessagesViewModel vm = new(farm, new PlaceableChannel(socket), new InventoryViewModel(inventoryChannel, new NoIcons(), Localizer<Catalogue>(), Localizer<Language>()), Localizer<Language>());
+
+        farm.Use(0, 1, 1);
+
+        ItemCatalog.TryGet(ItemCatalog.CopperPickaxe, out ItemDefinition? pickaxe).Should().BeTrue();
+        string name = Localizer<Catalogue>()["Item_" + pickaxe!.Key + "_Name"].Value;
+        string expected = string.Format(System.Globalization.CultureInfo.CurrentCulture, Localizer<Language>()["Farm_Status_WeakTool"].Value, name);
+        vm.Toasts.Should().ContainSingle(t => t.Text == expected);
+    }
+
+    [Fact]
+    public void FarmUse_WeakTool_WithNothingHeld_FallsBackToTheWrongToolLine()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => new UseItemResult { Status = FarmStatus.WeakTool, Action = FarmAction.None });
+        InventoryChannel inventoryChannel = WasmTestSupport.LoadedInventory(socket);
+        using FarmChannel farm = new(socket);
+        GameMessagesViewModel vm = new(farm, new PlaceableChannel(socket), new InventoryViewModel(inventoryChannel, new NoIcons(), Localizer<Catalogue>(), Localizer<Language>()), Localizer<Language>());
+
+        farm.Use(0, 1, 1);
+
+        vm.Toasts.Should().ContainSingle(t => t.Text == Localizer<Language>()["Farm_Status_WrongTool"].Value);
     }
 
     private static GameMessagesViewModel Create()

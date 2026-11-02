@@ -284,8 +284,9 @@ public sealed class BlacksmithWireTests : IClassFixture<PostgresFixture>
     }
 
     // Regression for #153: a starter pickaxe does nothing to iron ore, on the wire too. The server refuses with the tool's status and the ore stands.
+    // The right kind of tool at a lower tier is WeakTool, not WrongTool (docs/adr/ADR-123 D1).
     [Fact]
-    public async Task Pickaxe_BasicOnIronOre_IsRefusedWithWrongTool()
+    public async Task Pickaxe_BasicOnIronOre_IsRefusedWeakTool()
     {
         await using MineWireTests.TestHost host = await MineWireTests.TestHost.StartAsync(_database);
         await using MineWireTests.Client basic = await host.ConnectAsync();
@@ -295,8 +296,8 @@ public sealed class BlacksmithWireTests : IClassFixture<PostgresFixture>
         UseItemResult first = await basic.UseAsync(slot, ore.X, ore.Y, host.Timeout);
         UseItemResult second = await basic.UseAsync(slot, ore.X, ore.Y, host.Timeout);
 
-        first.Should().BeEquivalentTo(new { Status = FarmStatus.WrongTool, Action = FarmAction.None });
-        second.Should().BeEquivalentTo(new { Status = FarmStatus.WrongTool, Action = FarmAction.None });
+        first.Should().BeEquivalentTo(new { Status = FarmStatus.WeakTool, Action = FarmAction.None });
+        second.Should().BeEquivalentTo(new { Status = FarmStatus.WeakTool, Action = FarmAction.None });
     }
 
     private async Task<List<(int X, int Y)>> TilledAsync(Guid playerId)

@@ -48,6 +48,8 @@ public static class NosumProtocol
     /// with the new test player's nickname and session token. Production does not map them. No existing packet or field changed.
     /// 34: market page size - <c>PageSize</c> appended to <c>BrowseListings</c> (docs/adr/ADR-101 amendment 2026-11-01): the rows the market panel has room for, clamped by the server to 20.
     /// No opcode or existing field changed. A field appended to an existing packet, so server and client ship together.
+    /// 35: weak-tool refusal - <c>FarmStatus.WeakTool</c> (25) appended, the refusal for a tool of a lower tier than the node needs (docs/adr/ADR-123).
+    /// It was the wrong-tool status, which named no tier. No opcode or existing field changed; clients built for 34 do not know the value, so they ship together.
     /// </summary>
-    public const ushort Version = 34;
+    public const ushort Version = 35;
 }

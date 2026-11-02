@@ -68,9 +68,10 @@ public sealed class MarketSortPacketTests
     }
 
     [Fact]
-    public void NosumProtocol_Version_IsThirtyFour_WithTheMarketPageSize()
+    public void NosumProtocol_Version_IsAtLeastThirtyFour_WithTheMarketPageSize()
     {
-        NosumProtocol.Version.Should().Be(34);
+        // The market page size arrived at version 34; later versions keep it (NosumProtocolVersionDocTests pins the exact number).
+        NosumProtocol.Version.Should().BeGreaterThanOrEqualTo(34);
     }
 
     [Fact]

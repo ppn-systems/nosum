@@ -10,7 +10,7 @@ namespace Nosum.Gameplay.Nodes;
 /// <summary>Result of using a tool on a node.</summary>
 public enum NodeHitOutcome
 {
-    /// <summary>The held tool does not work on this node: it is the wrong kind, or of too low a tier for it. The node is unchanged.</summary>
+    /// <summary>The held tool does not work on this node: it is the wrong kind (or the node cannot be worked). The node is unchanged.</summary>
     WrongTool = 0,
 
     /// <summary>The node took a hit and still stands (<see cref="NodeHit.Next"/> has fewer hits).</summary>
@@ -18,6 +18,12 @@ public enum NodeHitOutcome
 
     /// <summary>The node broke: it gives its yield and is replaced by <see cref="NodeHit.Next"/>, or removed when that is <see langword="null"/>.</summary>
     Broke = 2,
+
+    /// <summary>
+    /// The held tool is the right kind but of a lower tier than the node needs (a copper pickaxe on iron ore). The node is unchanged; the player
+    /// upgrades the tool (docs/adr/ADR-123 D1).
+    /// </summary>
+    TooWeak = 3,
 }
 
 /// <summary>What one hit does.</summary>
@@ -36,13 +42,18 @@ public static class NodeRules
     /// <param name="node">The node.</param>
     /// <param name="tool">The held tool.</param>
     /// <param name="damage">Hits' worth of damage this swing does, at least one (<see cref="ToolRules.DamagePerHit"/>).</param>
-    /// <param name="tier">The held tool's tier; a tool below <see cref="NodeDefinition.RequiredTier"/> does nothing to the node.</param>
+    /// <param name="tier">The held tool's tier; a tool below <see cref="NodeDefinition.RequiredTier"/> is refused as <see cref="NodeHitOutcome.TooWeak"/>.</param>
     /// <returns>What happened.</returns>
     public static NodeHit Hit(in ResourceNode node, ToolKind tool, int damage = 1, ToolTier tier = ToolTier.Basic)
     {
-        if (!NodeCatalog.TryGet(node.Kind, out NodeDefinition? definition) || definition.Tool != tool || tier < definition.RequiredTier || node.Kind == NodeKind.Ladder)
+        if (!NodeCatalog.TryGet(node.Kind, out NodeDefinition? definition) || definition.Tool != tool || node.Kind == NodeKind.Ladder)
         {
             return new NodeHit(NodeHitOutcome.WrongTool, node);
+        }
+
+        if (tier < definition.RequiredTier)
+        {
+            return new NodeHit(NodeHitOutcome.TooWeak, node);
         }
 
         if (node.Hits > Math.Max(1, damage))

@@ -79,4 +79,7 @@ public enum FarmStatus : byte
 
     /// <summary>The soil is wet already (watered today by the can, or by rain or a sprinkler), so more water changes nothing (docs/adr/ADR-088).</summary>
     AlreadyWet = 24,
+
+    /// <summary>The held tool is the right kind for the node but of a lower tier than it needs (a copper pickaxe on iron ore); the player upgrades it (docs/adr/ADR-123).</summary>
+    WeakTool = 25,
 }

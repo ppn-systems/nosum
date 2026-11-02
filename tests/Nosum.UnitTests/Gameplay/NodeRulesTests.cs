@@ -186,16 +186,27 @@ public sealed class NodeRulesTests
         NodeRules.Age(Fresh(NodeKind.Stone), 30).Should().Be(Fresh(NodeKind.Stone));
     }
 
-    // Regression for #153: a starter tool bounces off a node that needs a higher tier, and the node is left exactly as it was.
+    // Regression for #153: a starter tool bounces off a node that needs a higher tier, and the node is left exactly as it was. The refusal says
+    // the tier is the problem (TooWeak), so the player knows an upgrade is the fix (docs/adr/ADR-123 D1).
     [Theory]
     [InlineData(NodeKind.IronOre, ToolKind.Pickaxe)]
     [InlineData(NodeKind.LargeStump, ToolKind.Axe)]
-    public void Hit_AStarterToolBelowTheNodesTier_IsWrongToolAndTheNodeStands(NodeKind kind, ToolKind tool)
+    public void Hit_AStarterToolBelowTheNodesTier_IsTooWeakAndTheNodeStands(NodeKind kind, ToolKind tool)
     {
         ResourceNode node = Fresh(kind);
 
-        NodeRules.Hit(node, tool, 1, ToolTier.Basic).Should().Be(new NodeHit(NodeHitOutcome.WrongTool, node));
-        NodeRules.Hit(node, tool).Should().Be(new NodeHit(NodeHitOutcome.WrongTool, node), "the default tool is a starter tool");
+        NodeRules.Hit(node, tool, 1, ToolTier.Basic).Should().Be(new NodeHit(NodeHitOutcome.TooWeak, node));
+        NodeRules.Hit(node, tool).Should().Be(new NodeHit(NodeHitOutcome.TooWeak, node), "the default tool is a starter tool");
+    }
+
+    [Theory]
+    [InlineData(NodeKind.IronOre, ToolKind.Axe)]
+    [InlineData(NodeKind.LargeStump, ToolKind.Pickaxe)]
+    public void Hit_AToolOfTheWrongKind_IsWrongToolAtAnyTier(NodeKind kind, ToolKind tool)
+    {
+        ResourceNode node = Fresh(kind);
+
+        NodeRules.Hit(node, tool, 1, ToolTier.Iron).Should().Be(new NodeHit(NodeHitOutcome.WrongTool, node));
     }
 
     [Theory]
