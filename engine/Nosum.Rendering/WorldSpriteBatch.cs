@@ -96,7 +96,7 @@ public sealed class WorldSpriteBatch
     {
         ArgumentNullException.ThrowIfNull(commands);
 
-        Array.Sort(_keys, 0, _count);
+        SortKeys(_keys, _count);
         for (int i = 0; i < _count; i++)
         {
             ref readonly Sprite s = ref _sprites[_keys[i].Index];
@@ -164,6 +164,68 @@ public sealed class WorldSpriteBatch
     }
 
     private readonly record struct Sprite(int Texture, int SrcX, int SrcY, int Width, int Height, int X, int Y, int Flags, int Tint, bool Overlay = false);
+
+    // An in-place heapsort over the first count keys. Array.Sort on a struct that implements IComparable<T> allocated a few bytes a call on the
+    // interpreter build (the frame body, ADR-099), so the sort is written out: no generic comparer, no interface call, nothing allocated. The
+    // keys are a total order (Index is unique), so the result is the one Array.Sort gave.
+    private static void SortKeys(SortKey[] keys, int count)
+    {
+        for (int start = (count / 2) - 1; start >= 0; start--)
+        {
+            SiftDown(keys, start, count);
+        }
+
+        for (int end = count - 1; end > 0; end--)
+        {
+            SortKey top = keys[0];
+            keys[0] = keys[end];
+            keys[end] = top;
+            SiftDown(keys, 0, end);
+        }
+    }
+
+    private static void SiftDown(SortKey[] keys, int root, int count)
+    {
+        while (true)
+        {
+            int child = (2 * root) + 1;
+            if (child >= count)
+            {
+                return;
+            }
+
+            if (child + 1 < count && Before(keys[child], keys[child + 1]))
+            {
+                child++;
+            }
+
+            if (!Before(keys[root], keys[child]))
+            {
+                return;
+            }
+
+            SortKey swap = keys[root];
+            keys[root] = keys[child];
+            keys[child] = swap;
+            root = child;
+        }
+    }
+
+    // The order of SortKey.CompareTo: anchor y, then x, then id, then insertion index.
+    private static bool Before(in SortKey a, in SortKey b)
+    {
+        if (a.Y != b.Y)
+        {
+            return a.Y < b.Y;
+        }
+
+        if (a.X != b.X)
+        {
+            return a.X < b.X;
+        }
+
+        return a.Id != b.Id ? a.Id < b.Id : a.Index < b.Index;
+    }
 
     private readonly record struct SortKey(int Y, int X, int Id, int Index) : IComparable<SortKey>
     {
