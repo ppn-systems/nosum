@@ -71,28 +71,34 @@
             </GameSection>
             </div>
             <div class="coop-part @PartClass(CoopPart.Warehouse)">
-                <GameSection Title="@Vm.Text("Coop_Warehouse_Heading")">
-                @if (Vm.Stock.Count == 0)
-                {
-                    <p class="coop-empty">@Vm.Text("Coop_WarehouseEmpty")</p>
-                }
-                @foreach (StockDisplay row in Vm.Stock)
-                {
-                    int itemId = row.Item.ItemId;
-                    <GameRow Class="center">
-                        <ItemSlotButton Slot="row.Item" Picked="row.Item.IsSelected" OnClick="@(() => Vm.PickWithdraw(itemId))" />
-                        <span class="stock-name">@row.Item.Name</span>
-                        <span>@Vm.Text("Coop_Available", row.Available)</span>
-                    </GameRow>
-                }
-                <GameRow Class="center">
-                    <GameInput Class="narrow" Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => Vm.QuantityText = v)" Label="@Vm.Text("Coop_Quantity")" MaxLength="5" />
-                    <GameButton Text="@Vm.Text("Coop_Withdraw")" OnClick="@(() => Vm.Withdraw())" />
-                    <GameButton Text="@Vm.Text("Coop_Deposit")" Title="@Vm.Text("Coop_DepositHint")" OnClick="@(() => Vm.Deposit())" />
-                </GameRow>
-                <p class="coop-empty coop-hint">@Vm.Text("Coop_DepositHint")</p>
-                <ItemGrid Slots="Vm.InventorySlots" Columns="9" OnSlotClick="@(i => Vm.PickDeposit(i))" />
-            </GameSection>
+                @* The warehouse's stock and the bag side by side in the XL panel (ui-standard section 3): the stock list on the left, the bag's grid on the
+                   right. A phone stacks them. *@
+                <div class="coop-split">
+                    <GameSection Title="@Vm.Text("Coop_Warehouse_Heading")">
+                        @if (Vm.Stock.Count == 0)
+                        {
+                            <p class="coop-empty">@Vm.Text("Coop_WarehouseEmpty")</p>
+                        }
+                        @foreach (StockDisplay row in Vm.Stock)
+                        {
+                            int itemId = row.Item.ItemId;
+                            <GameRow Class="center">
+                                <ItemSlotButton Slot="row.Item" Picked="row.Item.IsSelected" OnClick="@(() => Vm.PickWithdraw(itemId))" />
+                                <span class="stock-name">@row.Item.Name</span>
+                                <span>@Vm.Text("Coop_Available", row.Available)</span>
+                            </GameRow>
+                        }
+                        <GameRow Class="center">
+                            <GameInput Class="narrow" Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => Vm.QuantityText = v)" Label="@Vm.Text("Coop_Quantity")" MaxLength="5" />
+                            <GameButton Text="@Vm.Text("Coop_Withdraw")" OnClick="@(() => Vm.Withdraw())" />
+                            <GameButton Text="@Vm.Text("Coop_Deposit")" Title="@Vm.Text("Coop_DepositHint")" OnClick="@(() => Vm.Deposit())" />
+                        </GameRow>
+                        <p class="coop-empty coop-hint">@Vm.Text("Coop_DepositHint")</p>
+                    </GameSection>
+                    <GameSection Title="@Vm.Text("Coop_YourBag")">
+                        <ItemGrid Slots="Vm.InventorySlots" Columns="9" OnSlotClick="@(i => Vm.PickDeposit(i))" />
+                    </GameSection>
+                </div>
             </div>
             <div class="coop-part @PartClass(CoopPart.Upgrades)">
                 <GameSection Title="@Vm.Text("Coop_Upgrades_Heading")">

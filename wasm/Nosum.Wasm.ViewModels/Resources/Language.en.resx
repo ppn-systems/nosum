@@ -288,6 +288,7 @@
   <data name="Coop_Leave" xml:space="preserve"><value>Leave co-op</value></data>
   <data name="Coop_Warehouse_Heading" xml:space="preserve"><value>Shared warehouse</value></data>
   <data name="Coop_WarehouseEmpty" xml:space="preserve"><value>The warehouse is empty.</value></data>
+  <data name="Coop_YourBag" xml:space="preserve"><value>Your bag</value></data>
   <data name="Coop_Available" xml:space="preserve"><value>You may take: {0}</value></data>
   <data name="Coop_Quantity" xml:space="preserve"><value>Quantity</value></data>
   <data name="Coop_Withdraw" xml:space="preserve"><value>Withdraw</value></data>
@@ -642,6 +643,7 @@
   <data name="Friends_Visit_On" xml:space="preserve"><value>Friends may visit my farm: ON</value></data>
   <data name="Friends_Visit_Off" xml:space="preserve"><value>Friends may visit my farm: OFF</value></data>
   <data name="Friends_Visit_Hint" xml:space="preserve"><value>When on, every friend can enter your farm and house without a separate invitation.</value></data>
+  <data name="Friends_Visit_Heading" xml:space="preserve"><value>Visits</value></data>
   <data name="Friends_Blocked_Heading" xml:space="preserve"><value>Blocked players</value></data>
   <data name="Friends_BlockedEmpty" xml:space="preserve"><value>You have blocked nobody.</value></data>
   <data name="Friends_BlockPlaceholder" xml:space="preserve"><value>Nickname to block</value></data>

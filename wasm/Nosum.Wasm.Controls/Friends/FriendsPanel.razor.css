@@ -21,3 +21,11 @@
     min-width: 0;
     overflow-wrap: normal;
 }
+
+/* On the L panel (a desktop, 641 px and wider) the name takes what the row leaves, so a friend's name, status and two buttons share one line
+   (QA pass 10, issue 21: the list clipped at the bottom of a window that wrapped every row to two lines). */
+@media (min-width: 641px) {
+    .friends-name {
+        flex: 1 1 auto;
+    }
+}

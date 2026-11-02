@@ -4,7 +4,8 @@
 @inherits ObservingComponent<FriendsViewModel>
 
 @* The Friends page of the game menu: friends with their status, open requests, the "friends may visit" switch and the block list. A guest sees a hint to register
-   instead. The server decides every outcome; nicknames are shown as plain text. *@
+   instead. The server decides every outcome; nicknames are shown as plain text. The page is the L panel (ui-standard section 3), so a friend's row fits one
+   line and the page fits 1280x720 without an inner scroll (QA pass 10, issue 21). *@
 <MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
     <GameStack>
         @if (Vm.IsGuest)
@@ -67,6 +68,8 @@
                         }
                     </div>
                 }
+            </GameSection>
+            <GameSection Title="@Vm.Text("Friends_Visit_Heading")">
                 <GameRow Class="center">
                     <GameButton Variant="secondary" Active="Vm.FriendsMayVisit" aria-pressed="@(Vm.FriendsMayVisit ? "true" : "false")" Text="@(Vm.FriendsMayVisit ? Vm.Text("Friends_Visit_On") : Vm.Text("Friends_Visit_Off"))" OnClick="@(() => Vm.ToggleVisit())" />
                 </GameRow>

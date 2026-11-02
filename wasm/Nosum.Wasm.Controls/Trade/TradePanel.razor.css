@@ -1,11 +1,34 @@
-.trade-sides {
+/* Two grids side by side in the XL panel (340 u): the offers on the left, the bag on the right, both with 16 u slots (as the chest). The bag takes
+   its 9 columns (152 u) and the offers take the rest, so the 4 columns of an offer and the bag's 4 rows fit at 1280x720 with no inner scroll. */
+.trade-split {
+    --item-grid-slot: calc(var(--u) * 16);
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--nosum-gap);
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--nosum-gap-group);
+    align-items: start;
+}
+
+.trade-split ::deep .slot {
+    width: calc(var(--u) * 16);
+    height: calc(var(--u) * 16);
+}
+
+.trade-sides,
+.trade-pick {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nosum-gap-group);
+    min-width: 0;
 }
 
 .trade-sides ::deep .item-grid {
     justify-content: start;
+}
+
+@media (max-width: 640px) {
+    .trade-split {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 .trade-coins,
