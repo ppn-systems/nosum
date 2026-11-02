@@ -125,6 +125,7 @@ internal sealed class BotClient
         catch (Exception ex)
         {
             _stats.Error(ex.GetType().Name);
+            _stats.ErrorSample(ex);
         }
         finally
         {

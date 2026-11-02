@@ -52,6 +52,10 @@ internal static class Report
         if (!stats.Errors.IsEmpty())
         {
             _ = text.AppendLine("errors       " + string.Join(", ", stats.Errors.OrderByDescending(e => e.Value).Select(e => $"{e.Key} x{e.Value}")));
+            foreach (string sample in stats.ErrorSamples)
+            {
+                _ = text.AppendLine("  sample     " + sample);
+            }
         }
 
         if (before is null || after is null)
