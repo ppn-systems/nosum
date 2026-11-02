@@ -295,7 +295,7 @@
   <data name="Coop_Quantity" xml:space="preserve"><value>Quantity</value></data>
   <data name="Coop_Withdraw" xml:space="preserve"><value>Withdraw</value></data>
   <data name="Coop_Deposit" xml:space="preserve"><value>Deposit</value></data>
-  <data name="Coop_DepositHint" xml:space="preserve"><value>Pick a warehouse item to take, or a bag slot to deposit.</value></data>
+  <data name="Coop_DepositHint" xml:space="preserve"><value>Pick a warehouse item a bag slot to deposit.</value></data>
   <data name="Coop_Log_Heading" xml:space="preserve"><value>Warehouse log</value></data>
   <data name="Coop_Tab_Members" xml:space="preserve"><value>Members</value></data>
   <data name="Coop_Tab_Warehouse" xml:space="preserve"><value>Stock</value></data>
@@ -330,7 +330,7 @@
   <data name="Coop_Upgrade_Land" xml:space="preserve"><value>More land</value></data>
   <data name="Coop_Upgrade_Level" xml:space="preserve"><value>Level {0} / {1}</value></data>
   <data name="Coop_Upgrade_Warehouse_Now" xml:space="preserve"><value>Holds up to {0} kinds of item ({1} in use).</value></data>
-  <data name="Coop_Upgrade_Land_Now" xml:space="preserve"><value>{0} of {1} blocks of the co-op land are open for tilling and building.</value></data>
+  <data name="Coop_Upgrade_Land_Now" xml:space="preserve"><value>{0} of {1} blocks of the co-op land are open for tilling and building.</value></data>
   <data name="Coop_Upgrade_Next" xml:space="preserve"><value>The next level takes from the warehouse:</value></data>
   <data name="Coop_Upgrade_Cost" xml:space="preserve"><value>{0} x{1} (warehouse has {2})</value></data>
   <data name="Coop_Upgrade_Buy" xml:space="preserve"><value>Buy next level</value></data>
@@ -575,7 +575,7 @@
   <data name="Today_Crops" xml:space="preserve"><value>Crops in season: {0}</value></data>
   <data name="Today_Crops_None" xml:space="preserve"><value>No crops grow this season</value></data>
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>That crop does not grow in this season.</value></data>
-  <data name="Farm_Status_Withered" xml:space="preserve"><value>The crop withered from lack of water or the end of its season. Plant a new seed over it.</value></data>
+  <data name="Farm_Status_Withered" xml:space="preserve"><value>The crop withered from lack of water or the end of its season. Plant a new seed over it.</value></data>
   <data name="Farm_Thirsty_Morning" xml:space="preserve"><value>{0} crops need water</value></data>
   <data name="Farm_Thirsty_Morning_One" xml:space="preserve"><value>1 crop needs water</value></data>
   <data name="Shop_Status_OutOfSeason" xml:space="preserve"><value>That seed is not sold in this season.</value></data>
@@ -1251,7 +1251,7 @@
   <data name="Npc_Action_Coop" xml:space="preserve"><value>Co-op</value></data>
   <data name="Npc_Action_Backpack" xml:space="preserve"><value>More bag space</value></data>
   <data name="Backpack_Size" xml:space="preserve"><value>Your backpack holds {0} slots.</value></data>
-  <data name="Backpack_Next" xml:space="preserve"><value>Next size: {0} slots for {1} coins. One more row.</value></data>
+  <data name="Backpack_Next" xml:space="preserve"><value>Next size: {0} slots for {1} coins. One more row.</value></data>
   <data name="Backpack_Upgrade" xml:space="preserve"><value>Upgrade backpack</value></data>
   <data name="Backpack_Max" xml:space="preserve"><value>Your backpack is already the largest.</value></data>
   <data name="Backpack_Hint" xml:space="preserve"><value>The new slots appear in your bag at once.</value></data>
@@ -1276,7 +1276,7 @@
   <data name="Carpenter_PetHint" xml:space="preserve"><value>Cats and dogs are sold here. Each player keeps one pet.</value></data>
   <data name="Carpenter_PetPrice" xml:space="preserve"><value>{0} coins</value></data>
   <data name="Carpenter_BuyPet" xml:space="preserve"><value>Buy</value></data>
-  <data name="Carpenter_PetHave" xml:space="preserve"><value>You already have a pet. Give it back before you buy another.</value></data>
+  <data name="Carpenter_PetHave" xml:space="preserve"><value>You already have a pet. Give it back before you buy another.</value></data>
   <data name="Carpenter_Tab_Goods" xml:space="preserve"><value>Goods</value></data>
   <data name="Carpenter_Tab_Buildings" xml:space="preserve"><value>Buildings</value></data>
   <data name="Carpenter_Tab_Animals" xml:space="preserve"><value>Animals</value></data>

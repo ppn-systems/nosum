@@ -70,7 +70,7 @@
   <data name="Farm_Status_NotMatureOneDay" xml:space="preserve"><value>Chưa chín, còn 1 ngày</value></data>
   <data name="Farm_Status_InventoryFull" xml:space="preserve"><value>Túi đồ đã đầy.</value></data>
   <data name="Farm_Status_ItemMissing" xml:space="preserve"><value>Bạn không còn vật phẩm này.</value></data>
-  <data name="Farm_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Farm_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Farm_Status_WrongTool" xml:space="preserve"><value>Dụng cụ này không dùng được với thứ ở đó.</value></data>
   <data name="Farm_Status_Cooldown" xml:space="preserve"><value>Từ từ thôi, vung tay chưa xong.</value></data>
   <data name="Farm_Status_CanEmpty" xml:space="preserve"><value>Bình tưới đã hết nước. Hãy múc nước ở ao hoặc suối.</value></data>
@@ -115,7 +115,7 @@
   <data name="Place_Status_UnknownObject" xml:space="preserve"><value>Không tìm thấy món đồ này.</value></data>
   <data name="Place_Status_InventoryFull" xml:space="preserve"><value>Túi đồ đã đầy.</value></data>
   <data name="Place_Status_LimitReached" xml:space="preserve"><value>Nhà đã chứa tối đa số đồ đạc.</value></data>
-  <data name="Place_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Place_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Placement_Title" xml:space="preserve"><value>Sắp xếp nhà</value></data>
   <data name="Placement_Hint" xml:space="preserve"><value>E: đặt đồ đang cầm. R: xoay. F: cầm món đồ phía trước để dời chỗ, nhấn E để đặt xuống. Q: cất vào túi.</value></data>
   <data name="Placement_Move" xml:space="preserve"><value>Dời chỗ (F)</value></data>
@@ -182,7 +182,7 @@
   <data name="Market_Status_OwnListing" xml:space="preserve"><value>Bạn không thể mua hàng của chính mình.</value></data>
   <data name="Market_Status_NotOwner" xml:space="preserve"><value>Đây không phải hàng của bạn.</value></data>
   <data name="Market_Status_Expired" xml:space="preserve"><value>Món hàng đã hết hạn.</value></data>
-  <data name="Market_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Market_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Market_Status_NotAtBin" xml:space="preserve"><value>Hãy đứng cạnh thùng hàng để bán.</value></data>
   <data name="Market_Status_NotAtCounter" xml:space="preserve"><value>Hãy đứng ở quầy của thương nhân trong thị trấn để mua bán.</value></data>
   <data name="Market_Status_NotShippable" xml:space="preserve"><value>Thùng hàng không mua vật phẩm này.</value></data>
@@ -223,7 +223,7 @@
   <data name="Wardrobe_Status_NotWearable" xml:space="preserve"><value>Không thể mặc món này.</value></data>
   <data name="Wardrobe_Status_NoSpace" xml:space="preserve"><value>Túi đồ không đủ chỗ.</value></data>
   <data name="Wardrobe_Status_NotOnMap" xml:space="preserve"><value>Bạn chưa ở trên bản đồ nào.</value></data>
-  <data name="Wardrobe_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Wardrobe_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Wardrobe_Status_NothingWorn" xml:space="preserve"><value>Bạn không mặc gì ở đó.</value></data>
   <data name="Trade_PickPlayer" xml:space="preserve"><value>Chọn người để giao dịch</value></data>
   <data name="Trade_Invite" xml:space="preserve"><value>Mời</value></data>
@@ -323,7 +323,7 @@
   <data name="Coop_Status_UnknownItem" xml:space="preserve"><value>Vật phẩm không tồn tại.</value></data>
   <data name="Coop_Status_MemberNotFound" xml:space="preserve"><value>Không có thành viên này.</value></data>
   <data name="Coop_Status_SelfKick" xml:space="preserve"><value>Bạn không thể tự mời mình ra.</value></data>
-  <data name="Coop_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Coop_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Coop_Status_AlreadyInvited" xml:space="preserve"><value>Người đó đã được mời rồi.</value></data>
   <data name="Coop_Upgrades_Heading" xml:space="preserve"><value>Nâng cấp</value></data>
   <data name="Coop_Upgrade_Warehouse" xml:space="preserve"><value>Kho rộng hơn</value></data>
@@ -409,7 +409,7 @@
   <data name="Shop_Status_NotAtShop" xml:space="preserve"><value>Bạn đang đứng quá xa quầy hàng.</value></data>
   <data name="Shop_Status_NotEnoughCoins" xml:space="preserve"><value>Bạn không đủ xu.</value></data>
   <data name="Shop_Status_NoSpace" xml:space="preserve"><value>Túi đồ của bạn đã đầy.</value></data>
-  <data name="Shop_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Shop_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Market_Seller" xml:space="preserve"><value>Người bán: {0}</value></data>
   <data name="Coop_InviteMessageFrom" xml:space="preserve"><value>{1} mời bạn vào hợp tác xã "{0}".</value></data>
   <data name="Game_Title" xml:space="preserve"><value>Nosum</value></data>
@@ -552,7 +552,7 @@
   <data name="Visit_Status_NotAllowed" xml:space="preserve"><value>Chủ vườn chưa mời bạn.</value></data>
   <data name="Visit_Status_NotOnPublicMap" xml:space="preserve"><value>Hãy ra bản đồ chung (Thị trấn, bến xe...) rồi mới đi thăm.</value></data>
   <data name="Visit_Status_NotJoined" xml:space="preserve"><value>Chưa vào được thế giới, thử lại nhé.</value></data>
-  <data name="Visit_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Visit_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Season_Spring" xml:space="preserve"><value>Xuân</value></data>
   <data name="Season_Summer" xml:space="preserve"><value>Hè</value></data>
   <data name="Season_Fall" xml:space="preserve"><value>Thu</value></data>
@@ -682,7 +682,7 @@
   <data name="Mail_Expiry" xml:space="preserve"><value>Còn {0} ngày</value></data>
   <data name="Mail_Expiry_One" xml:space="preserve"><value>Còn 1 ngày</value></data>
   <data name="Mail_Expired" xml:space="preserve"><value>Đã hết hạn</value></data>
-  <data name="Mail_Hint" xml:space="preserve"><value>Thư tự xóa sau 30 ngày. Thư có quà phải nhận quà trước khi xóa.</value></data>
+  <data name="Mail_Hint" xml:space="preserve"><value>Thư tự xóa sau 30 ngày. Thư có quà phải nhận quà trước khi xóa.</value></data>
   <data name="Mail_UnknownItem" xml:space="preserve"><value>vật phẩm</value></data>
   <data name="Mail_Title_MarketSold" xml:space="preserve"><value>Hàng đã bán</value></data>
   <data name="Mail_Body_MarketSold" xml:space="preserve"><value>{0} x{1} đã bán được. Bạn nhận {2} xu sau phí.</value></data>
@@ -740,7 +740,7 @@
   <data name="Eat_Status_NotEdible" xml:space="preserve"><value>Món này không ăn được.</value></data>
   <data name="Eat_Status_ItemMissing" xml:space="preserve"><value>Món ăn không còn ở ô này.</value></data>
   <data name="Eat_Status_EnergyFull" xml:space="preserve"><value>Bạn đang đầy sức rồi.</value></data>
-  <data name="Eat_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Eat_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Energy_Label" xml:space="preserve"><value>Sức lực {0} / {1}</value></data>
   <data name="Energy_Running" xml:space="preserve"><value>Đang chạy</value></data>
   <data name="Energy_ToolUses" xml:space="preserve"><value>Khoảng {0} lần dùng công cụ còn lại</value></data>
@@ -771,7 +771,7 @@
   <data name="Craft_Status_Locked" xml:space="preserve"><value>Bạn chưa mở khóa công thức này.</value></data>
   <data name="Craft_Status_NotEnough" xml:space="preserve"><value>Bạn chưa đủ nguyên liệu.</value></data>
   <data name="Craft_Status_NoSpace" xml:space="preserve"><value>Túi đồ không còn chỗ cho thành phẩm.</value></data>
-  <data name="Craft_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Craft_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Chest_Status_UnknownObject" xml:space="preserve"><value>Không tìm thấy rương này.</value></data>
   <data name="Chest_Status_NotYours" xml:space="preserve"><value>Rương này không phải của bạn.</value></data>
   <data name="Chest_Status_OutOfReach" xml:space="preserve"><value>Bạn đứng quá xa rương.</value></data>
@@ -781,7 +781,7 @@
   <data name="Chest_Status_InvalidQuantity" xml:space="preserve"><value>Số lượng không hợp lệ.</value></data>
   <data name="Chest_Status_Blocked" xml:space="preserve"><value>Ô đích đang có món khác; hãy chuyển cả chồng.</value></data>
   <data name="Chest_Status_NoSpace" xml:space="preserve"><value>Không còn chỗ chứa.</value></data>
-  <data name="Chest_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Chest_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Chest_Status_NotAllowed" xml:space="preserve"><value>Không cất dụng cụ vào rương được.</value></data>
   <data name="Furnace_Status_UnknownObject" xml:space="preserve"><value>Không tìm thấy lò này.</value></data>
   <data name="Furnace_Status_NotYours" xml:space="preserve"><value>Lò này không phải của bạn.</value></data>
@@ -792,7 +792,7 @@
   <data name="Furnace_Status_NothingToCollect" xml:space="preserve"><value>Lò không có gì để lấy.</value></data>
   <data name="Furnace_Status_NotReady" xml:space="preserve"><value>Thỏi chưa nung xong.</value></data>
   <data name="Furnace_Status_NoSpace" xml:space="preserve"><value>Túi đồ không còn chỗ cho thỏi.</value></data>
-  <data name="Furnace_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Furnace_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Toolbar_Crafting" xml:space="preserve"><value>Chế tạo</value></data>
   <data name="Craft_Heading" xml:space="preserve"><value>Công thức</value></data>
   <data name="Craft_Materials" xml:space="preserve"><value>Nguyên liệu</value></data>
@@ -879,7 +879,7 @@
   <data name="Building_Status_NotEnoughCoins" xml:space="preserve"><value>Bạn không đủ xu.</value></data>
   <data name="Building_Status_NotEnoughItems" xml:space="preserve"><value>Bạn không đủ gỗ, đá hoặc thức ăn.</value></data>
   <data name="Building_Status_NoSpace" xml:space="preserve"><value>Túi đồ của bạn đã đầy.</value></data>
-  <data name="Building_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Building_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Building_Status_NotYours" xml:space="preserve"><value>Chuồng này không phải của bạn. Khách chỉ được ngắm.</value></data>
   <data name="Building_Status_NotFinished" xml:space="preserve"><value>Chuồng chưa xây xong.</value></data>
   <data name="Building_Status_Full" xml:space="preserve"><value>Chuồng đã đủ vật nuôi.</value></data>
@@ -1168,7 +1168,7 @@
   <data name="Fishing_Status_TooFar" xml:space="preserve"><value>Bạn đứng quá xa mặt nước đó.</value></data>
   <data name="Fishing_Status_OutOfEnergy" xml:space="preserve"><value>Bạn đã hết năng lượng để câu.</value></data>
   <data name="Fishing_Status_NoSpace" xml:space="preserve"><value>Túi đồ đã đầy, không còn chỗ cho cá.</value></data>
-  <data name="Fishing_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
+  <data name="Fishing_Status_Conflict" xml:space="preserve"><value>Thử lại nhé.</value></data>
   <data name="Fishing_CatchTitle" xml:space="preserve"><value>Bạn câu được cá!</value></data>
   <data name="Fishing_Size" xml:space="preserve"><value>Dài {0} cm</value></data>
   <data name="Fishing_Rarity_Common" xml:space="preserve"><value>Thường gặp</value></data>
@@ -1250,8 +1250,8 @@
   <data name="Npc_Action_Wardrobe" xml:space="preserve"><value>Thay đồ</value></data>
   <data name="Npc_Action_Coop" xml:space="preserve"><value>Hợp tác xã</value></data>
   <data name="Npc_Action_Backpack" xml:space="preserve"><value>Mở rộng túi</value></data>
-  <data name="Backpack_Size" xml:space="preserve"><value>Túi đồ hiện có {0} ô.</value></data>
-  <data name="Backpack_Next" xml:space="preserve"><value>Cỡ tiếp theo: {0} ô, giá {1} xu. Thêm một hàng ô.</value></data>
+  <data name="Backpack_Size" xml:space="preserve"><value>Túi đồ hiện có {0} ô.</value></data>
+  <data name="Backpack_Next" xml:space="preserve"><value>Cỡ tiếp theo: {0} ô, giá {1} xu. Thêm một hàng ô.</value></data>
   <data name="Backpack_Upgrade" xml:space="preserve"><value>Nâng cấp túi</value></data>
   <data name="Backpack_Max" xml:space="preserve"><value>Túi đồ đã lớn nhất.</value></data>
   <data name="Backpack_Hint" xml:space="preserve"><value>Ô mới hiện ngay trong túi đồ của bạn.</value></data>

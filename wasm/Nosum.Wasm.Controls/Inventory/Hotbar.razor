@@ -6,21 +6,6 @@
 {
     <div class="hotbar-dock">
         <div class="hotbar-main">
-            @if (Progress is not null)
-            {
-                @* The combo chip and the level-up badge have their own strip above the hotbar (ui-standard section 2). The toast line sits above the
-                   strip, so the two never share a region. The strip is always there, so the toast line does not jump when a badge shows. *@
-                <div class="hotbar-badges">
-                    @if (Progress.CurrentCombo > 1)
-                    {
-                        <GameBadge Kind="warn" Text="@Progress.ComboBadgeText" />
-                    }
-                    @if (Progress.IsLevelUpActive)
-                    {
-                        <GameBadge Kind="ok" Text="@Progress.LevelUpBadgeText" />
-                    }
-                </div>
-            }
             <GamePanel Class="hud hotbar" Role="toolbar" Title="">
                 <div class="hotbar-row">
                     <div class="hotbar-slots" aria-label="@Vm.HotbarLabel">

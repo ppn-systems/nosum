@@ -188,6 +188,30 @@
     }
 }
 
+/* From 1600 px the menu column stays with a window open (above), so the top-right block (calendar bar, minimap card, column) runs down to
+   about 72 u. The widest window (XL, 340 u, two grids side by side) is centred and would reach the minimap card, so an XL window starts below
+   it. The narrower windows keep the centre (ui-standard section 2, checklist item 2). */
+@media (min-width: 1600px) and (min-height: 501px) {
+    .game-hud:has(.trade-dialog-xl) .hud-center {
+        padding-top: calc(var(--u) * 72);
+    }
+}
+
+/* With a window open the hotbar is hidden, as the menu column is below 1600 px (ui-standard section 2). The co-op window is the one exception from
+   1600 px: it is short enough to leave the hotbar drawn under it (about 400 px at 1920, clear of the hotbar's top edge), and the hotbar stays
+   display-only, so a click on a slot does not act under the window. Taller windows (the profile, the arrange panel) still hide it, because at
+   1920 x 1080 they would cover it. */
+.game-hud:has(.hud-center > *) .hud-bottom-center ::deep .hotbar-dock {
+    display: none;
+}
+
+@media (min-width: 1600px) and (min-height: 501px) {
+    .game-hud:has(.coop-dock) .hud-bottom-center ::deep .hotbar-dock {
+        display: flex;
+        pointer-events: none;
+    }
+}
+
 /* Bottom: the hotbar, centred, with the strip and the message line above it. */
 .hud-bottom {
     justify-content: center;
