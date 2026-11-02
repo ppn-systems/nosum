@@ -1077,7 +1077,6 @@
   <data name="Combat_Skill_DivineHeal" xml:space="preserve"><value>Divine heal</value></data>
   <data name="Combat_Skill_DivineHeal_Tip" xml:space="preserve"><value>Cast divine heal (20 MP)</value></data>
   <data name="Combat_Combo_Badge" xml:space="preserve"><value>Combo {0}x (+{1}%)</value></data>
-  <data name="Combat_LevelUp_Badge" xml:space="preserve"><value>Level {0}!</value></data>
   <data name="Bestiary_Heading" xml:space="preserve"><value>Monster bestiary</value></data>
   <data name="Bestiary_Category_Regular" xml:space="preserve"><value>Regular</value></data>
   <data name="Bestiary_Category_Boss" xml:space="preserve"><value>Boss</value></data>

@@ -1077,7 +1077,6 @@
   <data name="Combat_Skill_DivineHeal" xml:space="preserve"><value>Hồi phục</value></data>
   <data name="Combat_Skill_DivineHeal_Tip" xml:space="preserve"><value>Thánh quang hồi máu (20 MP)</value></data>
   <data name="Combat_Combo_Badge" xml:space="preserve"><value>Chuỗi đòn {0}x (+{1}%)</value></data>
-  <data name="Combat_LevelUp_Badge" xml:space="preserve"><value>Thăng cấp {0}!</value></data>
   <data name="Bestiary_Heading" xml:space="preserve"><value>Sổ tay săn bắt quái vật</value></data>
   <data name="Bestiary_Category_Regular" xml:space="preserve"><value>Quái thường</value></data>
   <data name="Bestiary_Category_Boss" xml:space="preserve"><value>Thủ lĩnh</value></data>
