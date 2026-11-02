@@ -279,6 +279,92 @@ is the next step; it was not finished in this round, and nothing was removed.
 Verification of this round's WASM work: the probe build and the reverted sources were published; the browser module tests (`node --test tests/browser/label-fit/*.mjs
 tests/browser/modules/*.mjs`) pass 40 of 40; no page error in any load run (`pageErrors` 0).
 
+## Round 7: busy scenes at 1920 × 1080, and the first load's maps and font compressed (branch `perf/wasm-server-round5`)
+
+**Result.** The first load on the wire is **14 % smaller** (5,185,201 B to 4,454,046 B, median of 5 runs). The busy scenes lose their sprite-sort and
+town-counter allocations: the town's idle frame body falls from 29 B to 5 B a frame. **The frame time did not move beyond the run-to-run noise (about ±0.5 ms
+here), and the frame body is not zero in the mine or the town.** The gate in `frame.cjs` still passes on the farm, and the rest is listed below.
+
+### Load: the maps and the font were served raw
+
+The first load fetched about 0.65 MB of Tiled maps before the farm was playable, and the font uncompressed. The deploy serves the `.br` and `.gz` siblings
+the publish writes (ADR-031), but the linked maps (`.tmx`, XML text) and the font (`.ttf`) had none, so they crossed the wire raw. The maps are fetched at
+start on purpose (the farm's neighbours and the public world-map maps are prefetched, `MapLoader.Prefetch`); only their encoding was the cost.
+
+| Files on the first load (encoded bytes, one run) | Before | After |
+|:--|--:|--:|
+| `Town.tmx` | 162,117 | 7,522 |
+| `Forest.tmx` | 160,170 | 10,811 |
+| `Farm.tmx` | 102,804 | 8,028 |
+| `Mountain.tmx`, `Beach.tmx`, `Crossroads.tmx`, `Hillside.tmx`, `Woods.tmx` | 225,797 | 16,495 |
+| `VT323-Regular.ttf` | 153,366 | 37,574 |
+| Whole first load (median of 5) | 5,185,201 B (4.94 MiB), 195 requests, playable median 3,599 ms | 4,454,046 B (4.25 MiB), 195 requests, playable median 3,464 ms |
+
+The change is `wasm/Nosum.Wasm/Nosum.Wasm.csproj`: `StaticWebAssetPublishCompressAllAssets` and `CompressionIncludePatterns` (`**/*.tmx;**/*.ttf`). The SDK compresses
+only the patterns it is given, and only the files the project discovers; the linked content is `SourceType=Project`, so it needs the all-assets flag, and the
+pattern list still decides what is compressed (the PNG sprites stay as they are). The playable times are within the noise of this machine (3.3 to 3.7 s in
+both builds, after a first run of 5.6 s); the byte count is the gain.
+
+**Not done, measured as candidates:**
+
+| Candidate | Wire (brotli) | Why not now |
+|:--|--:|:--|
+| Drop `System.Private.Xml` (only `TmxReader` uses `XmlReader`) | about 97 KB | Replaces the map parser; needs its own round and the map tests as the safety net |
+| Load the rain loop and the thunder on first use (`rain_loop.wav`, `thunder.wav`, as music already is, ADR-086 D4) | about 158 KB | Changes the audio command path in `renderer.js` and `GameAudio`; the first rain would need the load to finish first |
+| Map files: `Farm`, `Crossroads` and the other neighbours load at start | about 45 KB now | Too small to matter after compression |
+
+### Frame: busy scenes at 1920 × 1080
+
+Tester build (`-p:NosumDevTools=true`), Chromium, the same harness on both builds, back to back: `frame.cjs --viewport 1920x1080 --scene <scene>`
+(8 s idle, then 8 s walking; the busy scenes wait 9 s after the teleport so a map's one-off first frames are over before the measured phases, `--settle`).
+One run of each; the callback p50 is the one-pixel readback included (ADR-086). Bytes are the frame body (`GameLoop.Frame`, ADR-099) and the whole thread.
+
+| Scene, phase | Frame body B/frame, master → this PR | Whole thread B/frame, master → this PR | Callback p50 ms, master → this PR |
+|:--|--:|--:|--:|
+| Farm, idle | 0 → 0 | 114 → 113 | 10.7 → 10.9 |
+| Farm, walk | 21.6 → 21.5 | 254 → 273 | 10.6 → 11.2 |
+| Town, idle | 29.2 → **5.2** | 196 → 174 | 11.6 → 12.2 |
+| Town, walk | 37.4 → 13.2 | 361 → 336 | 12.0 → 12.2 |
+| Mine, idle | 58.8 → 29.1 | 517 → 327 | 11.6 → 12.1 |
+| Mine, walk | 24.7 → 100.3 (see below) | 894 → 707 | 10.9 → 11.5 |
+| Co-op land, idle | 6.0 → 5.9 | 176 → 173 | 10.9 → 10.9 |
+| Co-op land, walk | 14.0 → 14.1 | 364 → 366 | 10.8 → 10.5 |
+
+**What changed, and what was attributed.** Per-stage probes (temporary, not committed; each stage bracketed with `GC.GetAllocatedBytesForCurrentThread`,
+reported outside the counted frame) found two sources:
+
+1. **The world sprite sort** (`WorldSpriteBatch.Flush`, `Array.Sort` over a struct that implements `IComparable<T>`) allocated about 65 B a frame in the
+   mine, on the interpreter build. A comparer object did not stop it; the sort is now an in-place heapsort over the same keys (a total order, so the same
+   result). In the probe the `flush` stage went from 64–66 B to 0. It only shows in scenes with enough sprites for the sort's slow path, so it does not appear
+   in the farm.
+2. **The shop counter lookup** (`ShopRules.TryFindShop`) ran `foreach` over the map's `IReadOnlyList<ShopPoint>` every frame: an enumerator per call, 24–35 B
+   in the town. It is an indexed loop now.
+
+**Not changed, and why.**
+
+- **Callback time did not move.** The saved bytes are tens of bytes a frame, and the frame is 10–12 ms of canvas work at 1080p. The draw calls are most of it:
+  about 25–60 `drawImage` and 85–150 `fillRect` a frame. The minimap is most of the `fillRect` count: hidden with the M key (`frame.cjs --key KeyM`) the farm
+  falls from 119 to 9 fills a frame.
+- **Caching the minimap's colour strings** (`renderer.js` builds `rgba(...)` for every coloured rectangle, command −6) was measured in
+  `bench/wasm-perf/fill-micro.cjs`: 110 rectangles cost 0.49–0.56 ms a frame with a fresh string per call and 0.49–0.58 ms cached (three rounds each, the
+  median of five runs per round). No difference beyond the noise. Not worth a change.
+  Baking the minimap into a render target would save the fills themselves (at most about 0.5 ms a frame); it is a candidate, not done.
+- **The frame body is not zero in the mine and the town.** Probes in the mine show a steady zero after the sort fix; the 29 B idle figure in the table is
+  event-driven: the first frames after a teleport build the map's decorators, and one probe window showed 56 B a frame in the emote bubble decorator (not
+  confirmed as steady). The walk figures in the mine
+  swing between 25 and 100 B a frame from run to run (the walk crosses chunk boundaries, which rebuild the walk grid, ADR-104), so they are not attributed. The
+  co-op land keeps 6 B idle (not attributed).
+- **The farm gate passes** (`--max-idle-body 0`): 0 B a frame, idle.
+
+### Verification
+
+- `dotnet build` of `engine/Nosum.Engine.slnx`, `server/Nosum.slnx`, `wasm/Nosum.Wasm.slnx`, `tests/Nosum.Tests.slnx`, `-c Release -warnaserror -m:2`: 0 errors, 0 warnings.
+- `dotnet test tests/Nosum.UnitTests --no-build`: 3,784 passed (including `Flush_ManySpritesWithTies_DrawsInTheOrderOfAStableSort`).
+- `node --test` over `tests/browser/**/*.test.mjs`: 40 passed.
+- `dotnet test tests/Nosum.IntegrationTests --no-build` on PostgreSQL 16: 854 passed, 0 failed (15 min 53 s), including the two offline-push tests.
+- Browser smoke (`tests/browser/smoke/boot-smoke.cjs`) against the deploy publish of this branch and the Development server: `ok`, 41 frames, 34 colours,
+  no page or console error.
+
 ## Reproduce
 
 ```bash
