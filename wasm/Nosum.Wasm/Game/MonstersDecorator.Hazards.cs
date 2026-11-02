@@ -10,9 +10,8 @@ namespace Nosum.Wasm.Game;
 
 internal sealed partial class MonstersDecorator
 {
-    // Labels already placed by DrawHazardsAndShrines this frame (text id, anchor x and y); a fixed array, so the frame allocates nothing.
-    private readonly (int LabelId, int X, int Y)[] _placedHazardLabels = new (int, int, int)[64];
-    private int _placedHazardLabelCount;
+    // Labels already placed by DrawHazardsAndShrines this frame (docs/adr/ADR-091).
+    private readonly PlacedLabelSet _hazardLabels = new();
 
     private void DrawRiftPortal(WorldSpriteBatch world, long now)
     {
@@ -90,7 +89,7 @@ internal sealed partial class MonstersDecorator
     private void DrawHazardsAndShrines(WorldSpriteBatch world, long now)
     {
         _combat.CopyHazards(_hazardsScratch);
-        _placedHazardLabelCount = 0;
+        _hazardLabels.Reset();
         for (int i = 0; i < _hazardsScratch.Count; i++)
         {
             HazardClientRow h = _hazardsScratch[i];
@@ -336,7 +335,7 @@ internal sealed partial class MonstersDecorator
                     9 => _labels.ShrineFrostLabelId,
                     _ => 0,
                 };
-                if (hLabelId > 0 && this.TakeHazardLabelSlot(hLabelId, hWorldX + 8, hWorldY - 4))
+                if (hLabelId > 0 && _hazardLabels.Take(hLabelId, hWorldX + 8, hWorldY - 4))
                 {
                     world.AddOverlay(
                         RenderCommandBuffer.LabelTexture,
@@ -352,26 +351,5 @@ internal sealed partial class MonstersDecorator
                 }
             }
         }
-    }
-
-    // Places a hazard label unless one of the same text already sits on it this frame (HazardLabelRules, docs/adr/ADR-091). Labels past the
-    // array's end are placed as before: the rule only thins clusters, it never drops a label that had no neighbour.
-    private bool TakeHazardLabelSlot(int labelId, int x, int y)
-    {
-        for (int i = 0; i < _placedHazardLabelCount; i++)
-        {
-            (int placedId, int placedX, int placedY) = _placedHazardLabels[i];
-            if (HazardLabelRules.Clashes(labelId, x, y, placedId, placedX, placedY))
-            {
-                return false;
-            }
-        }
-
-        if (_placedHazardLabelCount < _placedHazardLabels.Length)
-        {
-            _placedHazardLabels[_placedHazardLabelCount++] = (labelId, x, y);
-        }
-
-        return true;
     }
 }
