@@ -311,6 +311,9 @@ internal static partial class GameLoop
         actions?.FurnaceRequested += objectId => FurnaceRequested?.Invoke(objectId);
         actions?.CastRequested += (tileX, tileY) => s_fishing?.Cast(tileX, tileY);
         actions?.PanelCloseRequested += () => PanelCloseRequested?.Invoke();
+#if NOSUM_DEV_TOOLS
+        DevTools.UseActions(actions);
+#endif
         List<IMapDecoratorProvider> providers = [new PropDecoratorProvider(), new NpcDecoratorProvider()];
         if (actions is not null && s_farm is not null)
         {

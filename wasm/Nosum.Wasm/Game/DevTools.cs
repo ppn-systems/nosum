@@ -4,9 +4,11 @@
 using System;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
+using System.Text;
 using System.Threading.Tasks;
 using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Dev;
+using Nosum.Wasm.Socket.Node;
 using Nosum.Wasm.ViewModels.Fishing;
 
 namespace Nosum.Wasm.Game;
@@ -23,17 +25,25 @@ internal static partial class DevTools
     private static DevChannel? s_channel;
     private static FishingViewModel? s_fishing;
     private static CombatChannel? s_combat;
+    private static NodeChannel? s_nodes;
+    private static PlayerActions? s_actions;
 
     /// <summary>Connects the tools to the server channel and the fishing banner.</summary>
     /// <param name="channel">The dev channel.</param>
     /// <param name="fishing">The fishing banner, whose waiting line the bite tool makes bite.</param>
     /// <param name="combat">The combat channel, whose monsters the teleport next to a monster reads.</param>
-    public static void Use(DevChannel channel, FishingViewModel fishing, CombatChannel combat)
+    /// <param name="nodes">The node mirror of the current place, which the node list reads.</param>
+    public static void Use(DevChannel channel, FishingViewModel fishing, CombatChannel combat, NodeChannel nodes)
     {
         s_channel = channel;
         s_fishing = fishing;
         s_combat = combat;
+        s_nodes = nodes;
     }
+
+    /// <summary>Connects the target query to the farmer's actions (the tile the action key works, <see cref="PlayerActions.TargetX"/>).</summary>
+    /// <param name="actions">The farmer's actions of the running game.</param>
+    public static void UseActions(PlayerActions? actions) => s_actions = actions;
 
     /// <summary>Asks a Development server for items and/or coins.</summary>
     /// <param name="itemId">The item id, or zero for coins only.</param>
@@ -101,6 +111,46 @@ internal static partial class DevTools
         {
             s_channel.Teleport(mapId, x + dx, y + dy);
         }
+    }
+
+    /// <summary>
+    /// The tile the action key works now and the facing it works it from: <c>tileX,tileY,facing</c> (the farmer's Facing value, engine/Nosum.Core), or an empty string before the game runs. The QA harness reads it to tell where a teleport landed.
+    /// </summary>
+    [JSExport]
+    internal static string Target()
+    {
+        if (s_actions is null)
+        {
+            return string.Empty;
+        }
+
+        return s_actions.TargetX + "," + s_actions.TargetY + "," + (int)s_actions.TargetFacing;
+    }
+
+    /// <summary>
+    /// The map the client is on, then the resource nodes of that place as the client holds them: one <c>x,y,kind</c> entry per node, every entry separated by <c>;</c>.
+    /// A ladder hidden under a stone is a stone here (the server never sends its variant, docs/adr/ADR-026 D3); it shows as a ladder once broken.
+    /// </summary>
+    [JSExport]
+    internal static string Nodes()
+    {
+        if (s_nodes is null)
+        {
+            return string.Empty;
+        }
+
+        StringBuilder text = new();
+        text.Append(s_nodes.MapId).Append(';');
+        using (s_nodes.Read())
+        {
+            for (int i = 0; i < s_nodes.Count; i++)
+            {
+                NodeInfo node = s_nodes.At(i);
+                text.Append(node.X).Append(',').Append(node.Y).Append(',').Append(node.Kind).Append(';');
+            }
+        }
+
+        return text.ToString();
     }
 
     /// <summary>Shows a level-up banner for a skill without changing it.</summary>

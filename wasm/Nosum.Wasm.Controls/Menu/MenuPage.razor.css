@@ -8,7 +8,8 @@
 
 /* A scroll cue (docs/design/ui-standard.md section 6): a shade shows on the top or bottom edge only while content lies beyond it, so a cut row says the
    page scrolls. CSS only: the parchment covers move with the content (local) and hide the shade where the content starts or ends; the shades stay on
-   the box (scroll). Backgrounds sit under the content, so the covers never hide a row. */
+   the box (scroll). Backgrounds sit under the content, so the covers never hide a row. The cover and the shade have the same height (six units, a band
+   a thumb's width tall that reads on a phone): a shade taller than its cover would show a band over the first row at the top of the page. */
 .menu-page-body {
     display: flex;
     flex: 0 1 auto;
@@ -18,10 +19,10 @@
     overflow-y: auto;
     padding-right: var(--u);
     background:
-        linear-gradient(var(--nosum-parchment), var(--nosum-parchment)) top / 100% calc(var(--u) * 2) no-repeat local,
-        linear-gradient(var(--nosum-parchment), var(--nosum-parchment)) bottom / 100% calc(var(--u) * 2) no-repeat local,
-        linear-gradient(rgba(60, 40, 20, 0.22), rgba(60, 40, 20, 0)) top / 100% calc(var(--u) * 3) no-repeat scroll,
-        linear-gradient(rgba(60, 40, 20, 0), rgba(60, 40, 20, 0.22)) bottom / 100% calc(var(--u) * 3) no-repeat scroll;
+        linear-gradient(var(--nosum-parchment), var(--nosum-parchment)) top / 100% calc(var(--u) * 6) no-repeat local,
+        linear-gradient(var(--nosum-parchment), var(--nosum-parchment)) bottom / 100% calc(var(--u) * 6) no-repeat local,
+        linear-gradient(rgba(60, 40, 20, 0.5), rgba(60, 40, 20, 0)) top / 100% calc(var(--u) * 6) no-repeat scroll,
+        linear-gradient(rgba(60, 40, 20, 0), rgba(60, 40, 20, 0.5)) bottom / 100% calc(var(--u) * 6) no-repeat scroll;
 }
 
 .menu-page-footer {

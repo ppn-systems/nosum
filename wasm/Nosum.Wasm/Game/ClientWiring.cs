@@ -271,7 +271,7 @@ internal static class ClientWiring
         GameLoop.UseFishing(services.GetRequiredService<FishingViewModel>(), services.GetRequiredService<SettingsViewModel>());
         GameLoop.UseLooks(looks, services.GetRequiredService<NicknameFormatter>());
 #if NOSUM_DEV_TOOLS
-        DevTools.Use(services.GetRequiredService<DevChannel>(), services.GetRequiredService<FishingViewModel>(), combat);
+        DevTools.Use(services.GetRequiredService<DevChannel>(), services.GetRequiredService<FishingViewModel>(), combat, services.GetRequiredService<NodeChannel>());
 #endif
         FurnaceChannel furnaces = services.GetRequiredService<FurnaceChannel>();
         GameLoop.UseContainers(services.GetRequiredService<ChestChannel>(), furnaces);
