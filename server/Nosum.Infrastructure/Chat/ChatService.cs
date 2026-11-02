@@ -14,6 +14,7 @@ using Nosum.Abstractions.Observability;
 using Nosum.Abstractions.Chat;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Presence;
+using Nosum.Infrastructure.Presence;
 using Nosum.Contracts.Chat;
 using Nosum.Contracts.Chat.S2C;
 using Nosum.Domain.Accounts;
@@ -37,6 +38,7 @@ public sealed class ChatService : IChatService
     private const int RingSweepEvery = 512;
 
     private readonly IMapPresence _presence;
+    private readonly ViewerFanout _fanout;
     private readonly ISessionRegistry _sessions;
     private readonly IPlayerNotifier _notifier;
     private readonly INicknameDirectory _nicknames;
@@ -72,6 +74,7 @@ public sealed class ChatService : IChatService
         ArgumentNullException.ThrowIfNull(time);
 
         _presence = presence;
+        _fanout = new ViewerFanout(presence);
         _sessions = sessions;
         _notifier = notifier;
         _nicknames = nicknames;
@@ -166,6 +169,9 @@ public sealed class ChatService : IChatService
         _ = await _notifier.TrySendAsync(senderId, message, cancellationToken).ConfigureAwait(false);
         this.Record(senderId, line);
 
+        // The recipients get the line together under one push deadline: one stuck recipient cannot hold the others (docs/adr/ADR-087, amendment 2026-11-02).
+        List<Guid> targets = [];
+        List<IConnection> connections = [];
         foreach (Guid recipient in recipients.Distinct())
         {
             if (recipient == senderId || !delivered.Add(recipient))
@@ -178,10 +184,20 @@ public sealed class ChatService : IChatService
                 continue;
             }
 
-            if (await _notifier.TrySendAsync(recipient, message, cancellationToken).ConfigureAwait(false))
+            IConnection? live = _sessions.GetActive(recipient);
+            if (live is null || live.IsDisposed)
             {
-                this.Record(recipient, line);
+                continue;
             }
+
+            targets.Add(recipient);
+            connections.Add(live);
+        }
+
+        await _fanout.SendAsync(connections, message, null, cancellationToken).ConfigureAwait(false);
+        foreach (Guid recipientId in targets)
+        {
+            this.Record(recipientId, line);
         }
 
         return ChatStatus.Ok;

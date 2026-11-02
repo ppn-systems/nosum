@@ -99,3 +99,31 @@ depends on each transport honouring its cancellation token; the transport owners
 are in [server-perf.md](../perf/server-perf.md). Every steady phase ticked 600 times (10/s), with no client dropped by the server. The freeze reported for
 the bench (zero snapshots in runs 2 and 3) did not reproduce in three runs before the fix in this environment, so the bench's cause is not identified
 here; the deterministic repro above is the one shown.
+
+## Amendment (2026-11-02, second): every push to many players has the same deadline
+
+The amendment above left the sends that publish to many players without a deadline: chunk publishes (`ChunkPublisher.PublishAsync`), instance
+multicasts (`MapPresence.MulticastAsync`, `PublishInstanceAsync`), the chest watchers, the friend status and the chat lines. Each awaited its recipients
+one after another under the server's stop token, so one client that stopped reading held the publishing handler and every recipient after it.
+
+- **D6 — one helper, one deadline, for every push to more than one connection.** `ViewerFanout` (`server/Nosum.Infrastructure/Presence/ViewerFanout.cs`)
+  is the only way such a push reaches its recipients. Every recipient's send starts at once under one linked token with `CancelAfter` of 250 ms (the D2
+  deadline). The call returns when the last send ends or the deadline passes. A recipient whose send is still running at the deadline is disconnected
+  (`fanout.viewer_dropped` is logged); the others are never held by it. A send that fails for another reason (a closing connection) is left to its close event.
+- **Routed through it:** `ChunkPublisher.PublishAsync` (farm tiles, nodes, ground items, placeables, buildings and animals, looks, emotes, and the chunk
+  streamer's enter notices), `MapPresence.MulticastAsync` (`PublishInstanceAsync`, the furnace, the community goal and unlock pushes), the chest watcher
+  pushes (`ChestService`), the friend status (`FriendService`) and the chat line to a channel's recipients (`ChatService`).
+- **Not routed, and why:** the single-recipient sends through `IPlayerNotifier` (market sale, mail, trade, friend requests, whispers, a sender's own
+  chat echo) and the single sends of `PlaceableService` and `ChestService`. Each awaits one connection, so a stall holds its own handler and no one else's.
+  Giving them the deadline is a follow-up. The snapshot path keeps its D2 deadline and does not use the helper.
+- **Test seam.** `ServerSeams.WrapPresence` now wraps the presence the chunk publisher sends through as well, so a test can hold the publish sends to one
+  client. Production passes no seam.
+- **Behaviour changes.** (a) A recipient that misses the deadline of a publish is disconnected, as a viewer that misses its snapshot deadline is (D2). (b) A
+  publish takes at most the deadline when a recipient is stalled, so the reply of the handler that published (an emote, a furnace or chest change) can
+  come up to 250 ms late; with no stalled recipient nothing waits. (c) A chat line is recorded for each recipient with a live connection before the
+  send, not only after a send that succeeded, so a recipient dropped at the deadline still has the line in their history.
+- **Test.** `PublishFanoutTests.StuckViewerThatNeverTakesAnEmote_DoesNotDelayTheOthersOfTheChunk_AndIsDropped` holds one viewer's emote sends and
+  checks that the other viewer receives the emote while that send is still held, then that the stuck viewer is disconnected. It failed before the helper
+  (the emote never reached the other viewer, and the sender's reply never came) and passes with it.
+- No wire, packet, opcode or schema change. The transport must honour cancellation for the bound to hold; the transport owners should confirm it, as
+  the D2 note asks.
