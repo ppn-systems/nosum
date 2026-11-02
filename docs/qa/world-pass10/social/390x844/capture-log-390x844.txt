@@ -1,0 +1,18 @@
+ok   befriend QaFriend3072
+ok   vi-390x844-friends-online (listed)
+ok   vi-390x844-chat
+ok   vi-390x844-trade
+ok   vi-390x844-visit-farm
+ok   vi-390x844-coop-deposit
+ok   vi-390x844-coop-invite
+ok   vi-390x844-coop-log
+ok   vi-390x844 play
+ok   befriend QaFriend8723
+ok   en-390x844-friends-online (listed)
+ok   en-390x844-chat
+ok   en-390x844-trade
+ok   en-390x844-visit-farm
+ok   en-390x844-coop-deposit
+ok   en-390x844-coop-invite
+ok   en-390x844-coop-log
+ok   en-390x844 play

@@ -1,0 +1,304 @@
+[
+  {
+    "lk": "vi",
+    "size": "1280x720",
+    "steps": [
+      {
+        "name": "01-farm-start",
+        "ok": true,
+        "file": "01-01-farm-start.png"
+      },
+      {
+        "name": "02-hotbar-1",
+        "ok": true,
+        "file": "02-02-hotbar-1.png"
+      },
+      {
+        "name": "02-hotbar-2",
+        "ok": true,
+        "file": "03-02-hotbar-2.png"
+      },
+      {
+        "name": "02-hotbar-3",
+        "ok": true,
+        "file": "04-02-hotbar-3.png"
+      },
+      {
+        "name": "03-menu-open",
+        "ok": true,
+        "file": "05-03-menu-open.png"
+      },
+      {
+        "name": "04-world-map",
+        "ok": false,
+        "error": "locator.click: Timeout 6000ms exceeded.",
+        "file": "06-04-world-map.png"
+      },
+      {
+        "name": "05-at-farm-door",
+        "ok": true,
+        "file": "07-05-at-farm-door.png"
+      },
+      {
+        "name": "06-bus-stop-press",
+        "ok": true,
+        "value": {
+          "toast": "500"
+        },
+        "file": "08-06-bus-stop-press.png"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "lk": "vi",
+    "size": "1920x1080",
+    "steps": [
+      {
+        "name": "01-farm-start",
+        "ok": true,
+        "file": "01-01-farm-start.png"
+      },
+      {
+        "name": "02-hotbar-1",
+        "ok": true,
+        "file": "02-02-hotbar-1.png"
+      },
+      {
+        "name": "02-hotbar-2",
+        "ok": true,
+        "file": "03-02-hotbar-2.png"
+      },
+      {
+        "name": "02-hotbar-3",
+        "ok": true,
+        "file": "04-02-hotbar-3.png"
+      },
+      {
+        "name": "03-menu-open",
+        "ok": true,
+        "file": "05-03-menu-open.png"
+      },
+      {
+        "name": "04-world-map",
+        "ok": true,
+        "file": "06-04-world-map.png"
+      },
+      {
+        "name": "05-at-farm-door",
+        "ok": true,
+        "file": "07-05-at-farm-door.png"
+      },
+      {
+        "name": "06-bus-stop-press",
+        "ok": true,
+        "value": {
+          "toast": "500 | Bạn đang ở đây | Trạm xe buýt | Khu rừng | Rừng sâu | Nhà nông trại | Trạm xe buýt | Núi | Khu rừng | Bờ biển | Đất hợp tác"
+        },
+        "file": "08-06-bus-stop-press.png"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "lk": "vi",
+    "size": "390x844",
+    "steps": [
+      {
+        "name": "01-farm-start",
+        "ok": true,
+        "file": "01-01-farm-start.png"
+      },
+      {
+        "name": "02-hotbar-1",
+        "ok": true,
+        "file": "02-02-hotbar-1.png"
+      },
+      {
+        "name": "02-hotbar-2",
+        "ok": true,
+        "file": "03-02-hotbar-2.png"
+      },
+      {
+        "name": "02-hotbar-3",
+        "ok": true,
+        "file": "04-02-hotbar-3.png"
+      },
+      {
+        "name": "03-menu-open",
+        "ok": true,
+        "file": "05-03-menu-open.png"
+      },
+      {
+        "name": "04-world-map",
+        "ok": true,
+        "file": "06-04-world-map.png"
+      },
+      {
+        "name": "05-at-farm-door",
+        "ok": true,
+        "file": "07-05-at-farm-door.png"
+      },
+      {
+        "name": "06-bus-stop-press",
+        "ok": true,
+        "value": {
+          "toast": "500 | Bạn đang ở đây | Trạm xe buýt | Khu rừng | Rừng sâu | Nhà nông trại | Trạm xe buýt | Núi | Khu rừng | Bờ biển | Đất hợp tác"
+        },
+        "file": "08-06-bus-stop-press.png"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "lk": "en",
+    "size": "1280x720",
+    "steps": [
+      {
+        "name": "01-farm-start",
+        "ok": true,
+        "file": "01-01-farm-start.png"
+      },
+      {
+        "name": "02-hotbar-1",
+        "ok": true,
+        "file": "02-02-hotbar-1.png"
+      },
+      {
+        "name": "02-hotbar-2",
+        "ok": true,
+        "file": "03-02-hotbar-2.png"
+      },
+      {
+        "name": "02-hotbar-3",
+        "ok": true,
+        "file": "04-02-hotbar-3.png"
+      },
+      {
+        "name": "03-menu-open",
+        "ok": true,
+        "file": "05-03-menu-open.png"
+      },
+      {
+        "name": "04-world-map",
+        "ok": false,
+        "error": "locator.click: Timeout 6000ms exceeded.",
+        "file": "06-04-world-map.png"
+      },
+      {
+        "name": "05-at-farm-door",
+        "ok": true,
+        "file": "07-05-at-farm-door.png"
+      },
+      {
+        "name": "06-bus-stop-press",
+        "ok": true,
+        "value": {
+          "toast": "500"
+        },
+        "file": "08-06-bus-stop-press.png"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "lk": "en",
+    "size": "1920x1080",
+    "steps": [
+      {
+        "name": "01-farm-start",
+        "ok": true,
+        "file": "01-01-farm-start.png"
+      },
+      {
+        "name": "02-hotbar-1",
+        "ok": true,
+        "file": "02-02-hotbar-1.png"
+      },
+      {
+        "name": "02-hotbar-2",
+        "ok": true,
+        "file": "03-02-hotbar-2.png"
+      },
+      {
+        "name": "02-hotbar-3",
+        "ok": true,
+        "file": "04-02-hotbar-3.png"
+      },
+      {
+        "name": "03-menu-open",
+        "ok": true,
+        "file": "05-03-menu-open.png"
+      },
+      {
+        "name": "04-world-map",
+        "ok": true,
+        "file": "06-04-world-map.png"
+      },
+      {
+        "name": "05-at-farm-door",
+        "ok": true,
+        "file": "07-05-at-farm-door.png"
+      },
+      {
+        "name": "06-bus-stop-press",
+        "ok": true,
+        "value": {
+          "toast": "500 | You are here | Bus stop | Forest | Backwoods | Farmhouse | Bus stop | Mountain | Forest | Beach | Co-op land"
+        },
+        "file": "08-06-bus-stop-press.png"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "lk": "en",
+    "size": "390x844",
+    "steps": [
+      {
+        "name": "01-farm-start",
+        "ok": true,
+        "file": "01-01-farm-start.png"
+      },
+      {
+        "name": "02-hotbar-1",
+        "ok": true,
+        "file": "02-02-hotbar-1.png"
+      },
+      {
+        "name": "02-hotbar-2",
+        "ok": true,
+        "file": "03-02-hotbar-2.png"
+      },
+      {
+        "name": "02-hotbar-3",
+        "ok": true,
+        "file": "04-02-hotbar-3.png"
+      },
+      {
+        "name": "03-menu-open",
+        "ok": true,
+        "file": "05-03-menu-open.png"
+      },
+      {
+        "name": "04-world-map",
+        "ok": true,
+        "file": "06-04-world-map.png"
+      },
+      {
+        "name": "05-at-farm-door",
+        "ok": true,
+        "file": "07-05-at-farm-door.png"
+      },
+      {
+        "name": "06-bus-stop-press",
+        "ok": true,
+        "value": {
+          "toast": "500 | You are here | Bus stop | Forest | Backwoods | Farmhouse | Bus stop | Mountain | Forest | Beach | Co-op land"
+        },
+        "file": "08-06-bus-stop-press.png"
+      }
+    ],
+    "errors": []
+  }
+]

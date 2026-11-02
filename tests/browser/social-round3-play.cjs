@@ -239,7 +239,9 @@ async function play(browser, code, size) {
   });
   // The co-op log is one tab of the co-op window. It is a checked step: if the log cannot be opened, this step fails (no silent catch).
   await step(p + 'coop-log', async () => {
+    // The invite step closed every window on A, so the board is reopened from A's tile before the co-op window is clicked.
     if (await a.getByRole('button', { name: t.logTab }).count() === 0) {
+      await openBoard(a, t, [44, 60]);
       await seen(a.getByText(t.coop, { exact: true })).then(c => c.click({ timeout: 6000 }));
     }
     await seen(a.getByRole('button', { name: t.logTab })).then(b => b.dispatchEvent('click', null, { timeout: 6000 }));
