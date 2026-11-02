@@ -9,7 +9,6 @@ using Nosum.Contracts.Market;
 using Nosum.Contracts.Placeable;
 using Nosum.Contracts.Player;
 using Nosum.Gameplay.Skills;
-using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Farm;
 using Nosum.Wasm.Socket.Player;
@@ -46,7 +45,6 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
     private readonly IStringLocalizer<Language> _text;
     private readonly MarketChannel? _market;
     private readonly ProgressChannel? _progress;
-    private readonly CombatChannel? _combat;
     private readonly List<GameToast> _toasts = new(MaxToasts);
     private long _nextId;
     private long _nextLife;
@@ -101,22 +99,6 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
         _progress = progress;
         progress.LevelledUp += this.OnLevelUp;
         progress.EatCompleted += this.OnEatCompleted;
-    }
-
-    /// <summary>Initializes the view model and also follows combat level-ups.</summary>
-    /// <param name="farm">The farm channel (answers to item use).</param>
-    /// <param name="placeables">The placeable channel (answers to placing furniture).</param>
-    /// <param name="inventory">The inventory view model (refused moves).</param>
-    /// <param name="text">UI text.</param>
-    /// <param name="market">The market channel (answers to shipping).</param>
-    /// <param name="progress">The energy and skills channel.</param>
-    /// <param name="combat">The combat channel.</param>
-    public GameMessagesViewModel(FarmChannel farm, PlaceableChannel placeables, InventoryViewModel inventory, IStringLocalizer<Language> text, MarketChannel market, ProgressChannel progress, CombatChannel combat)
-        : this(farm, placeables, inventory, text, market, progress)
-    {
-        ArgumentNullException.ThrowIfNull(combat);
-        _combat = combat;
-        combat.LevelledUp += this.OnCombatLevelUp;
     }
 
     /// <summary>Raised when <see cref="Message"/> changed. May run on any thread.</summary>
@@ -183,20 +165,6 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
             _progress.EatCompleted -= this.OnEatCompleted;
         }
 
-        if (_combat is not null)
-        {
-            _combat.LevelledUp -= this.OnCombatLevelUp;
-        }
-    }
-
-    private void OnCombatLevelUp(int level)
-    {
-        if (_combat is { IsCombatSkillLevelUp: false })
-        {
-            return;
-        }
-
-        this.OnLevelUp((byte)SkillKind.Combat, level);
     }
 
     private void OnLevelUp(byte skill, int level)

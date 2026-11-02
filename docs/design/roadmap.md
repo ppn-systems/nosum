@@ -20,7 +20,7 @@ console errors.
 
 ## M2 — Progression and content
 
-- At least five crops per season (spring, summer, fall; winter: forage only), including multi-harvest crops.
+- At least five crops per season (spring, summer, fall; winter: parsnip is the one winter crop today, `CropCatalog`, docs/adr/ADR-018), including multi-harvest crops.
 - Crafting: recipes unlocked by level; chest (storage, placeable outdoors), fence, path, scarecrow, sprinkler,
   furnace (ore → bar). Placeables allowed on the farm, not only in the farmhouse.
 - Tool upgrades (copper, iron) at a blacksmith counter: coins + bars, upgraded tools hit harder or water more tiles.
