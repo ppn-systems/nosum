@@ -359,25 +359,29 @@ public sealed class MarketService : IMarketService
             IRepository<MarketListing> listings = unit.Repository<MarketListing>();
             int total = await listings.CountAsync(l => l.Status == ListingStatus.Active && l.ExpiresAt > now && (any || ids.Contains(l.ItemId)), cancellationToken).ConfigureAwait(false);
 
-            // The repository pages newest-key first. A unit price lowest-first page sorts on the negated unit price, so the same descending page gives the ascending order.
+            // The repository pages highest-key first. A unit price lowest-first page sorts on the negated unit price, so the same descending page gives the
+            // ascending order. Equal keys are common (two stacks at 60 each), so the listing id breaks the tie: without it, offset pages can repeat or skip a row.
             int skip = index * size;
             List<MarketListing> rows = sort switch
             {
                 MarketSort.UnitPriceLowest => await listings.PageAsync(
                     l => l.Status == ListingStatus.Active && l.ExpiresAt > now && (any || ids.Contains(l.ItemId)),
                     l => -((double)l.Price / l.Quantity),
+                    l => l.Id,
                     skip,
                     size,
                     cancellationToken).ConfigureAwait(false),
                 MarketSort.UnitPriceHighest => await listings.PageAsync(
                     l => l.Status == ListingStatus.Active && l.ExpiresAt > now && (any || ids.Contains(l.ItemId)),
                     l => (double)l.Price / l.Quantity,
+                    l => l.Id,
                     skip,
                     size,
                     cancellationToken).ConfigureAwait(false),
                 _ => await listings.PageAsync(
                     l => l.Status == ListingStatus.Active && l.ExpiresAt > now && (any || ids.Contains(l.ItemId)),
                     l => l.CreatedAt,
+                    l => l.Id,
                     skip,
                     size,
                     cancellationToken).ConfigureAwait(false),

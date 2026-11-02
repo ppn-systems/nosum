@@ -17,7 +17,7 @@ public static class CoinRules
     /// <summary>Largest balance a player may hold; a credit past it is refused so a sum can never overflow.</summary>
     public const long MaxBalance = 1_000_000_000_000;
 
-    /// <summary>Market fee, percent of the price, taken from the seller's proceeds (rounded down).</summary>
+    /// <summary>Market fee, percent of the price, taken from the seller's proceeds (rounded up; see <see cref="MarketFee"/>).</summary>
     public const int MarketFeePercent = 5;
 
     /// <summary>Smallest listing price (for the whole stack).</summary>

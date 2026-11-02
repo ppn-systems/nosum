@@ -43,6 +43,9 @@ internal sealed class EfRepository<TEntity> : IRepository<TEntity>
     public Task<List<TEntity>> PageAsync<TKey>(Expression<Func<TEntity, bool>> predicate, Expression<Func<TEntity, TKey>> orderByDescending, int skip, int take, CancellationToken cancellationToken)
         => _set.Where(predicate).OrderByDescending(orderByDescending).Skip(skip).Take(take).ToListAsync(cancellationToken);
 
+    public Task<List<TEntity>> PageAsync<TKey, TTie>(Expression<Func<TEntity, bool>> predicate, Expression<Func<TEntity, TKey>> orderByDescending, Expression<Func<TEntity, TTie>> thenByDescending, int skip, int take, CancellationToken cancellationToken)
+        => _set.Where(predicate).OrderByDescending(orderByDescending).ThenByDescending(thenByDescending).Skip(skip).Take(take).ToListAsync(cancellationToken);
+
     public void Add(TEntity entity) => _ = _set.Add(entity);
 
     public void Update(TEntity entity) => _ = _set.Update(entity);
