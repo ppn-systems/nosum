@@ -209,3 +209,40 @@ Not changed, and why:
 
 Tests: `MarketSortViewModelTests` (server clock), `SocialServiceTests.Browse_PagesOfEqualUnitPrices_ShowEveryListingOnce` (paging with ties; on a
 small table PostgreSQL may return ties in a stable order, so this test guards the contract rather than reproducing the old failure every time).
+
+## 13. Round 5: what changed, what did not
+
+Branch `claude/economy-round5`. Captures and grading: [`docs/qa/economy-round5/`](../qa/economy-round5/README.md). The round re-read what the player reads after a
+coin moves (a purchase, a market buy, a bin sale, a mail gift) and fixed the lines that said less than the server knew. No new feature, no balance change, no
+owner decision touched.
+
+| Section | Item | Result |
+|:--|:--|:--|
+| 4, 9 | Shop purchase says "Bought. It is in your inventory." | **Fixed.** It names the item, the quantity and the coins the server took (`ShopResult.Spent`, which the client had been dropping): "Bought Parsnip seeds x1 for 12 coins. It is in your inventory." |
+| 6 | Market buy says "Bought." | **Fixed.** The price is the listing's own (fixed when it was listed) and the server has accepted it: "Bought Parsnip x9 for 1,500 coins." A purchase whose listing left the page before the buy was sent keeps "Bought.". |
+| 6, 9 | Mail gift collect says "Collected." | **Fixed.** A run of gifts ("Collect all") is one line at its end: "Collected 2 items and 160 coins." A run that stops says what came through, then why: "Collected 95 coins. Your bag has no room." Before, every gift said only "Collected.", so a run of three gave no total. |
+| 6 | Bin sale says "Sold for {N} coins." | **Not changed.** It already names the coins. Naming the item needs the count, and the bin request sends 0 for the whole stack, so the client does not know the count. Adding it is a wire change. |
+| 6 | "Your listing sold" mail says "You receive 57 coins after the fee." | **Not changed; correct.** The coins are in the purse at the sale. The mail is a notice with nothing to collect, so it is not counted by "Collect all". |
+
+**How it is built.** Each completion now carries the request it answers: `ShopPurchaseInfo` (item, quantity, coins spent), the listing id on
+`MarketChannel.Completed`, and the mail id on `MailChannel.Completed`. The view models read the answer's own identity, not a queue of pending requests, so a
+lost reply cannot put one purchase's name on another's line. No wire change: `ShopResult.Spent` was already sent, and the other two are client-side.
+No ADR: the protocol, the rules and the layouts are unchanged; the only visible change is the status text.
+
+Strings: `Shop_Done` is replaced by `Shop_Bought`; `Market_Done_BuyDetail`, `Mail_CollectedBoth`, `Mail_CollectedCoins`, `Mail_CollectedItems`, `Mail_Items`
+and `Mail_Items_One` are new. Both languages. The English singular is its own text, so the line never reads "1 items".
+
+**Tooling.** `tests/browser/rebuild-economy/capture-market.js` looked for the sort buttons "Cheapest each" and "Priciest each", which the build renamed to
+"Cheapest" and "Priciest"; the harness now matches the build. The new `capture-coins.cjs` seeds two gift mails for the seller in the dev database, the way
+`account-round2` seeds its mail, and checks each screen's text on the page as well as by eye.
+
+Still open, unchanged from round 4:
+
+- **Late-game sink, energy-free herds, fishing at the margin, fiber free, the confirm asymmetry** (section 7): owner decisions.
+- **"Hours left" does not tick** (section 12): the refresh rule is the owner's call.
+- **Price of current asks** (section 6, item 8): a new query and a new view, so a feature.
+- **Sales-only price history** and **the NPC route to the market** (section 6, items 5 and 8): unchanged.
+
+Tests: `MailTests` (the collect line, the singular, the run total, a run stopped by a refusal), `ShopViewModelTests` (the purchase line names the server's coins;
+a refusal shows only the refusal), `MarketSortViewModelTests` (a buy names the listing and its price, a confirmed large buy, a refused buy). The full unit suite
+passes (3,792 tests), and the browser captures in `docs/qa/economy-round5/` pass their 18 text checks.
