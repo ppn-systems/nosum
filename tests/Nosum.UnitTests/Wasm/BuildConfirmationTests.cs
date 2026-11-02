@@ -41,6 +41,29 @@ public sealed class BuildConfirmationTests
     }
 
     [Fact]
+    public void Observe_GhostLeavesTheArmedTile_NextPressOnItOnlyArmsAgain()
+    {
+        BuildConfirmation confirm = default;
+        confirm.Press(4, 5, 10);
+
+        confirm.Observe(6, 5);
+        confirm.IsArmed(10.5).Should().BeFalse("the ghost left the tile that was armed");
+        confirm.Observe(4, 5);
+        confirm.Press(4, 5, 11).Should().BeFalse("walking back inside the window does not confirm the build");
+    }
+
+    [Fact]
+    public void Observe_GhostStaysOnTheArmedTile_KeepsTheConfirmation()
+    {
+        BuildConfirmation confirm = default;
+        confirm.Press(4, 5, 10);
+
+        confirm.Observe(4, 5);
+
+        confirm.Press(4, 5, 11).Should().BeTrue();
+    }
+
+    [Fact]
     public void Disarm_DropsThePendingConfirmation()
     {
         BuildConfirmation confirm = default;

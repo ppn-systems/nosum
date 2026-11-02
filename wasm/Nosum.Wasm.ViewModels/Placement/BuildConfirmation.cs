@@ -44,6 +44,20 @@ public struct BuildConfirmation
         return false;
     }
 
+    /// <summary>
+    /// Reports where the ghost is this frame. Aiming at any tile other than the armed one drops the confirmation, so walking away and coming back
+    /// inside the window needs a fresh first press (docs/design/critique-placement.md, finding 18).
+    /// </summary>
+    /// <param name="tileX">The left tile of the ghost's footprint this frame.</param>
+    /// <param name="tileY">The top tile of the ghost's footprint this frame.</param>
+    public void Observe(int tileX, int tileY)
+    {
+        if (_armed && (_tileX != tileX || _tileY != tileY))
+        {
+            this.Disarm();
+        }
+    }
+
     /// <summary>Drops a pending confirmation (the ghost moved, or the player left the room).</summary>
     public void Disarm() => _armed = false;
 }

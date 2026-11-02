@@ -110,6 +110,7 @@ internal sealed class PlacementActions
         {
             _lastHeldItemId = heldNow;
             _view.ClearDismissed();
+            _buildConfirm.Disarm();
         }
 
         _view.SetActive(active && (alwaysShowPanel || this.CarryingId != 0 || PlaceableCatalog.TryGet(heldNow, out _)));
@@ -117,6 +118,7 @@ internal sealed class PlacementActions
         {
             this.CarryingId = 0;
             _view.SetCarrying(0);
+            _buildConfirm.Disarm();
             this.GhostVisible = false;
             _view.SetGhost(false, PlaceStatus.Ok, false);
             _view.SetStowMissed(false);
@@ -231,6 +233,7 @@ internal sealed class PlacementActions
 
         // A finished building cannot be moved or stowed (docs/adr/ADR-028), so a building that looks valid needs a second press.
         bool building = definition.Kind == PlaceableKind.Building && this.CarryingId == 0;
+        _buildConfirm.Observe(tileX, tileY);
         if (place && Throttle(nowSeconds, ref _lastActionSeconds))
         {
             bool sent = false;
