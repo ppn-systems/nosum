@@ -1,0 +1,76 @@
+{
+  "flow": "coop",
+  "locale": "en",
+  "viewport": "1280x720",
+  "steps": [
+    {
+      "name": "coop-board-open",
+      "ok": true,
+      "value": {
+        "window": "Co-op Found a co-op Found Invitations You have no invitations."
+      },
+      "file": "01-coop-board-open.png"
+    },
+    {
+      "name": "coop-found",
+      "ok": true,
+      "value": {
+        "window": "Co-op Members You Founder Online Counts cover the recent log (0 entries). No other players here to invite. Leave co-op S"
+      },
+      "file": "02-coop-found.png"
+    },
+    {
+      "name": "coop-members",
+      "ok": true,
+      "value": {
+        "overflow": 908
+      },
+      "file": "03-coop-members.png"
+    },
+    {
+      "name": "coop-upgrades",
+      "ok": true,
+      "value": {
+        "overflow": 908,
+        "buy": 2
+      },
+      "file": "04-coop-upgrades.png"
+    },
+    {
+      "name": "coop-objectives",
+      "ok": true,
+      "value": {
+        "overflow": 908
+      },
+      "file": "05-coop-objectives.png"
+    },
+    {
+      "name": "coop-deposit-seeds",
+      "ok": true,
+      "value": {
+        "window": "Co-op Members You Founder 6 deposited Online Counts cover the recent log (1 entries). No other players here to invite. Leave co-op Shared warehouse 6 Radish see",
+        "overflow": 968
+      },
+      "file": "06-coop-deposit-seeds.png"
+    },
+    {
+      "name": "coop-withdraw",
+      "ok": true,
+      "value": {
+        "window": "Co-op Members You Founder 6 deposited Online Counts cover the recent log (2 entries). No other players here to invite. Leave co-op Shared warehouse The warehous",
+        "overflow": 964
+      },
+      "file": "07-coop-withdraw.png"
+    },
+    {
+      "name": "coop-log",
+      "ok": true,
+      "value": {
+        "log": "Co-op Members You Founder 6 deposited Online Counts cover the recent log (2 entries). No other players here to invite. Leave co-op Shared warehouse The warehouse is empty. Withdraw Deposit Pick an ite",
+        "overflow": 964
+      },
+      "file": "08-coop-log.png"
+    }
+  ],
+  "errors": []
+}

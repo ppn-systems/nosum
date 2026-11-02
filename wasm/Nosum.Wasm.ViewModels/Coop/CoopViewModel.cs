@@ -305,6 +305,9 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
         }
     }
 
+    /// <summary>Gets or sets the part of the co-op window last opened on a tab; kept for the page session, so a reopened window shows it again.</summary>
+    public CoopPart Part { get; set; } = CoopPart.Members;
+
     /// <summary>Called when the panel opens: reads the co-op.</summary>
     public void Open()
     {

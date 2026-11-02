@@ -34,11 +34,25 @@
     min-width: calc(var(--u) * 48);
 }
 
+/* One track: its name, level and buy button share the first line (the button wraps to its own line on a phone), then the summary and the
+   price, so three tracks fit the window at 1280x720 and 1920x1080 (ui-standard section 7, item 7). */
 .upgrade-row {
     display: flex;
     flex-direction: column;
     gap: calc(var(--u) * 2);
     padding-bottom: calc(var(--u) * 4);
+}
+
+.upgrade-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: calc(var(--u) * 4);
+    row-gap: calc(var(--u) * 2);
+}
+
+.upgrade-buy {
+    margin-left: auto;
 }
 
 .upgrade-title {
@@ -47,6 +61,11 @@
 
 .upgrade-level {
     color: var(--nosum-ink-soft);
+}
+
+/* A price is one unit when the line wraps: "Stone x25 (warehouse has 0)" never breaks inside the bracket; the line breaks between prices. */
+.upgrade-cost {
+    white-space: nowrap;
 }
 
 .upgrade-cost.enough {
@@ -59,7 +78,7 @@
 
 .objective-row {
     display: grid;
-    gap: 4px;
+    gap: calc(var(--u) * 2);
 }
 
 .objective-bar {
@@ -70,25 +89,27 @@
     color: var(--nosum-ink-soft);
 }
 
-/* A part of the co-op is a wrapper that takes no box of its own, so a desktop lays the parts out as before. On a phone
-   (640 px and under, ui-standard section 6) the tab bar shows and only the chosen part is shown: each part fits the window, so no row is cut. */
+/* One part of the co-op shows at a time, on its tab (ui-standard sections 3 and 7). The part is a wrapper that takes no box of its own,
+   so the chosen part lays out as the same box tree as before; the other parts are not rendered on screen. */
 .coop-part {
     display: contents;
 }
 
-.coop-tabs {
+.coop-part:not(.active) {
     display: none;
 }
 
-@media (max-width: 640px) {
-    .coop-tabs {
-        display: flex;
-        gap: calc(var(--u) * 2);
-        justify-content: center;
-        flex-wrap: wrap;
-    }
+.coop-tabs {
+    display: flex;
+    gap: calc(var(--u) * 2);
+    justify-content: center;
+    flex-wrap: wrap;
+}
 
-    .coop-part:not(.active) {
+/* The deposit hint is a visible line on a phone. On a desktop it is the Deposit button's tooltip instead: the warehouse grid is the
+   tallest part, and the hint line would push the Stock part past the window at 1920x1080 (ui-standard section 7, item 7). */
+@media (min-width: 641px) {
+    .coop-hint {
         display: none;
     }
 }

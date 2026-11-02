@@ -290,7 +290,7 @@
   <data name="Coop_Quantity" xml:space="preserve"><value>Quantity</value></data>
   <data name="Coop_Withdraw" xml:space="preserve"><value>Withdraw</value></data>
   <data name="Coop_Deposit" xml:space="preserve"><value>Deposit</value></data>
-  <data name="Coop_DepositHint" xml:space="preserve"><value>Pick an item in the warehouse to take, or a slot of your inventory to deposit.</value></data>
+  <data name="Coop_DepositHint" xml:space="preserve"><value>Pick a warehouse item to take, or a bag slot to deposit.</value></data>
   <data name="Coop_Log_Heading" xml:space="preserve"><value>Warehouse log</value></data>
   <data name="Coop_Tab_Members" xml:space="preserve"><value>Members</value></data>
   <data name="Coop_Tab_Warehouse" xml:space="preserve"><value>Stock</value></data>

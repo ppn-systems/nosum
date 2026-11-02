@@ -290,7 +290,7 @@
   <data name="Coop_Quantity" xml:space="preserve"><value>Số lượng</value></data>
   <data name="Coop_Withdraw" xml:space="preserve"><value>Lấy ra</value></data>
   <data name="Coop_Deposit" xml:space="preserve"><value>Gửi vào</value></data>
-  <data name="Coop_DepositHint" xml:space="preserve"><value>Chọn một món trong kho để lấy, hoặc một ô trong túi đồ để gửi.</value></data>
+  <data name="Coop_DepositHint" xml:space="preserve"><value>Chọn món trong kho để lấy, hoặc ô túi để gửi.</value></data>
   <data name="Coop_Log_Heading" xml:space="preserve"><value>Nhật ký kho</value></data>
   <data name="Coop_Tab_Members" xml:space="preserve"><value>Thành viên</value></data>
   <data name="Coop_Tab_Warehouse" xml:space="preserve"><value>Kho</value></data>

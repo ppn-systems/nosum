@@ -7,8 +7,7 @@ warehouse, members, objectives and log all stacked in one column, so the window 
 
 - **Phone (640 px and under): a tab bar of five tabs** (`Coop_Tab_*`: Members, Stock, Upgrades, Goals, Log), a `tab` button each
   (ui-standard §8). One part shows at a time; every part fits the window, so no row is cut and the page body does not scroll.
-- **Desktop (above 640 px): unchanged.** The tab bar is hidden and every part shows, as before. Each part is a wrapper with
-  `display: contents`, so the desktop layout is the same box tree as before.
+- **Desktop (above 640 px):** superseded by `docs/qa/coop-desktop/`: the tab bar now shows at every size.
 - Labels are short on purpose (one row of five tabs on 390 px); the full section headings still title each part.
 - Resources: `Coop_Tab_Members`, `Coop_Tab_Warehouse`, `Coop_Tab_Upgrades`, `Coop_Tab_Objectives`, `Coop_Tab_Log` in `Language.resx`
   (Vietnamese) and `Language.en.resx` (English).
@@ -25,6 +24,5 @@ guest accounts). `coop/<lang>/<size>/` holds eight frames and a `report.json`. O
 
 ## Not changed
 
-- At 1280×720 the co-op window scrolls (`overflow` about 900 px on the desktop frames, both before and after this change): every part is
-  shown at once and the warehouse grid is cut at the bottom. ui-standard §7 item 7 says no inner scroll at 1280×720 for normal content.
-  This is a desktop layout question, outside the phone change; it needs its own decision (for example the same tab bar on desktop).
+- Desktop: superseded. At 1280×720 the co-op window scrolled about 900 px because every part showed at once. The desktop now uses the
+  same tab bar and fits every tab; see `docs/qa/coop-desktop/README.md`.

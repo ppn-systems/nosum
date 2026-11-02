@@ -1,8 +1,12 @@
+@using System
+@using System.Collections.Generic
+@using System.Linq
 @using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.ViewModels.Coop
 @inherits ObservingComponent<CoopViewModel>
 
-@* The co-op: found or join one, manage members, and use the shared warehouse. The server decides roles and what a member may take. *@
+@* The co-op: found or join one, manage members, and use the shared warehouse. The server decides roles and what a member may take.
+   Once in a co-op, one part shows at a time on its tab (ui-standard sections 3 and 7): the window fits 1280x720 and a phone without an inner scroll. *@
 <MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
     <GameStack>
         @if (!Vm.HasCoop)
@@ -32,11 +36,11 @@
         else
         {
             <div class="coop-tabs">
-                <GameButton Variant="tab" Active="@(_part == CoopPart.Members)" Text="@Vm.Text("Coop_Tab_Members")" OnClick="@(() => _part = CoopPart.Members)" />
-                <GameButton Variant="tab" Active="@(_part == CoopPart.Warehouse)" Text="@Vm.Text("Coop_Tab_Warehouse")" OnClick="@(() => _part = CoopPart.Warehouse)" />
-                <GameButton Variant="tab" Active="@(_part == CoopPart.Upgrades)" Text="@Vm.Text("Coop_Tab_Upgrades")" OnClick="@(() => _part = CoopPart.Upgrades)" />
-                <GameButton Variant="tab" Active="@(_part == CoopPart.Objectives)" Text="@Vm.Text("Coop_Tab_Objectives")" OnClick="@(() => _part = CoopPart.Objectives)" />
-                <GameButton Variant="tab" Active="@(_part == CoopPart.Log)" Text="@Vm.Text("Coop_Tab_Log")" OnClick="@(() => _part = CoopPart.Log)" />
+                <GameButton Variant="tab" Active="@(Vm.Part == CoopPart.Members)" Text="@Vm.Text("Coop_Tab_Members")" OnClick="@(() => Vm.Part = CoopPart.Members)" />
+                <GameButton Variant="tab" Active="@(Vm.Part == CoopPart.Warehouse)" Text="@Vm.Text("Coop_Tab_Warehouse")" OnClick="@(() => Vm.Part = CoopPart.Warehouse)" />
+                <GameButton Variant="tab" Active="@(Vm.Part == CoopPart.Upgrades)" Text="@Vm.Text("Coop_Tab_Upgrades")" OnClick="@(() => Vm.Part = CoopPart.Upgrades)" />
+                <GameButton Variant="tab" Active="@(Vm.Part == CoopPart.Objectives)" Text="@Vm.Text("Coop_Tab_Objectives")" OnClick="@(() => Vm.Part = CoopPart.Objectives)" />
+                <GameButton Variant="tab" Active="@(Vm.Part == CoopPart.Log)" Text="@Vm.Text("Coop_Tab_Log")" OnClick="@(() => Vm.Part = CoopPart.Log)" />
             </div>
             <div class="coop-part @PartClass(CoopPart.Members)">
                 <GameSection Title="@Vm.Text("Coop_Members_Heading")">
@@ -84,9 +88,9 @@
                 <GameRow Class="center">
                     <GameInput Class="narrow" Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => Vm.QuantityText = v)" Label="@Vm.Text("Coop_Quantity")" MaxLength="5" />
                     <GameButton Text="@Vm.Text("Coop_Withdraw")" OnClick="@(() => Vm.Withdraw())" />
-                    <GameButton Text="@Vm.Text("Coop_Deposit")" OnClick="@(() => Vm.Deposit())" />
+                    <GameButton Text="@Vm.Text("Coop_Deposit")" Title="@Vm.Text("Coop_DepositHint")" OnClick="@(() => Vm.Deposit())" />
                 </GameRow>
-                <p class="coop-empty">@Vm.Text("Coop_DepositHint")</p>
+                <p class="coop-empty coop-hint">@Vm.Text("Coop_DepositHint")</p>
                 <ItemGrid Slots="Vm.InventorySlots" Columns="9" OnSlotClick="@(i => Vm.PickDeposit(i))" />
             </GameSection>
             </div>
@@ -96,8 +100,16 @@
                 {
                     UpgradeDisplay u = upgrade;
                     <div class="upgrade-row">
-                        <span class="upgrade-title">@upgrade.Title</span>
-                        <span class="upgrade-level">@upgrade.LevelText</span>
+                        <div class="upgrade-head">
+                            <span class="upgrade-title">@upgrade.Title</span>
+                            <span class="upgrade-level">@upgrade.LevelText</span>
+                            @if (Vm.IsFounder && !upgrade.IsMax)
+                            {
+                                <span class="upgrade-buy">
+                                    <GameButton Text="@Vm.Text("Coop_Upgrade_Buy")" Disabled="@(!upgrade.CanBuy)" OnClick="@(() => Vm.UpgradeAsync(u))" />
+                                </span>
+                            }
+                        </div>
                         <p class="coop-empty">@upgrade.Summary</p>
                         @if (upgrade.IsMax)
                         {
@@ -105,15 +117,13 @@
                         }
                         else
                         {
-                            <p class="coop-empty">@Vm.Text("Coop_Upgrade_Next")</p>
-                            @foreach (UpgradeCostDisplay cost in upgrade.Costs)
-                            {
-                                <span class="upgrade-cost @(cost.Enough ? "enough" : "short")">@Vm.Text("Coop_Upgrade_Cost", cost.ItemName, cost.Needed, cost.Have)</span>
-                            }
-                            @if (Vm.IsFounder)
-                            {
-                                <GameButton Text="@Vm.Text("Coop_Upgrade_Buy")" Disabled="@(!upgrade.CanBuy)" OnClick="@(() => Vm.UpgradeAsync(u))" />
-                            }
+                            <p class="coop-empty">
+                                @Vm.Text("Coop_Upgrade_Next")
+                                @foreach (UpgradeCostDisplay cost in upgrade.Costs)
+                                {
+                                    @(" ")<span class="upgrade-cost @(cost.Enough ? "enough" : "short")">@Vm.Text("Coop_Upgrade_Cost", cost.ItemName, cost.Needed, cost.Have)</span>
+                                }
+                            </p>
                         }
                     </div>
                 }
@@ -141,9 +151,19 @@
             </div>
             <div class="coop-part @PartClass(CoopPart.Log)">
                 <GameSection Title="@Vm.Text("Coop_Log_Heading")">
-                @foreach (string line in Vm.Log)
+                @{
+                    IReadOnlyList<string> log = Vm.Log;
+                    int pages = PageCountOf(log.Count);
+                    int page = Math.Min(_logPage, pages - 1);
+                }
+                @foreach (string line in log.Skip(page * LogPageSize).Take(LogPageSize))
                 {
                     <p class="coop-log">@line</p>
+                }
+                @if (pages > 1)
+                {
+                    <Pager Page="page" PageCount="pages" PreviousText="@Vm.Text("Pager_Previous")" NextText="@Vm.Text("Pager_Next")"
+                           PositionText="@Vm.Text("Pager_Position", page + 1, pages)" OnPage="@(p => _logPage = p)" />
                 }
             </GameSection>
             </div>
@@ -153,12 +173,15 @@
 
 @code {
 
-    /// <summary>The part of the co-op shown on a phone (ui-standard section 6); a desktop shows every part.</summary>
-    private enum CoopPart { Members, Warehouse, Upgrades, Objectives, Log }
+    /// <summary>The class of a part's wrapper: "active" for the part the tab bar chose, which is the only one shown.</summary>
+    private string? PartClass(CoopPart part) => part == Vm.Part ? "active" : null;
 
-    private CoopPart _part = CoopPart.Members;
+    /// <summary>The warehouse log lines on one page. The server keeps the latest 20 lines; ten fit the window at 1280x720 and 1920x1080 without a scroll.</summary>
+    private const int LogPageSize = 10;
 
-    private string? PartClass(CoopPart part) => part == _part ? "active" : null;
+    private int _logPage;
+
+    private static int PageCountOf(int lines) => Math.Max(1, (lines + LogPageSize - 1) / LogPageSize);
 
     protected override void OnInitialized() => Vm.Open();
 }
