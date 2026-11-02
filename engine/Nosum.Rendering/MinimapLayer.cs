@@ -122,7 +122,7 @@ public sealed class MinimapLayer
         {
             for (int x = 0; x < _mapWidth; x++)
             {
-                _cellColor[(y * _mapWidth) + x] = ColourOf(map, x * _stride, y * _stride, palette);
+                _cellColor[(y * _mapWidth) + x] = ColourOfBlock(map, x * _stride, y * _stride, _stride, palette);
             }
         }
 
@@ -238,6 +238,67 @@ public sealed class MinimapLayer
         {
             commands.FillRect(originX + _dotX[i], originY + _dotY[i], DotSize, DotSize, _dotColor[i]);
         }
+    }
+
+    // A sampled cell covers a block of tiles. Water shows if any tile of the block is water: ponds and shore edges are rare and must not vanish.
+    // Walls and tilled ground show when at least half the block's tiles have them; a single tree or rock no longer turns a whole block dark (the
+    // round 7 frames showed forests and towns as checkerboards under "any wall wins"). Otherwise the block is plain ground, and a block with no tiles
+    // stays void.
+    private static int ColourOfBlock(TileMap map, int x0, int y0, int stride, in MinimapPalette palette)
+    {
+        int xEnd = Math.Min(map.Width, x0 + stride);
+        int yEnd = Math.Min(map.Height, y0 + stride);
+        int tiles = 0;
+        int water = 0;
+        int blocked = 0;
+        int tilled = 0;
+        for (int y = y0; y < yEnd; y++)
+        {
+            for (int x = x0; x < xEnd; x++)
+            {
+                int colour = ColourOf(map, x, y, palette);
+                if (colour == 0)
+                {
+                    continue;
+                }
+
+                tiles++;
+                if (colour == palette.Water)
+                {
+                    water++;
+                }
+                else if (colour == palette.Blocked)
+                {
+                    blocked++;
+                }
+                else if (colour == palette.Tilled)
+                {
+                    tilled++;
+                }
+            }
+        }
+
+        if (tiles == 0)
+        {
+            return 0;
+        }
+
+        if (water > 0)
+        {
+            return palette.Water;
+        }
+
+        if (blocked * 2 >= tiles)
+        {
+            return palette.Blocked;
+        }
+
+        if (tilled * 2 >= tiles)
+        {
+            return palette.Tilled;
+        }
+
+        return palette.Ground;
     }
 
     private static int ColourOf(TileMap map, int x, int y, in MinimapPalette palette)

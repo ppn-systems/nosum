@@ -115,6 +115,87 @@ public sealed class MinimapLayerTests
     }
 
     [Fact]
+    public void Build_SampledMap_ShowsWaterWhenItIsNotOnTheBlockCorner()
+    {
+        // A 150 x 100 map is sampled three tiles to a cell. The only water tile sits inside the first block, not on its corner.
+        int[] tiles = Enumerable.Repeat(1, 150 * 100).ToArray();
+        tiles[(1 * 150) + 1] = 2;
+        MinimapLayer minimap = new() { Visible = true };
+        minimap.Build(Map(150, 100, tiles), "lake", MinimapPalette.Default).Should().BeTrue();
+        RenderCommandBuffer buffer = new(4096);
+        buffer.Begin(1);
+
+        minimap.Draw(buffer, 10, 10, 0x14171CCC, 0x0B0D10FF);
+
+        TintsOf(Draws(buffer), buffer.Count).Should().Contain(MinimapPalette.Default.Water);
+    }
+
+    [Fact]
+    public void Build_SampledMapBlockWithNoTiles_StaysVoid()
+    {
+        // One ground tile in the whole map: its block shows ground, and every other block is void and draws nothing.
+        int[] tiles = new int[150 * 100];
+        tiles[(3 * 150) + 3] = 1;
+        MinimapLayer minimap = new() { Visible = true };
+        minimap.Build(Map(150, 100, tiles), "island", MinimapPalette.Default).Should().BeTrue();
+        RenderCommandBuffer buffer = new(64);
+        buffer.Begin(1);
+
+        minimap.Draw(buffer, 10, 10, 0x14171CCC, 0x0B0D10FF);
+
+        // The border, the backing and the one run.
+        buffer.Count.Should().Be(3);
+    }
+
+    // Tiles: gid 1 is plain ground, gid 2 is water, gid 3 is a wall (impassable).
+    private static TileMap MapWithWalls(int width, int height, params int[] gids)
+    {
+        Dictionary<int, KeyValuePair<string, string>[]> props = new()
+        {
+            [1] = [new("Water", "T")],
+            [2] = [new("Passable", "F")],
+        };
+        TileSet set = new(1, "t", "t", 3, 3, new TileProperties(3, props, new Dictionary<int, TileAnimation>()));
+        return new TileMap(width, height, 16, 16, [set], [new TileLayer("Ground", gids)]);
+    }
+
+    [Fact]
+    public void Build_SampledBlockWithOneWall_ShowsGround()
+    {
+        // A 150 x 100 map is sampled three tiles to a cell. One wall tile in a 3 x 3 block is one of nine: the block stays ground.
+        int[] tiles = Enumerable.Repeat(1, 150 * 100).ToArray();
+        tiles[(1 * 150) + 1] = 3;
+        MinimapLayer minimap = new() { Visible = true };
+        minimap.Build(MapWithWalls(150, 100, tiles), "tree", MinimapPalette.Default).Should().BeTrue();
+        RenderCommandBuffer buffer = new(4096);
+        buffer.Begin(1);
+
+        minimap.Draw(buffer, 10, 10, 0x14171CCC, 0x0B0D10FF);
+
+        TintsOf(Draws(buffer), buffer.Count).Should().NotContain(MinimapPalette.Default.Blocked);
+    }
+
+    [Fact]
+    public void Build_SampledBlockMostlyWalls_ShowsWalls()
+    {
+        // Five of the nine tiles in the first block are walls: most of it is blocked, so the block shows the wall colour.
+        int[] tiles = Enumerable.Repeat(1, 150 * 100).ToArray();
+        foreach (int i in new[] { 0, 1, 2, 150, 151 })
+        {
+            tiles[i] = 3;
+        }
+
+        MinimapLayer minimap = new() { Visible = true };
+        minimap.Build(MapWithWalls(150, 100, tiles), "wall", MinimapPalette.Default).Should().BeTrue();
+        RenderCommandBuffer buffer = new(4096);
+        buffer.Begin(1);
+
+        minimap.Draw(buffer, 10, 10, 0x14171CCC, 0x0B0D10FF);
+
+        TintsOf(Draws(buffer), buffer.Count).Should().Contain(MinimapPalette.Default.Blocked);
+    }
+
+    [Fact]
     public void AddDot_PlayerOnAnotherTile_RecordsOneDotForTheFrame()
     {
         MinimapLayer minimap = new() { Visible = true };

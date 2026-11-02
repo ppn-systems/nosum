@@ -209,3 +209,29 @@ left it; on reading it again, two copies of the same title one tile apart are th
   existing tests, not by a frame. A pack capture needs a dev spawn for elites, which is a new tool and not in this round.
 - **Still open, all for the owner:** the listening pass (section 5), the minimap's unpainted cells, and the exit beacon's strength.
   The stray letter's live confirmation (section 9) is still open too; nothing in this round touched it.
+
+## 11. Round 7
+
+Captures and the before/after strip: [`docs/qa/world-ambience-round7/`](../qa/world-ambience-round7/README.md). Change: `MinimapLayer.ColourOfBlock`
+(client-only, no wire change, no ADR: a rule inside an existing layer, not an architecture decision).
+
+- **A sampled minimap cell shows its block, not its corner tile.** On the maps larger than the minimap box (farm, town, beach, forest, mine floor 1) each
+  cell covers a block of tiles. Master read the block's corner tile, so a pond or a wall showed only when it sat on that corner. Now: water shows if any
+  tile of the block is water (ponds and shore edges are rare and must not vanish); walls and tilled ground show when at least half the block has them; the
+  rest is plain ground; a block with no tiles stays void. Frames: `before/` and `after/` at 1280 × 720, 1920 × 1080 and 390 × 844 in English and
+  Vietnamese, and the 4× strip `minimap-before-after-4x.png`.
+- **The first version of this rule was rejected on the frames.** "Any wall wins" turned a whole 3 × 3 or 4 × 4 block dark for one tree or rock, so the town
+  and the forest read as checkerboards. Its captures are not kept; the majority rule above replaced them.
+- **Tests:** `MinimapLayerTests` (15 cases) include water in a sampled block (not on its corner), a block with no tiles staying void, one wall in a block
+  showing ground, and a block mostly walls showing the wall colour. The wall fixture had its tile set mis-sized, so the first version of these tests did not
+  exercise the wall trait; that is fixed.
+- **Read against the frames:** the farm pond is now a clear block; the town's walls read as clusters; the beach's shore and river were already there and are
+  unchanged, and its rock speckle is gone; the mine floor's minimap is unchanged.
+- **A cost, for the owner:** scattered trees in the forest disappear. No 4 × 4 block is at least half trees, so the forest minimap reads as open grass. The
+  threshold (half the block) is the knob: a quarter would show the trees and bring back some of the checkerboard in the town. Not changed in this round; it is a
+  call about how dense the minimap should look.
+- **Not covered:** the phone hides the minimap by default, so the 390 × 844 frames show no minimap change; the world map (`WorldMapViewModel`) is not walked
+  here. No listening or touch check.
+
+**Still open, for the owner:** the minimap's unpainted cells (void colour), the exit beacon's strength, the listening pass (section 5), the forest tree
+density (above), and the stray letter's and elite badge's live confirmation (sections 9 and 10).

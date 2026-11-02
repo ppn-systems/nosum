@@ -1,0 +1,416 @@
+[
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "farm",
+    "tag": "farm",
+    "calendar": "Spring Day 7 8:04 PM 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/world-ambience-round7/after/en/1280x720/noon-spring-sun-farm.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/1280x720/noon-spring-sun-farm-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "town",
+    "tag": "town",
+    "calendar": "Spring Day 7 8:04 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/en/1280x720/noon-spring-sun-town.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/1280x720/noon-spring-sun-town-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "beach",
+    "tag": "beach",
+    "calendar": "Spring Day 7 8:04 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/en/1280x720/noon-spring-sun-beach.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/1280x720/noon-spring-sun-beach-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "forest",
+    "tag": "forest",
+    "calendar": "Spring Day 7 8:04 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/en/1280x720/noon-spring-sun-forest.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/1280x720/noon-spring-sun-forest-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "1280x720",
+    "map": "mine1",
+    "tag": "mine1",
+    "calendar": "Spring Day 7 8:04 PM 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/en/1280x720/noon-spring-sun-mine1.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/1280x720/noon-spring-sun-mine1-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "1920x1080",
+    "map": "farm",
+    "tag": "farm",
+    "calendar": "Spring Day 7 8:05 PM 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/world-ambience-round7/after/en/1920x1080/noon-spring-sun-farm.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/1920x1080/noon-spring-sun-farm-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "1920x1080",
+    "map": "town",
+    "tag": "town",
+    "calendar": "Spring Day 7 8:05 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/en/1920x1080/noon-spring-sun-town.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/1920x1080/noon-spring-sun-town-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "1920x1080",
+    "map": "beach",
+    "tag": "beach",
+    "calendar": "Spring Day 7 8:05 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/en/1920x1080/noon-spring-sun-beach.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/1920x1080/noon-spring-sun-beach-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "1920x1080",
+    "map": "forest",
+    "tag": "forest",
+    "calendar": "Spring Day 7 8:05 PM 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/en/1920x1080/noon-spring-sun-forest.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/1920x1080/noon-spring-sun-forest-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "1920x1080",
+    "map": "mine1",
+    "tag": "mine1",
+    "calendar": "Spring Day 7 8:06 PM 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/en/1920x1080/noon-spring-sun-mine1.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/1920x1080/noon-spring-sun-mine1-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "390x844",
+    "map": "farm",
+    "tag": "farm",
+    "calendar": "Day 7 8:06 PM 500 Menu",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/world-ambience-round7/after/en/390x844/noon-spring-sun-farm.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/390x844/noon-spring-sun-farm-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "390x844",
+    "map": "town",
+    "tag": "town",
+    "calendar": "Day 7 8:06 PM 500 Menu",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/en/390x844/noon-spring-sun-town.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/390x844/noon-spring-sun-town-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "390x844",
+    "map": "beach",
+    "tag": "beach",
+    "calendar": "Day 7 8:07 PM 500 Menu",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/en/390x844/noon-spring-sun-beach.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/390x844/noon-spring-sun-beach-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "390x844",
+    "map": "forest",
+    "tag": "forest",
+    "calendar": "Day 7 8:07 PM 500 Menu",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/en/390x844/noon-spring-sun-forest.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/390x844/noon-spring-sun-forest-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "en",
+    "viewport": "390x844",
+    "map": "mine1",
+    "tag": "mine1",
+    "calendar": "Day 7 8:07 PM 500 Menu",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/en/390x844/noon-spring-sun-mine1.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/en/390x844/noon-spring-sun-mine1-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "farm",
+    "tag": "farm",
+    "calendar": "Xuân Ngày 7 20:07 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/world-ambience-round7/after/vi/1280x720/noon-spring-sun-farm.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/1280x720/noon-spring-sun-farm-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "town",
+    "tag": "town",
+    "calendar": "Xuân Ngày 7 20:08 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/vi/1280x720/noon-spring-sun-town.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/1280x720/noon-spring-sun-town-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "beach",
+    "tag": "beach",
+    "calendar": "Xuân Ngày 7 20:08 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/vi/1280x720/noon-spring-sun-beach.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/1280x720/noon-spring-sun-beach-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "forest",
+    "tag": "forest",
+    "calendar": "Xuân Ngày 7 20:08 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/vi/1280x720/noon-spring-sun-forest.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/1280x720/noon-spring-sun-forest-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1280x720",
+    "map": "mine1",
+    "tag": "mine1",
+    "calendar": "Xuân Ngày 7 20:08 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/vi/1280x720/noon-spring-sun-mine1.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/1280x720/noon-spring-sun-mine1-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "map": "farm",
+    "tag": "farm",
+    "calendar": "Xuân Ngày 7 20:09 500",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/world-ambience-round7/after/vi/1920x1080/noon-spring-sun-farm.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/1920x1080/noon-spring-sun-farm-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "map": "town",
+    "tag": "town",
+    "calendar": "Xuân Ngày 7 20:09 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/vi/1920x1080/noon-spring-sun-town.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/1920x1080/noon-spring-sun-town-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "map": "beach",
+    "tag": "beach",
+    "calendar": "Xuân Ngày 7 20:09 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/vi/1920x1080/noon-spring-sun-beach.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/1920x1080/noon-spring-sun-beach-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "map": "forest",
+    "tag": "forest",
+    "calendar": "Xuân Ngày 7 20:09 500",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/vi/1920x1080/noon-spring-sun-forest.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/1920x1080/noon-spring-sun-forest-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "1920x1080",
+    "map": "mine1",
+    "tag": "mine1",
+    "calendar": "Xuân Ngày 7 20:10 500",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/vi/1920x1080/noon-spring-sun-mine1.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/1920x1080/noon-spring-sun-mine1-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "farm",
+    "tag": "farm",
+    "calendar": "Ngày 7 20:10 500 Menu",
+    "audioStartsInWindow": 0,
+    "audioStarts": [],
+    "file": "docs/qa/world-ambience-round7/after/vi/390x844/noon-spring-sun-farm.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/390x844/noon-spring-sun-farm-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "town",
+    "tag": "town",
+    "calendar": "Ngày 7 20:10 500 Menu",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/vi/390x844/noon-spring-sun-town.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/390x844/noon-spring-sun-town-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "beach",
+    "tag": "beach",
+    "calendar": "Ngày 7 20:10 500 Menu",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/vi/390x844/noon-spring-sun-beach.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/390x844/noon-spring-sun-beach-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "forest",
+    "tag": "forest",
+    "calendar": "Ngày 7 20:11 500 Menu",
+    "audioStartsInWindow": 1,
+    "audioStarts": [
+      "once 0.32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/vi/390x844/noon-spring-sun-forest.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/390x844/noon-spring-sun-forest-fade.png"
+  },
+  {
+    "scenario": "noon-spring-sun",
+    "locale": "vi",
+    "viewport": "390x844",
+    "map": "mine1",
+    "tag": "mine1",
+    "calendar": "Ngày 7 20:11 500 Menu",
+    "audioStartsInWindow": 2,
+    "audioStarts": [
+      "once 0.32s",
+      "loop 32s"
+    ],
+    "file": "docs/qa/world-ambience-round7/after/vi/390x844/noon-spring-sun-mine1.png",
+    "fadeFile": "docs/qa/world-ambience-round7/after/vi/390x844/noon-spring-sun-mine1-fade.png"
+  }
+]
