@@ -294,7 +294,9 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
             if (plan.Verdict != FarmVerdict.Ok)
             {
                 // An unripe crop says how many watered days it has left (docs/adr/ADR-094 D2); the client writes the words in its language.
-                if (plan.Verdict == FarmVerdict.NotMature && current is { } growing)
+                // A seed on a crop that is still growing waits for the same days, so it names them too (ADR-111 D1; a plain "a crop already grows
+                // here" gave no time). A pickaxe clears nothing and waits for nothing, so it keeps the plain refusal (ADR-111 D2).
+                if (current is { } growing && IsGrowthWait(plan.Verdict, held, growing, nowMs, player.Instance.IsOutdoors, sprinklerSince))
                 {
                     int daysLeft = FarmRules.DaysUntilMature(growing, nowMs, _calendar, player.Instance.IsOutdoors, sprinklerSince);
                     return new FarmUseOutcome(FarmStatus.NotMature, FarmAction.None, DaysLeft: daysLeft);
@@ -391,6 +393,19 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
         FarmAction.Harvested => PlaceAction.Harvest,
         _ => PlaceAction.Water,
     };
+
+    // Whether a refusal is the wait for a living crop to ripen, so the answer is the days left (docs/adr/ADR-094 D2). A seed on a crop that is still
+    // growing is refused with HasCrop; that refusal is the wait, not a plain "taken". A mature crop is harvested first, and a withered one may be replaced.
+    private bool IsGrowthWait(FarmVerdict verdict, InventorySlotView held, FarmTile crop, long nowMs, bool outdoors, long? sprinklerSinceMs)
+    {
+        if (verdict == FarmVerdict.NotMature)
+        {
+            return true;
+        }
+
+        bool seed = ItemCatalog.TryGet(held.ItemId, out ItemDefinition? item) && item.Kind == ItemKind.Seed;
+        return verdict == FarmVerdict.HasCrop && seed && crop.HasCrop && !FarmRules.IsMature(crop, nowMs, _calendar, outdoors, sprinklerSinceMs);
+    }
 
     // Decides what the held item does on the tile and what changes; nothing is written here.
     private Plan PlanAction(InventorySlotView held, FarmTile? current, bool tillable, long nowMs, bool outdoors, long? sprinklerSinceMs, int harvestBonus, bool tail = false)
