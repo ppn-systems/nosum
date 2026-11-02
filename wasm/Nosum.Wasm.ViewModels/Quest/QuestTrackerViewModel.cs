@@ -32,9 +32,11 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
     private readonly QuestChannel _channel;
     private readonly IStringLocalizer<Catalogue> _catalogue;
     private readonly IStringLocalizer<Language> _text;
+    private readonly HashSet<int> _finishedSeen = [];
     private int _completedQuestId;
     private int _completedToken;
     private bool _completedDismissed;
+    private bool _seeded;
     private bool _disposed;
 
     /// <summary>Initializes the view model and starts following the channel.</summary>
@@ -119,18 +121,45 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
         // The first unfinished quest in the order of the tutorial chain (docs/adr/ADR-036 D1); when all are finished, the last finished one (its banner stays briefly then dismisses).
         List<QuestInfo> ordered = [.. _channel.Quests()];
         ordered.Sort(static (a, b) => QuestCatalog.PositionOf(a.QuestId).CompareTo(QuestCatalog.PositionOf(b.QuestId)));
-        QuestInfo? shown = null;
+
+        // A quest that finished since the last look gets its banner for five seconds, whatever the chain shows next (ADR-036; critique item 11).
+        // The first non-empty list only records what is already finished, so a login does not replay old completions.
+        int fresh = 0;
         foreach (QuestInfo quest in ordered)
         {
-            if (!QuestCatalog.TryGet(quest.QuestId, out _))
+            if (quest.State == QuestState.Completed && _finishedSeen.Add(quest.QuestId) && _seeded)
             {
-                continue;
+                fresh = quest.QuestId;
             }
+        }
 
-            shown = quest;
-            if (quest.State == QuestState.Active)
+        if (ordered.Count > 0)
+        {
+            _seeded = true;
+        }
+
+        if (fresh != 0)
+        {
+            _completedQuestId = 0;
+            _completedDismissed = false;
+        }
+
+        int bannerId = fresh != 0 ? fresh : _completedDismissed ? 0 : _completedQuestId;
+        QuestInfo? shown = bannerId == 0 ? null : ordered.Find(q => q.QuestId == bannerId);
+        if (shown is null)
+        {
+            foreach (QuestInfo quest in ordered)
             {
-                break;
+                if (!QuestCatalog.TryGet(quest.QuestId, out _))
+                {
+                    continue;
+                }
+
+                shown = quest;
+                if (quest.State == QuestState.Active)
+                {
+                    break;
+                }
             }
         }
 
@@ -182,8 +211,21 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
         LocalizedString tip = _catalogue[prefix + "Tip"];
         this.Tip = this.IsCompleted || tip.ResourceNotFound ? string.Empty : tip.Value;
         this.RewardText = this.IsCompleted || definition.RewardCoins <= 0 ? string.Empty : string.Format(CultureInfo.CurrentCulture, _text["Quest_Reward"].Value, definition.RewardCoins.ToString("N0", CultureInfo.CurrentCulture));
-        this.CompletedText = this.IsCompleted ? string.Format(CultureInfo.CurrentCulture, _text["Quest_Banner"].Value, this.Title) : string.Empty;
+        this.CompletedText = this.IsCompleted ? this.CompletedLine(definition) : string.Empty;
         this.Objectives = lines;
+    }
+
+    // The completion line names the coins the quest paid, so a balance that rose on a catch has a visible reason (docs/design/critique-combat-fishing.md
+    // item 11). A quest that pays nothing keeps the plain line.
+    private string CompletedLine(QuestDefinition definition)
+    {
+        if (definition.RewardCoins <= 0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, _text["Quest_Banner"].Value, this.Title);
+        }
+
+        string coins = definition.RewardCoins.ToString("N0", CultureInfo.CurrentCulture);
+        return string.Format(CultureInfo.CurrentCulture, _text["Quest_BannerReward"].Value, this.Title, coins);
     }
 
     private async Task DismissCompletedBannerAsync(int questId, int token)

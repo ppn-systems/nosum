@@ -102,6 +102,7 @@
   <data name="Quest_Progress" xml:space="preserve"><value>{0}/{1}</value></data>
   <data name="Quest_Completed" xml:space="preserve"><value>Đã hoàn thành</value></data>
   <data name="Quest_Banner" xml:space="preserve"><value>Hoàn thành nhiệm vụ: {0}</value></data>
+  <data name="Quest_BannerReward" xml:space="preserve"><value>Hoàn thành nhiệm vụ: {0}. Bạn nhận được {1} xu.</value></data>
   <data name="Place_Status_NotPlaceable" xml:space="preserve"><value>Chỉ có thể sắp đặt đồ trong nhà của bạn.</value></data>
   <data name="Place_Status_NoItem" xml:space="preserve"><value>Vật phẩm này không đặt được.</value></data>
   <data name="Place_Status_BadRotation" xml:space="preserve"><value>Không thể xoay theo hướng này.</value></data>

@@ -75,3 +75,16 @@ community goals; nothing there gives a player a reason to visit it every day.
 - Quests beyond the tutorial are added (a second chain, repeatable quests): `QuestCatalog.Chain` then becomes one chain among several.
 - Requests need rarity (a rare item once a week) or co-op-wide requests.
 - `request_fills` grows large enough that the fortnight prune is not enough.
+
+## Amendments
+
+### Completion banner names the reward and shows for every finished quest (critique item 11)
+
+- The tracker shows the banner of a quest that finished, for five seconds, whatever the chain shows next. Before this amendment the banner
+  showed only when the whole chain was finished, so the completion of every other step was silent.
+- The banner names the coins the quest paid: `Quest complete: <title>. You received <n> coins.` (`Quest_BannerReward`, both languages). A quest
+  that pays nothing keeps `Quest complete: <title>.` The reward is read from `QuestCatalog` on the client, as the titles already are.
+- The first non-empty quest list of a session only records what is already finished, so a login does not replay old completions.
+- No wire change and no change to the rule: the server still pays the reward in the same transaction as the completion (D2). The coins of the
+  first catch (`catch_fish`, 50 coins) are that reward, not a sale; the banner now says so.
+- Evidence: `docs/qa/quest-banner-coins/README.md`.
