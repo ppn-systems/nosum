@@ -49,9 +49,10 @@ public sealed class ChunkStreamer
     /// A chunk with nothing in it is not sent.
     /// </summary>
     /// <param name="player">The player whose interest set grew.</param>
-    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <param name="cancellationToken">Cancels the work (loading a chunk's state); the server's shutdown, not the viewer's deadline.</param>
+    /// <param name="sendToken">Cancels the send to this player; the viewer's send deadline (docs/adr/ADR-087 D2).</param>
     /// <returns>A task that completes when the pending chunks were sent.</returns>
-    public async ValueTask SendPendingStateAsync(PlayerPresence player, CancellationToken cancellationToken)
+    public async ValueTask SendPendingStateAsync(PlayerPresence player, CancellationToken cancellationToken, CancellationToken sendToken)
     {
         ArgumentNullException.ThrowIfNull(player);
 
@@ -76,7 +77,7 @@ public sealed class ChunkStreamer
 
             if (!state.IsEmpty)
             {
-                await _presence.SendAsync(player.Connection, state, cancellationToken).ConfigureAwait(false);
+                await _presence.SendAsync(player.Connection, state, sendToken).ConfigureAwait(false);
             }
 
             viewer.PendingEnter.RemoveAt(viewer.PendingEnter.Count - 1);
@@ -86,9 +87,10 @@ public sealed class ChunkStreamer
     /// <summary>Tells a player that chunks left their interest set, so the client drops its mirror of them.</summary>
     /// <param name="player">The player.</param>
     /// <param name="chunks">The chunks that left.</param>
-    /// <param name="cancellationToken">Cancels the operation.</param>
+    /// <param name="cancellationToken">Cancels the contributors' bookkeeping; the server's shutdown.</param>
+    /// <param name="sendToken">Cancels the notice sends; the viewer's send deadline (docs/adr/ADR-087 D2).</param>
     /// <returns>A task that completes when the notices were sent.</returns>
-    public async ValueTask SendLeftAsync(PlayerPresence player, ReadOnlyMemory<ChunkCoord> chunks, CancellationToken cancellationToken)
+    public async ValueTask SendLeftAsync(PlayerPresence player, ReadOnlyMemory<ChunkCoord> chunks, CancellationToken cancellationToken, CancellationToken sendToken)
     {
         ArgumentNullException.ThrowIfNull(player);
 
@@ -99,7 +101,7 @@ public sealed class ChunkStreamer
             lease.Value.MapId = player.MapId;
             lease.Value.ChunkX = (ushort)chunk.X;
             lease.Value.ChunkY = (ushort)chunk.Y;
-            await _presence.SendAsync(player.Connection, lease.Value, cancellationToken).ConfigureAwait(false);
+            await _presence.SendAsync(player.Connection, lease.Value, sendToken).ConfigureAwait(false);
             foreach (IChunkStateContributor contributor in _contributors)
             {
                 await contributor.LeftAsync(player, chunk, cancellationToken).ConfigureAwait(false);

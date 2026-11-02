@@ -86,15 +86,21 @@ public sealed partial class PlayerService
                     NosumMetrics.RecordSnapshotTick(started);
                     NosumMetrics.RecordSnapshotBytes(_tickBytes);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Skip this tick; the next one carries the state again.
+                    // Skip this tick; the next one carries the state again. Logged, so a tick that keeps failing is seen rather than read as a frozen loop.
+                    OpsLog.Error("snapshot.tick_failed", "A snapshot tick failed; the next tick carries the state again.", new LogField("error", ex.GetType().Name), new LogField("message", ex.Message));
                 }
             }
         }
         catch (OperationCanceledException)
         {
             // Disposed.
+        }
+        catch (Exception ex) when (!_stop.IsCancellationRequested)
+        {
+            // The loop itself faulted: the finally block starts it again while players remain.
+            OpsLog.Error("snapshot.loop_faulted", "The snapshot loop faulted and is restarted while players remain.", new LogField("error", ex.GetType().Name), new LogField("message", ex.Message));
         }
         finally
         {
@@ -182,11 +188,6 @@ public sealed partial class PlayerService
             _order[i] = i;
         }
 
-        for (int i = 0; i < count; i++)
-        {
-            await this.UpdateInterestAsync(_players[i]).ConfigureAwait(false);
-        }
-
         Array.Sort(_chunkKeys, _order, 0, count);
 
         using PacketScope<MapSnapshot> lease = PacketFactory<MapSnapshot>.Acquire();
@@ -199,8 +200,9 @@ public sealed partial class PlayerService
     }
 
     // Moves the player's interest set when their chunk changed, then sends what the client is owed: the chunks that left, the state of the chunks that joined.
+    // A send that misses the viewer's deadline is not swallowed here: it cancels the viewer's work in PushToViewerAsync.
     [SuppressMessage("Design", "CA1031", Justification = "One dead connection must not cost the rest of the instance its snapshot.")]
-    private async ValueTask UpdateInterestAsync(PlayerPresence player)
+    private async ValueTask UpdateInterestAsync(PlayerPresence player, CancellationToken sendToken)
     {
         ViewerState viewer = player.Viewer!;
         if (viewer.Closed)
@@ -225,24 +227,66 @@ public sealed partial class PlayerService
 
                 if (leftCount > 0 && !player.Connection.IsDisposed)
                 {
-                    await _streamer.SendLeftAsync(player, _left.AsMemory(0, leftCount), _stop.Token).ConfigureAwait(false);
+                    await _streamer.SendLeftAsync(player, _left.AsMemory(0, leftCount), _stop.Token, sendToken).ConfigureAwait(false);
                 }
             }
 
             if (viewer.PendingEnter.Count > 0 && !player.Connection.IsDisposed)
             {
-                await _streamer.SendPendingStateAsync(player, _stop.Token).ConfigureAwait(false);
+                await _streamer.SendPendingStateAsync(player, _stop.Token, sendToken).ConfigureAwait(false);
             }
         }
-        catch (Exception) when (!_stop.IsCancellationRequested)
+        catch (Exception) when (!_stop.IsCancellationRequested && !sendToken.IsCancellationRequested)
         {
             // Chunks whose state failed to load stay pending and go out with the next tick.
         }
     }
 
-    // Builds and sends one player's snapshot of their interest set, after the spawns and despawns it implies.
+    // Brings one viewer up to date for this tick: its interest set, then the snapshot. Its deadline covers all of it.
     [SuppressMessage("Design", "CA1031", Justification = "One dead connection must not cost the rest of the instance its snapshot.")]
     private async ValueTask PushToViewerAsync(PlayerPresence viewerPlayer, MapSnapshot snapshot, int count)
+    {
+        IConnection connection = viewerPlayer.Connection;
+        ViewerState viewer = viewerPlayer.Viewer!;
+        if (connection.IsDisposed || viewer.Closed)
+        {
+            return;
+        }
+
+        // One deadline for everything this viewer is owed this tick (docs/adr/ADR-087 D2, amended 2026-11-02): the chunk notices and chunk
+        // state of its interest set, then its despawns, spawns and snapshot. A viewer that does not take them in time is disconnected, so the
+        // tick waits for one stalled client at most once and never again for the same connection.
+        using CancellationTokenSource deadline = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
+        deadline.CancelAfter(_viewerSendDeadline);
+        CancellationToken sendToken = deadline.Token;
+        try
+        {
+            await this.UpdateInterestAsync(viewerPlayer, sendToken).ConfigureAwait(false);
+            await this.SendViewerSnapshotAsync(viewerPlayer, snapshot, count, sendToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (deadline.IsCancellationRequested && !_stop.IsCancellationRequested)
+        {
+            // The viewer missed its deadline: drop the connection. Its close event then removes the player from presence.
+            viewer.Closed = true;
+            OpsLog.Warning("snapshot.viewer_dropped", "A viewer did not take its snapshot within the send deadline and was disconnected.", new LogField("deadline_ms", _viewerSendDeadline.TotalMilliseconds));
+            try
+            {
+                connection.Disconnect("snapshot send deadline exceeded");
+            }
+            catch (Exception)
+            {
+                // Already closing: the close event cleans it up.
+            }
+        }
+        catch (Exception) when (!_stop.IsCancellationRequested)
+        {
+            // A closing connection is cleaned up by its close event.
+        }
+    }
+
+    // Builds and sends one player's snapshot of their interest set, after the spawns and despawns it implies.
+    [SuppressMessage("Design", "CA1031", Justification = "A spawn whose look cannot be read is forgotten and shown again next tick; any other failure is the connection's.")]
+    private async ValueTask SendViewerSnapshotAsync(PlayerPresence viewerPlayer, MapSnapshot snapshot, int count, CancellationToken sendToken)
     {
         IConnection connection = viewerPlayer.Connection;
         ViewerState viewer = viewerPlayer.Viewer!;
@@ -297,51 +341,26 @@ public sealed partial class PlayerService
             }
         }
 
-        // One deadline for everything this viewer is owed this tick (docs/adr/ADR-087 D2): a viewer that does not take it in time
-        // is disconnected, so the tick waits for one stalled client at most once and never again for the same connection.
-        using CancellationTokenSource deadline = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
-        deadline.CancelAfter(_viewerSendDeadline);
-        CancellationToken sendToken = deadline.Token;
-        try
+        for (int i = 0; i < _despawns.Count; i++)
         {
-            for (int i = 0; i < _despawns.Count; i++)
-            {
-                await _streamer.SendDespawnAsync(viewerPlayer, _despawns[i], sendToken).ConfigureAwait(false);
-            }
-
-            for (int i = 0; i < _spawns.Count; i++)
-            {
-                try
-                {
-                    await _streamer.SendSpawnAsync(viewerPlayer, _spawns[i], sendToken).ConfigureAwait(false);
-                }
-                catch (Exception) when (!sendToken.IsCancellationRequested)
-                {
-                    // The look could not be read: forget the player so the next tick shows them again.
-                    _ = viewer.Shown.Remove(_spawns[i].PlayerId);
-                }
-            }
-
-            await _presence.SendAsync(connection, snapshot, sendToken).ConfigureAwait(false);
-            _tickBytes += snapshot.Length;
+            await _streamer.SendDespawnAsync(viewerPlayer, _despawns[i], sendToken).ConfigureAwait(false);
         }
-        catch (OperationCanceledException) when (deadline.IsCancellationRequested && !_stop.IsCancellationRequested)
+
+        for (int i = 0; i < _spawns.Count; i++)
         {
-            // The viewer missed its deadline: drop the connection. Its close event then removes the player from presence.
-            viewer.Closed = true;
             try
             {
-                connection.Disconnect("snapshot send deadline exceeded");
+                await _streamer.SendSpawnAsync(viewerPlayer, _spawns[i], sendToken).ConfigureAwait(false);
             }
-            catch (Exception)
+            catch (Exception) when (!sendToken.IsCancellationRequested)
             {
-                // Already closing: the close event cleans it up.
+                // The look could not be read: forget the player so the next tick shows them again.
+                _ = viewer.Shown.Remove(_spawns[i].PlayerId);
             }
         }
-        catch (Exception) when (!_stop.IsCancellationRequested)
-        {
-            // A closing connection is cleaned up by its close event.
-        }
+
+        await _presence.SendAsync(connection, snapshot, sendToken).ConfigureAwait(false);
+        _tickBytes += snapshot.Length;
     }
 
     // The first index whose chunk key is not below the given one.

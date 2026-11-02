@@ -338,3 +338,29 @@ a 500-client run where everyone stands in one chunk (the bots spread over the pu
   and `CREATE DATABASE nosum_dev OWNER nosum` in the container; not repository changes).
 - `dotnet build` puts the host and the bench under `artifacts/bin/<project>/release/`, not under the project's `bin/`.
 - The bench needs the maps directory explicitly: `--maps art/own/Maps` (the `assets/Maps` default does not exist in this checkout).
+
+## Round four: three 500-client runs back to back on one process (the snapshot freeze, ADR-087 amendment 2026-11-02)
+
+The report was that the snapshot tick stopped in runs 2 and 3 of back-to-back 500-client runs against one server process. Same machine and bench
+settings as round three (`Nosum.Bench.Load --clients 500 --ramp 60 --duration 60 --maps art/own/Maps`, Release, 4 vCPU shared with the bots, PostgreSQL
+on the same host). The tick is the server's own count from `nosum_snapshot_tick_duration_ms`; "steady ticks" is the change in that count over the steady phase.
+
+| Build | Run | Steady ticks | Tick mean | Tick p99 bucket | Clients dropped by the server | Snapshots per client |
+|:--|:--|:--|:--|:--|:--|:--|
+| master (before) | 1 | 600 | 14.19 ms | ≤ 30 ms | 0 | 10.0/s |
+| master (before) | 2 | 601 | 15.57 ms | ≤ 30 ms | 0 | 10.0/s |
+| master (before) | 3 | 600 | 15.74 ms | ≤ 30 ms | 0 | 10.0/s |
+| this branch (after) | 1 | 600 | 14.47 ms | ≤ 30 ms | 0 | 10.0/s |
+| this branch (after) | 2 | 600 | 15.12 ms | ≤ 30 ms | 0 | 10.0/s |
+| this branch (after) | 3 | 600 | 13.87 ms | ≤ 30 ms | 0 | 10.0/s |
+
+**The freeze did not reproduce with the bench in this environment**: every steady phase ticked 10 times a second before and after the change. The
+p99 bucket of 30 ms misses the 20 ms budget in every run, as it did in round three; that is the tick budget, not this change.
+
+**What was reproduced, and where.** A client whose chunk notices or chunk state are never taken froze every map's snapshots. The tick sent those
+(`UpdateInterestAsync`) with the server's stop token only, so the send never ended. `SnapshotChurnTests.StuckClientThatNeverTakesItsChunkNotices_DoesNotStopTheSnapshotsOfAnother_AndIsDropped`
+fails on master with the other client's snapshots stopped the moment the stuck client joined (`5 snapshots did not arrive within 00:00:10 after the stuck client joined`).
+With the change the stuck client is disconnected at its deadline and the other client keeps its snapshots. Whether the bench's freeze is this path was not
+shown: the bench's clients read everything they are sent, so this exact stall needs a client that stops reading.
+
+Also seen while running the bench here: its default `--maps` is `assets/Maps`, which does not exist in this repository; the maps are in `art/own/Maps`.

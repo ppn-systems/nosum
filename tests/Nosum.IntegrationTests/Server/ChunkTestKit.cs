@@ -67,7 +67,7 @@ internal sealed class ChunkHost : IAsyncDisposable
 
     public IMapCatalog Maps => InstanceManager.Instance.GetExistingInstance<IMapCatalog>()!;
 
-    public static async Task<ChunkHost> StartAsync(PostgresFixture database, TimeSpan timeout, bool development = false)
+    public static async Task<ChunkHost> StartAsync(PostgresFixture database, TimeSpan timeout, bool development = false, ServerSeams? seams = null)
     {
         using TcpListener probe = new(IPAddress.Loopback, 0);
         probe.Start();
@@ -76,7 +76,7 @@ internal sealed class ChunkHost : IAsyncDisposable
 
         HostServices.Register(database.Options);
         TestAccounts.UseFakeVerifiers(database.Options);
-        NetworkApplication app = Program.BuildApplication(port, null, development);
+        NetworkApplication app = Program.BuildApplication(port, null, development, seams);
         ChunkHost host = new(app, port, timeout);
         await app.ActivateAsync(host.Timeout);
         return host;

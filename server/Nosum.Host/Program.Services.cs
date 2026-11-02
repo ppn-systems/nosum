@@ -284,10 +284,11 @@ internal static partial class Program
         InstanceManager.Instance.Register<IPetService>(pets);
         LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock, pets);
         InstanceManager.Instance.Register<ILookService>(looks);
-        ChunkStreamer streamer = new(presence, publisher, looks, [placeables, farm, nodes, groundItems]);
+        IMapPresence sends = seams?.WrapPresence?.Invoke(presence) ?? presence;
+        ChunkStreamer streamer = new(sends, publisher, looks, [placeables, farm, nodes, groundItems]);
         // Running spends energy in the background (docs/adr/ADR-085 D2).
         RunEnergyService runEnergy = new(inventory, progress);
-        PlayerService players = new(seams?.WrapPresence?.Invoke(presence) ?? presence, presence, streamer, maps, seams?.WrapStates?.Invoke(states) ?? states, new InstanceWorld(placeables, nodes, buildingDirectory), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems, buildingDirectory, communityUnlocks, inventory, runEnergy);
+        PlayerService players = new(sends, presence, streamer, maps, seams?.WrapStates?.Invoke(states) ?? states, new InstanceWorld(placeables, nodes, buildingDirectory), access, coopMembership, TimeProvider.System, SnapshotInterval, groundItems, buildingDirectory, communityUnlocks, inventory, runEnergy);
         InstanceManager.Instance.Register<IPlayerService>(players);
         InstanceManager.Instance.Register<ICoopLandEviction>(players);
         // Recipe unlocks follow the player's skill levels (docs/adr/ADR-023 D3, ADR-024 D1, ADR-045 D2, ADR-049 D3).
