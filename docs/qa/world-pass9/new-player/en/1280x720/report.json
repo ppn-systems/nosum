@@ -1,11 +1,11 @@
 {
   "steps": [
     {
-      "step": "o-world-map",
-      "sec_since_prev": 8.4,
-      "t_total": 8.4,
-      "frame": "01-o-world-map.png",
-      "obs": "text: [\"Spring\",\"Day 9\",\"12:04 AM\",\"510\",\"World map\",\"Farm\",\"Shops: 0\",\"Connects to:\",\"Town\",\"Shops: 7\",\"Page 1 of 3\"] | buttons: [\"Mail\",\"Settings\",\"Close\",\"Previous\",\"Next\",\"Emotes [B]\"]"
+      "step": "z-menu-open",
+      "sec_since_prev": 8.5,
+      "t_total": 8.5,
+      "frame": "01-z-menu-open.png",
+      "obs": "buttons: [\"Mail\",\"Settings\",\"Close\",\"Visitors\",\"Pet\",\"Profile\",\"Emotes [B]\"] | tiles: [\"Visitors\",\"Pet\",\"Profile\"]"
     }
   ],
   "observations": [],
