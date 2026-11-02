@@ -205,7 +205,7 @@ async function farmFlow(lk) {
   await step('pet-pet-today', async () => {
     await clickKey(lk, 'Pet_Pet'); await wait(1500);
     const text = await petReply();
-    if (!/Done\.|already petted|Pet_AlreadyPetted/i.test(text) && !new RegExp(esc(STRINGS[lk].Pet_AlreadyPetted)).test(text) && !new RegExp(esc(STRINGS[lk].Pet_Status_Ok)).test(text)) throw new Error('no petting reply: ' + text.slice(0, 120));
+    if (!/Done\.|petted today/i.test(text) && !new RegExp(esc(STRINGS[lk].Pet_PettedToday)).test(text) && !new RegExp(esc(STRINGS[lk].Pet_Status_Ok)).test(text)) throw new Error('no petting reply: ' + text.slice(0, 120));
     return { reply: text.slice(-80) };
   });
   await closeWindow(lk);
