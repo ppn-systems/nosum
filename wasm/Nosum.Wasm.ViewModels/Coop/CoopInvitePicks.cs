@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Nosum.Gameplay.Coops;
 
 namespace Nosum.Wasm.ViewModels.Coop;
 
@@ -40,4 +41,14 @@ public static class CoopInvitePicks
 
         return picks;
     }
+
+    /// <summary>
+    /// Whether an invitation the server accepted at <paramref name="sentAt"/> may still be open at <paramref name="now"/>. The server keeps an
+    /// invitation for <see cref="CoopRules.InviteHours"/>; after that the picker offers the player again. A decline is not reported to the
+    /// founder, so this window is the only end the client can see (critique-social round 6).
+    /// </summary>
+    /// <param name="sentAt">When the server accepted the invitation (the client's clock).</param>
+    /// <param name="now">The current time (the client's clock).</param>
+    /// <returns><see langword="true"/> while the invitation is inside its window.</returns>
+    public static bool StillPending(DateTimeOffset sentAt, DateTimeOffset now) => now - sentAt < TimeSpan.FromHours(CoopRules.InviteHours);
 }

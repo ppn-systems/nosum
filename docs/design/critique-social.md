@@ -90,3 +90,23 @@ published client. Guests only, as before.
 - **Still in the backlog:** finding 3 (phone door for Trade and Friends), 4 (co-op entry point), 5 (invite by nickname), 10 (labels
   on the column), 14 (Escape after a chat line).
 - Protocol unchanged (34). No new ADR: the change is in the client's socket channel and view model.
+
+## Round 6 (2026-11-02)
+
+Branch `fix/social-round-6`. A code review of the co-op invite, chat and the menu doors; no browser play in this round, and no
+visible change, so no frames (ui-standard applies to visible changes only).
+
+- **Finding 7, the invite mark, was wrong in round 5.** The round-5 note said the "Invited" mark lasts while the co-op page is open. It does
+  not: `CoopViewModel` is a session service and nothing cleared its set, so the mark lasted until the page reloaded, whatever happened to the
+  invitation. Fixed: the mark is kept for the server's invitation window (`CoopRules.InviteHours`, 72 hours) and then the picker offers the
+  player again (`CoopInvitePicks.StillPending`, unit-tested at the start, inside and at the end of the window).
+- **Still open (backlog, the reviewer's #2 item):** a decline is not reported to the founder. The server removes the invitation, but nothing
+  pushes that to the founder, so the mark stays until the window ends. Closing it needs the founder's pending invitations in the co-op
+  snapshot as map ids: a new `CoopSnapshot` field (protocol bump, `NosumProtocol` doc line) and the map-id mapping in both snapshot paths
+  (the GetCoop reply and the pushes), which today see accounts only. That is a wire change and was not started in this round.
+- **Not changed, on purpose:** finding 4 (co-op entry point). `ui-standard.md` section 2.1 records the owner's decision that co-op is not in
+  the column or the menu. Finding 14 (Escape after a chat line) is an open design question (Escape with nothing open opens the menu on the
+  last tab, which is the documented behaviour), so it is left for the owner.
+- **Not reviewed in this round:** the friends list, visits, trade and emotes. Round 3 and round 5 played them, and this round did not
+  change them.
+- Protocol unchanged (34). No new ADR.
