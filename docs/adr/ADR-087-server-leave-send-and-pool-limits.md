@@ -125,5 +125,18 @@ one after another under the server's stop token, so one client that stopped read
 - **Test.** `PublishFanoutTests.StuckViewerThatNeverTakesAnEmote_DoesNotDelayTheOthersOfTheChunk_AndIsDropped` holds one viewer's emote sends and
   checks that the other viewer receives the emote while that send is still held, then that the stuck viewer is disconnected. It failed before the helper
   (the emote never reached the other viewer, and the sender's reply never came) and passes with it.
+
+## Amendment (2026-11-02, third): the single-recipient push has the deadline too
+
+The second amendment left the single-recipient sends through `IPlayerNotifier` without a deadline, as a follow-up. They are now bound.
+
+- **D7 — `PlayerNotifier.TrySendAsync` has the same 250 ms deadline as a fan-out (D6).** The send runs under the caller's token linked to a
+  `CancelAfter(SendDeadline)` (`PlayerNotifier.DefaultSendDeadline`, 250 ms; a property so a test can shorten it). A player who does not take the packet
+  by then is disconnected (`notifier.send_deadline` is logged) and the call returns `false`. A caller's own cancellation returns `false` without
+  disconnecting anyone. The handler that pushed to a stalled player waits at most the deadline, and only once: the player is then disconnected.
+- **Seam.** The constructor takes an optional send delegate; null is the real Nalix transport send. The integration tests use it to stall or
+  complete a send without a socket (`PlayerNotifierDeadlineTests`). The composition root passes none.
+- **Not changed.** The single sends of `PlaceableService` and `ChestService` still await their connection without a deadline; they do not go through the notifier.
+- No wire, packet, opcode or schema change.
 - No wire, packet, opcode or schema change. The transport must honour cancellation for the bound to hold; the transport owners should confirm it, as
   the D2 note asks.

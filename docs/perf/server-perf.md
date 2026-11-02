@@ -9,6 +9,62 @@ on a 4-core machine shared with the bots). The one database change lowers one ho
 code measures. The load-test numbers do not improve, because this branch does not change the snapshot or send path; the run-to-run spread is about as large as
 any difference in the table.
 
+## Round four (branch `perf/server-send-round4`): the single-push deadline, and what the 500-client tick costs now
+
+**Result: the 500-client tick budget is still not met, and no server change in this round moved it.** Three items were asked for. Item 3 (the send deadline
+on single pushes) is done and tested. Item 1 (the tick) was measured and its top cost is inside Nalix's per-send path; no change in this repository was
+found that lowers it without a client-visible or Nalix-side change. Item 2 (the idle WASM frame allocation) was attributed and not removed.
+
+### Item 3: the 250 ms deadline on single-recipient pushes (ADR-087 D7)
+
+`PlayerNotifier.TrySendAsync` ran under the caller's token only. It now runs under a 250 ms deadline; a player who misses it is disconnected and the call
+returns `false`. Test: `PlayerNotifierDeadlineTests` (stalled player returns false at the deadline and is disconnected; a healthy player stays connected;
+the caller's own cancellation does not disconnect). The full unit suite passes (3748/3748). The integration suite could not run locally: the `nosum` role
+here may not create databases, and the fixture needs that; CI runs it on a superuser service container.
+
+### Item 1: the 500-client tick (baseline and branch, same machine, same bench)
+
+Bench: `bench/Nosum.Bench.Load`, 500 clients, 60 s ramp, 60 s steady, server and bots on the same 4-core box (the box also ran a WASM benchmark for part of
+the session, so the numbers carry that noise). Maps: `art/own/Maps` (the bench's `assets/Maps` default is not in this tree).
+
+| Run | Build | Tick mean | Tick p99 bucket | Allocated per tick | Notes |
+|:--|:--|:--|:--|:--|:--|
+| 1 | `origin/master` 38296c3 | 12.69 ms | ≤ 30 ms | 1147 KiB | FAIL (budget 20 ms) |
+| 1 | this branch | 13.81 ms | ≤ 50 ms | 1165 KiB | FAIL |
+| 2 | `origin/master` 38296c3 | 12.38 ms | ≤ 30 ms | 1147 KiB | FAIL |
+| 2 | this branch | not reported | not reported | 584 MiB/tick (no tick counted) | see below |
+| 3 | `origin/master` 38296c3 | not reported | not reported | 704 MiB/tick (no tick counted) | see below |
+| 3 | this branch | not reported | not reported | 578 MiB/tick (no tick counted) | see below |
+
+Runs 2 and 3 (both builds) reported "no snapshot tick ran during the steady phase": the bench's tick count was zero in the window, so the per-tick
+allocation there is meaningless. The server logs show no `snapshot.tick_failed` or `loop_faulted`. The cause was not isolated in this session. The one
+clean pair (run 1 and run 2 on master) differs by 0.3 ms; the branch run 1 is 1.1 ms higher. Item 3 is not on the snapshot path, so this is not evidence
+of a regression, and it is not evidence of none: the spread is larger than the difference this round could show. The budget is not met on either build.
+
+### Item 1: where the tick goes, and what was rejected
+
+- **The send is most of the tick.** From round three's probe: about 63 % of the 500-client tick is each viewer's `SendAsync` (Nalix frames, encrypts, writes),
+  about 20 % is per-viewer bookkeeping, about 17 % is preparation. The per-viewer deadline timer costs about 12 % of the allocation and, measured in round
+  three, did not lower the tick when removed.
+- **Rejected: skip or throttle the 10 Hz snapshot for unchanged viewers.** The client interpolates from `ServerTimeMs` and estimates its clock from arrival
+  times (`RemotePlayers.OnSnapshot`, `_clock.Observe`). A gap in the stream changes how remote players are drawn. This is a client-visible behaviour change,
+  and it needs an ADR and playtesting, not a server-only patch.
+- **Rejected: send in parallel lanes.** Round three measured about 11 % less tick, with two of three long series freezing the tick; the freeze was not
+  explained. Its per-lane scratch state is not yet separated from the shared scratch arrays, so it needs its own ADR.
+- **Not available: one framed buffer for viewers that share an interest set.** Nalix's public send takes a packet and encrypts per call; a shared buffer
+  needs a Nalix API that does not exist yet.
+
+The next lever is a Nalix-side one (a send path that takes pre-framed, pre-encrypted bytes), or an ADR for snapshot cadence. Neither is in this branch.
+
+### Item 2: the idle WASM frame allocation (about 113 B per frame)
+
+Measured with the `allocatedBytes` QA hook and Chromium (idle farm, 8 s, 475 frames): 113 B per frame; the frame body itself is zero when idle. The bytes are
+on the same thread between frames. Attribution: the server's 10 Hz snapshot arrives as an inbound WebSocket message, and the Nalix receive, decode and
+dispatch allocate about 670 B per message (about 52 KB over 8 s, 160 `setTimeout` callbacks). Making `NearbyPlayers.OnSnapshot` and
+`RemotePlayers.OnSnapshot` return immediately left the idle figure at 114 B, so the Nosum handlers are not the source. `MapSnapshot.Deserialize` itself
+allocates about 176 B per call (the packet, one `PlayerState`, the list); that part is in Nosum code but is small. Reaching zero needs either an upstream
+Nalix change to pool inbound packets, or a server decision to change the snapshot cadence for idle viewers (wire-visible, see ADR-008). Neither was made here.
+
 ## Round three: the current master, 3 runs each, and what the send deadline and the pool cap cost (branch `claude/perf-round3`)
 
 Base: `origin/master` at `fc98de0` (no logic change in this branch). Same machine and method as below (4 vCPU shared with the bots, PostgreSQL 16 on
