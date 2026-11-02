@@ -75,6 +75,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     private readonly ItemDescriber _describer;
     private readonly IStringLocalizer<Catalogue> _catalogue;
     private readonly NicknameFormatter _names;
+    private readonly Func<long> _serverNowMs;
     private IReadOnlyList<int> _searchIds = [];
     private string _search = string.Empty;
     private int _sellSlot = -1;
@@ -92,7 +93,8 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     /// <param name="catalogue">Item names, for the search box.</param>
     /// <param name="names">Shows the seller's nickname.</param>
     /// <param name="text">UI text.</param>
-    public MarketViewModel(MarketChannel market, InventoryViewModel inventory, ItemDescriber describer, IStringLocalizer<Catalogue> catalogue, NicknameFormatter names, IStringLocalizer<Language> text)
+    /// <param name="serverNowMs">The server clock, in Unix milliseconds (the calendar's estimate): a listing's time left is counted on the server's clock.</param>
+    public MarketViewModel(MarketChannel market, InventoryViewModel inventory, ItemDescriber describer, IStringLocalizer<Catalogue> catalogue, NicknameFormatter names, IStringLocalizer<Language> text, Func<long> serverNowMs)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(market);
@@ -100,12 +102,14 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
         ArgumentNullException.ThrowIfNull(describer);
         ArgumentNullException.ThrowIfNull(catalogue);
         ArgumentNullException.ThrowIfNull(names);
+        ArgumentNullException.ThrowIfNull(serverNowMs);
 
         _market = market;
         _inventory = inventory;
         _describer = describer;
         _catalogue = catalogue;
         _names = names;
+        _serverNowMs = serverNowMs;
         market.BrowseChanged += this.Raise;
         market.MineChanged += this.Raise;
         market.HistoryChanged += this.Raise;
@@ -586,7 +590,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     private List<ListingDisplay> Describe(ListingsInfo page)
     {
         List<ListingDisplay> rows = new(page.Listings.Count);
-        long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        long now = _serverNowMs();
         foreach (ListingInfo listing in page.Listings)
         {
             string price = listing.Quantity > 1
@@ -599,7 +603,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
         return rows;
     }
 
-    /// <summary>The time a listing has left, in whole hours (rounded up), or "expired". The local clock: a listing lasts 48 hours, so a few minutes of skew do not show.</summary>
+    /// <summary>The time a listing has left, in whole hours (rounded up), or "expired". Counted on the server's clock, so a skewed device clock does not change it.</summary>
     private string ExpiryText(long expiresAtMs, long now)
     {
         const long HourMs = 60L * 60 * 1000;

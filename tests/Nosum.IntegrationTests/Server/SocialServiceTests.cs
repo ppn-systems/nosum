@@ -363,6 +363,36 @@ public sealed class SocialServiceTests : IClassFixture<PostgresFixture>, IDispos
     }
 
     [Fact]
+    public async Task Browse_PagesOfEqualUnitPrices_ShowEveryListingOnce()
+    {
+        // Equal unit prices tie on the sort key; the listing id orders the ties, so offset pages neither repeat nor skip a listing.
+        Guid seller = await CreatePlayerAsync();
+        _ = await _inventory.AddAsync(seller, ItemCatalog.Potato, 20, "test.setup");
+        for (int i = 0; i < 8; i++)
+        {
+            _clock.Advance(TimeSpan.FromSeconds(1));
+            int slot = await SlotOfAsync(seller, ItemCatalog.Potato);
+            (await _market.CreateListingAsync(seller, slot, ItemCatalog.Potato, 1, 10)).Should().Be(MarketStatus.Ok);
+        }
+
+        List<ListingView> seen = [];
+        for (int page = 0; page < 1000; page++)
+        {
+            ListingsPageView view = await _market.BrowseAsync(page, [ItemCatalog.Potato], MarketSort.UnitPriceLowest, pageSize: 3);
+            if (view.Listings.Count == 0)
+            {
+                break;
+            }
+
+            seen.AddRange(view.Listings);
+        }
+
+        // Other tests share the database, so the pages hold their listings too: the check is on the ids, not on a count.
+        seen.Select(l => l.ListingId).Should().OnlyHaveUniqueItems();
+        seen.Where(l => l.SellerId == seller).Should().HaveCount(8);
+    }
+
+    [Fact]
     public async Task Browse_PagesNewestFirstAndFiltersByItem()
     {
         Guid seller = await CreatePlayerAsync();

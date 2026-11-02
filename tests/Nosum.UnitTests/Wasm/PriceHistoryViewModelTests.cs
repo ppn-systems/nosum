@@ -171,7 +171,7 @@ public sealed class PriceHistoryViewModelTests
         inventoryChannel.Load();
         ItemDescriber describer = new(new FixedIcons(), Localizer<Catalogue>(), Localizer<Language>());
         NicknameFormatter names = new(Localizer<Language>(), new LookChannel(socket, () => 0));
-        MarketViewModel vm = new(new MarketChannel(socket), inventory, describer, Localizer<Catalogue>(), names, Localizer<Language>());
+        MarketViewModel vm = new(new MarketChannel(socket), inventory, describer, Localizer<Catalogue>(), names, Localizer<Language>(), () => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
         return (vm, socket);
     }
 

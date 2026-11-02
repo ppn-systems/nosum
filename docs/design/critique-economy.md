@@ -186,3 +186,26 @@ Branch `claude/economy-round3`, ADR-101. Captures and grading: [`docs/qa/economy
 | 2 | Recurring late-game sink | **Open for the owner** (unchanged from round 2). |
 
 Not changed: the NPC route to the market (item 5), the confirm asymmetry (item 6, owner decision), the sales-only price history.
+
+## 12. Round 4: what changed, what did not
+
+Branch `claude/economy-round4`. The round-3 open item is closed by ADR-101's round-4 amendment (the browse page holds the rows its window fits, protocol 34), so
+section 11's "not met" row is done. This pass re-read the market code against the open items and fixed three things that were wrong, without new features and
+without the owner's decisions. Captures: [`docs/qa/economy-round4/`](../qa/economy-round4/README.md).
+
+| Section | Item | Result |
+|:--|:--|:--|
+| 11 | Eight rows without an inner scroll | **Done** (ADR-101 round 4). Nothing left to do here. |
+| 6, 9 | Hours left on "My listings" | **Fixed.** Counted on the server clock (the calendar's estimate), not the device clock. A skewed device clock showed a wrong count or "Expired" for a live listing. No wire change. Test: `Browsed_OwnListing_CountsTheTimeLeftOnTheServerClock`. |
+| 6 | Browse pages in price order | **Fixed (correctness).** Equal unit prices tie on the sort key, and offset paging with a tie can show one listing on two pages and skip another. The listing id now breaks ties on all three orders (`IRepository.PageAsync` with a second key). No wire change. Test: `Browse_PagesOfEqualUnitPrices_ShowEveryListingOnce`. |
+| 1, 4 | Fee comment | **Fixed.** `CoinRules` said the fee is rounded down; the code rounds it up (never less than the exact share). The comment now says so. |
+
+Not changed, and why:
+
+- **Price of current asks** (section 6, item 8): a new query and a new view. It is a feature, so it stays for a later round.
+- **Late-game sink, energy-free herds, fishing at the margin, fiber free, the backpack's step, the confirm asymmetry**: owner decisions (section 7).
+- **The "hours left" text does not tick**: it is set when the browse page arrives and is shown until the next refresh. A listing with ten minutes left still reads "1 hour left" until the page reloads. A timer would be a new mechanic on the page; left for the owner's call on the page's refresh rule.
+- **Sales-only price history** (section 6, item 8) and **the NPC route to the market** (item 5): unchanged, as before.
+
+Tests: `MarketSortViewModelTests` (server clock), `SocialServiceTests.Browse_PagesOfEqualUnitPrices_ShowEveryListingOnce` (paging with ties; on a
+small table PostgreSQL may return ties in a stable order, so this test guards the contract rather than reproducing the old failure every time).
