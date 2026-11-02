@@ -99,6 +99,11 @@ async function run() {
     // The animal fields sit on the Animals tab of the carpenter (docs/adr/ADR-107 D2); the Buildings tab has no input.
     await page.getByRole('button', { name: L.animals, exact: true }).first().click(); await sleep(800);
     await step('carpenter-animals', () => shot(page, 'carpenter-animals'));
+    // A purchase with the name field empty is refused, and the refusal sits under the field (docs/design/critique-animals-pets.md, finding 10).
+    await step('refuse-empty-name', async () => {
+      await page.getByRole('button', { name: L.buyChicken }).first().click(); await sleep(900);
+      await shot(page, 'carpenter-name-refused');
+    });
     await step('buy-chickens', async () => {
       for (const name of ['Hen', 'Dot']) {
         await page.locator('input').first().fill(name); await sleep(300);
