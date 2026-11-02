@@ -26,9 +26,12 @@
                 <GameRow Class="spread shop-top">
                     <span>@Vm.CoinsText</span>
                     <TabBar Tabs="PresetTabs()" Active="Vm.ActivePreset" OnSelect="SelectPreset" />
-                    <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_Less")" Disabled="@(Vm.Quantity <= 1)" OnClick="@(() => Vm.Step(-1))" />
-                    <span class="shop-qty"><GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => { Vm.QuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Shop_Quantity")" MaxLength="2" /></span>
-                    <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_More")" Disabled="@(Vm.Quantity >= ShopViewModel.MaxQuantity)" OnClick="@(() => Vm.Step(1))" />
+                    @* The stepper stays one unit: on a phone the row may wrap between the balance, the presets and the stepper, never inside the stepper. *@
+                    <span class="shop-stepper">
+                        <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_Less")" Disabled="@(Vm.Quantity <= 1)" OnClick="@(() => Vm.Step(-1))" />
+                        <span class="shop-qty"><GameInput Type="number" Value="@Vm.QuantityText" ValueChanged="@(v => { Vm.QuantityText = v; Vm.Touch(); })" Label="@Vm.Text("Shop_Quantity")" MaxLength="2" /></span>
+                        <GameButton Variant="secondary" Text="@Vm.Text("Shop_Qty_More")" Disabled="@(Vm.Quantity >= ShopViewModel.MaxQuantity)" OnClick="@(() => Vm.Step(1))" />
+                    </span>
                 </GameRow>
             </div>
             @if (Vm.Pending is not null)
@@ -47,7 +50,7 @@
                     int itemId = offer.ItemId;
                     <GameRow Class="@RowClass(offer)">
                         @* A greyed row (out of season) is not clickable: its price cell carries the reason (docs/design/research-hud-and-loops.md, item 4). *@
-                        <ItemSlotButton Slot="offer.Item" Picked="@(Vm.Detail?.ItemId == itemId)" OnClick="@(() => { if (offer.SeasonNote.Length == 0) { Vm.Select(itemId); } })" Tip="@offer.Item.Name" />
+                        <ItemSlotButton Slot="offer.Item" Picked="@(Vm.Detail?.ItemId == itemId)" OnClick="@(() => { if (offer.SeasonNote.Length == 0) { Vm.Select(itemId); } })" Tip="@(offer.SeasonNote.Length > 0 ? offer.Item.Name + ": " + offer.SeasonNote : offer.Item.Name)" />
                         <span class="shop-text">
                             <span class="shop-name">@offer.Item.Name</span>
                             <span class="shop-price">@offer.PriceText</span>

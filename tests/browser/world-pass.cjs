@@ -46,6 +46,19 @@ async function routeRepoAssets(page) {
   });
 }
 
+// Opens the game menu window (the Menu button of the column) and then the tile whose name matches: how a phone reaches the panels.
+async function openFromMenu(page, re) {
+  await page.locator('.game-hud .hud-menu-button .game-icon-button').first().click({ force: true, timeout: 5000 });
+  await page.waitForSelector('.game-menu-tile');
+  const hit = await page.evaluate((src) => {
+    const rx = new RegExp(src, 'i');
+    const tile = [...document.querySelectorAll('.game-menu-tile')].find((e) => rx.test(e.getAttribute('aria-label') || ''));
+    if (tile) tile.click();
+    return !!tile;
+  }, re.source);
+  if (!hit) throw new Error(`no menu tile for ${re}`);
+}
+
 // Section 7 audit of the open window (items 2, 5, 7), as in full-pass.cjs.
 const MEASURE = () => {
   const w = document.querySelector('.trade-window') || document.querySelector('.game-hud .hud-center > *') || document.querySelector('.npc-box-wrap');
@@ -225,14 +238,17 @@ async function runOne(browser, locale, vpName, report) {
   if (phone) {
     await step('minimap toggle (M)', async () => ({ status: 'n/a', notes: 'phone HUD: the minimap is a map button, not the M card (GameHud.razor.css, max-width 640px)' }));
   } else await step('minimap toggle (M)', async () => {
-    const size = () => page.evaluate(() => { const e = document.querySelector('.hud-minimap'); return e ? Math.round(e.getBoundingClientRect().height) : -1; });
-    const before = await size();
+    // Visibility, not size: the card (.hud-minimap) is in the DOM only while the map is drawn, and M hides it with no button left behind
+    // (HudMinimap.razor: the collapsed button is for a map hidden in Settings, never for an M-key hide).
+    const shown = () => page.evaluate(() => ({ card: !!document.querySelector('.hud-minimap'), button: !!document.querySelector('.hud-minimap-button') }));
+    const before = await shown();
     await page.keyboard.press('KeyM');
     await wait(500);
-    const after = await size();
+    const after = await shown();
     await page.keyboard.press('KeyM');
     await wait(300);
-    return { status: before !== after ? 'pass' : 'FAIL', notes: `minimap height ${before} -> ${after}` };
+    const hidden = before.card && !after.card && !after.button;
+    return { status: hidden ? 'pass' : 'FAIL', notes: `minimap card/button before ${JSON.stringify(before)} after M ${JSON.stringify(after)}` };
   });
 
   // Farming on the farm. The diggable field is the solid block of tiles x 47-51, y 17-19 (art/own/Maps/Farm.tmx, Diggable tiles); the farmer
@@ -435,7 +451,12 @@ async function runOne(browser, locale, vpName, report) {
 
   // Crafting panel from the toolbar.
   await step('crafting panel', async () => {
-    await page.locator('.game-hud .hud-top-right .game-icon-button[aria-label*="Chế tạo"], .game-hud .hud-top-right .game-icon-button[aria-label*="Craft"]').first().click({ force: true, timeout: 5000 });
+    if (phone) {
+      // A phone has one Menu button; the panel opens from its window's tile (ui-standard section 6).
+      await openFromMenu(page, /^(crafting|chế tạo)/i);
+    } else {
+      await page.locator('.game-hud .hud-top-right .game-icon-button[aria-label*="Chế tạo"], .game-hud .hud-top-right .game-icon-button[aria-label*="Craft"]').first().click({ force: true, timeout: 5000 });
+    }
     await wait(600);
     return { status: 'captured', notes: 'crafting window: check the screenshot' };
   });
@@ -443,6 +464,12 @@ async function runOne(browser, locale, vpName, report) {
   // Friends, co-op (warehouse), mail, skills, profile (rename), calendar and season.
   for (const [name, re] of [['mail', /^(mail|thư)$/i], ['friends', /^(friends|bạn bè)$/i], ['skills', /^(skills|kỹ năng)$/i], ['crafting', /^(crafting|chế tạo)$/i]]) {
     await step(`panel: ${name}`, async () => {
+      if (phone && name !== 'mail') {
+        // Phone: the column is one Menu button, so the panel opens from the Menu window's tile (not a hidden column button).
+        await openFromMenu(page, re);
+        await wait(600);
+        return { status: 'captured', notes: `${name} window (opened from the Menu window): check the screenshot` };
+      }
       const labels = await page.$$eval('.game-hud .hud-top-right .game-icon-button', (els) => els.map((e) => e.getAttribute('aria-label') || e.textContent.trim()));
       const i = labels.findIndex((l) => re.test(l));
       if (i < 0) throw new Error(`no toolbar button for ${name}`);

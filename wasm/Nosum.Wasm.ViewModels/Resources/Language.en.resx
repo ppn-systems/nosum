@@ -1280,6 +1280,7 @@
   <data name="Shop_Preset_Count" xml:space="preserve"><value>x{0}</value></data>
   <data name="Shop_Block_NotEnoughCoins" xml:space="preserve"><value>Not enough coins: {0} more needed.</value></data>
   <data name="Shop_Block_BagFull" xml:space="preserve"><value>Your bag is full.</value></data>
+  <data name="Shop_Row_OffSeason" xml:space="preserve"><value>Off season</value></data>
   <data name="Shop_Block_NotInSeason" xml:space="preserve"><value>Plants in {0}</value></data>
   <data name="Shop_Block_SoldIn" xml:space="preserve"><value>Sold in {0}</value></data>
   <data name="Shop_Block_NotThisSeason" xml:space="preserve"><value>Not sold this season</value></data>
