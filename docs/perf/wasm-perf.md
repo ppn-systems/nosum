@@ -219,6 +219,66 @@ tests/Nosum.UnitTests`: 3,644 passed, 0 failed (including the new `BuildGridInto
 tests/browser/modules/*.mjs`: 40 passed. Browser smoke (`tests/browser/smoke/boot-smoke.cjs`) against the published client and the Development server: no
 page or console error, 49 frames, 33 colours on the canvas at the first frame check. The frame gate (`--max-idle-body 0`) passed on every run.
 
+## Round 6: AOT measured, and the idle allocation probed (branch `claude/perf-round3`)
+
+**Result.** AOT (`-p:NosumWebDeploy=true`) is measured and **not adopted**: it nearly doubles the bytes a player downloads for a frame that is already
+under budget, and does not get the first game faster. The idle allocation (about 120 bytes a frame, whole thread) is **not removed** in this round. A probe ruled out
+the JavaScript-to-.NET call as its source, so it lies in the .NET work that runs between two frames, which this round did not attribute.
+
+The `wasm-tools` workload installed on the cloud image (`dotnet workload install wasm-tools`, .NET 10.0.403 band, about a minute).
+
+### AOT against the interpreter (the same tree, the same harness, one container)
+
+Both builds are the client on `claude/perf-round3` (the same sources; only `NosumWebDeploy` differs). Interpreter: `dotnet publish -c Release`. AOT:
+`dotnet publish -c Release -p:NosumWebDeploy=true`. Tester builds add `-p:NosumDevTools=true`.
+
+| Measure | Interpreter (deploy) | AOT (deploy) | Change |
+|:--|--:|--:|--:|
+| Publish time (wall, one container) | 81 s | 381 s | +4.7× |
+| Files in `_framework`, brotli on disk | 3.85 MB | 7.33 MB | +90 % |
+| `dotnet.native` brotli (the runtime) | 0.98 MB | 4.91 MB | |
+| Wire bytes, first load (median of 5, brotli as served) | 5,181,146 B (4.94 MiB) | 8,659,859 B (8.26 MiB) | **+67 %** |
+| Requests before playable | 195 | 195 | 0 |
+| First contentful paint (median) | 64 ms | 76 ms | within noise |
+| Guest button (median) | 1,704 ms | 1,781 ms | within noise |
+| Playable (median of 5; interpreter range 3,961–5,119 ms) | 4,322 ms | 3,977 ms | within noise |
+| Frame callback, farm idle, p50 / p95 (8 s) | 7.1 / 9.9 ms | 6.6 / 9.7 ms | −7 % / −2 % |
+| Frame callback, farm walking, p50 / p95 (8 s) | 7.2 / 10.4 ms | 6.8 / 9.6 ms | −6 % / −8 % |
+| Frame interval (vsync) | 16.7 ms | 16.7 ms | |
+| Whole-thread allocation, idle / walking (bytes a frame) | 120 / 256 | 138 / 272 | |
+| Frame body allocation, idle / walking (bytes a frame) | 0 / 21.4 | 0 / 28.6 | |
+
+Method: `bench/wasm-perf/load.cjs` (5 runs) and `frame.cjs` (tester build, 8 s idle then 8 s walking, the same farm and walk as round 4), each build served by
+`serve.cjs` on its own port, one after the other. The frame callbacks include the one-pixel readback (ADR-086).
+
+**Why not AOT.** The frame gain is 0.4–0.5 ms at p50 and well inside the 16.7 ms vsync budget, where the frame already sits at its interval. The cost is 3.5 MB
+more on the wire for every new player, and a 4.7-times longer publish. The interpreter stays the deploy build (ADR-002 D5 stands). The case for AOT returns if a
+target device cannot hold the frame budget on the interpreter, which this container does not show.
+
+### Idle allocation: what was probed
+
+The frame body is zero when idle (ADR-099, gated). Whole-thread allocation between frames is about 120 bytes a frame on the interpreter (112 in round 5, the
+same figure within the spread of the harness).
+
+Probe (temporary, reverted; not committed): in a tester build, bare `[JSExport]` calls were made from the page, 2,000 each, and the thread's allocated bytes were
+read around each loop:
+
+| Call shape | Bytes per call |
+|:--|--:|
+| No arguments | 0 |
+| One `double` | 0 |
+| Seven arguments as `Frame` takes them (`double`, four `int`, two `double`, `int`) | 0 |
+| The `allocatedBytes()` read itself | 0 |
+
+So the JavaScript-to-.NET call does not allocate, and neither does the frame body. The idle 120 bytes a frame are on the same thread, outside both, between frames.
+The candidates are the timers that run while the farm is idle (about ten of them, most at 1 Hz: the calendar, the thirst warning, chat, the trade lock tick, the
+connection overlay), the socket's keep-alive, and Blazor's own work. At 1 Hz these would add about 2–4 bytes a frame each, so the 120 bytes need a
+callback-level probe to attribute, not an estimate. That probe (count the bytes around each timer callback and each awaited continuation, through a tester export)
+is the next step; it was not finished in this round, and nothing was removed.
+
+Verification of this round's WASM work: the probe build and the reverted sources were published; the browser module tests (`node --test tests/browser/label-fit/*.mjs
+tests/browser/modules/*.mjs`) pass 40 of 40; no page error in any load run (`pageErrors` 0).
+
 ## Reproduce
 
 ```bash
