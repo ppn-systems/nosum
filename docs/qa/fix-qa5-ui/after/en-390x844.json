@@ -1,0 +1,850 @@
+{
+  "locale": "en",
+  "viewport": "390x844",
+  "base": "http://localhost:5081/?qa=1",
+  "startedAt": "2026-11-02T00:04:12.329Z",
+  "topRight": [
+    {
+      "label": "Mail",
+      "rect": [
+        306,
+        18,
+        32,
+        32
+      ],
+      "w": 32,
+      "h": 32
+    },
+    {
+      "label": "Settings",
+      "rect": [
+        342,
+        18,
+        32,
+        32
+      ],
+      "w": 32,
+      "h": 32
+    },
+    {
+      "label": "Minimap: click to open the world map",
+      "rect": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "w": 0,
+      "h": 0
+    },
+    {
+      "label": "Inventory [I]",
+      "rect": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "w": 0,
+      "h": 0
+    },
+    {
+      "label": "Crafting",
+      "rect": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "w": 0,
+      "h": 0
+    },
+    {
+      "label": "Trade [T]",
+      "rect": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "w": 0,
+      "h": 0
+    },
+    {
+      "label": "Friends",
+      "rect": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "w": 0,
+      "h": 0
+    },
+    {
+      "label": "Skills",
+      "rect": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "w": 0,
+      "h": 0
+    },
+    {
+      "label": "World map [Tab]",
+      "rect": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "w": 0,
+      "h": 0
+    },
+    {
+      "label": "Journal [J]",
+      "rect": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "w": 0,
+      "h": 0
+    },
+    {
+      "label": "Menu",
+      "rect": [
+        332,
+        56,
+        42,
+        42
+      ],
+      "w": 42,
+      "h": 42
+    }
+  ],
+  "steps": [
+    {
+      "name": "01 hud start",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/after/en/390x844/01-hud-start.png",
+      "hud": true
+    },
+    {
+      "name": "02 minimap before M",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/after/en/390x844/02-minimap-before-M.png",
+      "measure": {
+        "minimap": false,
+        "minimapVisible": false,
+        "minimapRect": null,
+        "minimapButton": true,
+        "minimapButtonVisible": false,
+        "minimapButtonRect": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "03 minimap after M",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/after/en/390x844/03-minimap-after-M.png",
+      "measure": {
+        "minimap": false,
+        "minimapVisible": false,
+        "minimapRect": null,
+        "minimapButton": true,
+        "minimapButtonVisible": false,
+        "minimapButtonRect": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "04 minimap after second M",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/after/en/390x844/04-minimap-after-second-M.png",
+      "measure": {
+        "minimap": false,
+        "minimapVisible": false,
+        "minimapRect": null,
+        "minimapButton": true,
+        "minimapButtonVisible": false,
+        "minimapButtonRect": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "05 settings open",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/after/en/390x844/05-settings-open.png",
+      "label": "Settings",
+      "measure": {
+        "hudCenterRect": [
+          0,
+          0,
+          390,
+          844
+        ],
+        "panelRect": [
+          13,
+          16,
+          224,
+          36
+        ],
+        "scrollers": []
+      }
+    },
+    {
+      "name": "06 settings close",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/after/en/390x844/06-settings-close.png",
+      "measure": {
+        "panels": [
+          {
+            "title": "",
+            "rect": [
+              8,
+              52,
+              240,
+              156
+            ]
+          },
+          {
+            "title": "",
+            "rect": [
+              13,
+              16,
+              224,
+              36
+            ]
+          },
+          {
+            "title": "",
+            "rect": [
+              241,
+              16,
+              61,
+              36
+            ]
+          },
+          {
+            "title": "",
+            "rect": [
+              11,
+              720,
+              296,
+              116
+            ]
+          },
+          {
+            "title": "",
+            "rect": [
+              311,
+              732,
+              68,
+              64
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "07 column menu open",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/after/en/390x844/07-column-menu-open.png",
+      "clicked": "Menu",
+      "measure": {
+        "menuColumnTotal": 8,
+        "menuColumnVisible": 0,
+        "menuColumnLabels": [],
+        "menuColumnRect": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "topRightVisible": 2,
+        "topRightLabels": [
+          "Mail",
+          "Settings"
+        ],
+        "menuTiles": [
+          "Inventory",
+          "Crafting",
+          "Trade",
+          "Visitors",
+          "Friends",
+          "Skills",
+          "Pet",
+          "Profile",
+          "World map",
+          "Journal"
+        ]
+      }
+    },
+    {
+      "name": "08 panel from menu",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/after/en/390x844/08-panel-from-menu.png",
+      "label": "Crafting",
+      "measure": {
+        "panelTitle": "Crafting"
+      }
+    },
+    {
+      "name": "08b panel from menu closed",
+      "status": "ok",
+      "measure": {}
+    },
+    {
+      "name": "09 shop seed",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/after/en/390x844/09-shop-seed.png",
+      "measure": {
+        "rootRect": [
+          8,
+          120,
+          374,
+          647
+        ],
+        "buttonCount": 24,
+        "buttons": [
+          {
+            "text": "Close",
+            "rect": [
+              338,
+              134,
+              28,
+              28
+            ]
+          },
+          {
+            "text": "x1",
+            "rect": [
+              257,
+              172,
+              31,
+              42
+            ]
+          },
+          {
+            "text": "x5",
+            "rect": [
+              292,
+              172,
+              31,
+              42
+            ]
+          },
+          {
+            "text": "All",
+            "rect": [
+              327,
+              172,
+              37,
+              42
+            ]
+          },
+          {
+            "text": "Less",
+            "rect": [
+              24,
+              218,
+              42,
+              42
+            ]
+          },
+          {
+            "text": "More",
+            "rect": [
+              134,
+              218,
+              42,
+              42
+            ]
+          },
+          {
+            "text": "Parsnip seeds",
+            "rect": [
+              24,
+              269,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Buy",
+            "rect": [
+              327,
+              268,
+              37,
+              42
+            ]
+          },
+          {
+            "text": "Radish seeds",
+            "rect": [
+              24,
+              317,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Buy",
+            "rect": [
+              327,
+              314,
+              37,
+              42
+            ]
+          },
+          {
+            "text": "Cauliflower seeds",
+            "rect": [
+              24,
+              363,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Buy",
+            "rect": [
+              327,
+              360,
+              37,
+              42
+            ]
+          },
+          {
+            "text": "Potato seeds",
+            "rect": [
+              24,
+              409,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Buy",
+            "rect": [
+              327,
+              406,
+              37,
+              42
+            ]
+          },
+          {
+            "text": "Green bean seeds",
+            "rect": [
+              24,
+              455,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Buy",
+            "rect": [
+              327,
+              452,
+              37,
+              42
+            ]
+          },
+          {
+            "text": "Kale seeds",
+            "rect": [
+              24,
+              501,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Buy",
+            "rect": [
+              327,
+              498,
+              37,
+              42
+            ]
+          },
+          {
+            "text": "Garlic seeds",
+            "rect": [
+              24,
+              547,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Buy",
+            "rect": [
+              327,
+              544,
+              37,
+              42
+            ]
+          },
+          {
+            "text": "Strawberry seeds",
+            "rect": [
+              24,
+              593,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Buy",
+            "rect": [
+              327,
+              590,
+              37,
+              42
+            ]
+          },
+          {
+            "text": "Previous",
+            "rect": [
+              24,
+              640,
+              85,
+              42
+            ]
+          },
+          {
+            "text": "Next",
+            "rect": [
+              178,
+              640,
+              62,
+              42
+            ]
+          }
+        ],
+        "smallTargets": [
+          {
+            "text": "Close",
+            "rect": [
+              338,
+              134,
+              28,
+              28
+            ]
+          },
+          {
+            "text": "Parsnip seeds",
+            "rect": [
+              24,
+              269,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Radish seeds",
+            "rect": [
+              24,
+              317,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Cauliflower seeds",
+            "rect": [
+              24,
+              363,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Potato seeds",
+            "rect": [
+              24,
+              409,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Green bean seeds",
+            "rect": [
+              24,
+              455,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Kale seeds",
+            "rect": [
+              24,
+              501,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Garlic seeds",
+            "rect": [
+              24,
+              547,
+              36,
+              36
+            ]
+          },
+          {
+            "text": "Strawberry seeds",
+            "rect": [
+              24,
+              593,
+              36,
+              36
+            ]
+          }
+        ],
+        "stepper": [
+          {
+            "cls": "shop-stepper",
+            "text": "Less More",
+            "rect": [
+              24,
+              218,
+              153,
+              42
+            ]
+          },
+          {
+            "cls": "shop-qty",
+            "text": "",
+            "rect": [
+              70,
+              223,
+              60,
+              33
+            ]
+          }
+        ],
+        "moreControls": [
+          {
+            "text": "Less",
+            "rect": [
+              24,
+              218,
+              42,
+              42
+            ]
+          },
+          {
+            "text": "More",
+            "rect": [
+              134,
+              218,
+              42,
+              42
+            ]
+          }
+        ],
+        "clipped": [
+          {
+            "cls": "slot   picked ",
+            "text": "Parsnip seeds",
+            "scrollWidth": 42,
+            "clientWidth": 32
+          }
+        ]
+      }
+    },
+    {
+      "name": "10 npc dialog",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/after/en/390x844/10-npc-dialog.png",
+      "measure": {
+        "wrapRect": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "buttonCount": 4,
+        "buttons": [
+          {
+            "label": "Close",
+            "rect": [
+              338,
+              661,
+              28,
+              28
+            ]
+          },
+          {
+            "label": "Buy",
+            "rect": [
+              231,
+              780,
+              37,
+              42
+            ]
+          },
+          {
+            "label": "Talk",
+            "rect": [
+              272,
+              780,
+              42,
+              42
+            ]
+          },
+          {
+            "label": "Leave",
+            "rect": [
+              318,
+              780,
+              48,
+              42
+            ]
+          }
+        ],
+        "closeControlCount": 2,
+        "closeControls": [
+          "Close",
+          "Leave"
+        ]
+      }
+    },
+    {
+      "name": "11 levelup banner",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/after/en/390x844/11-levelup-banner.png",
+      "measure": {
+        "bannerVisible": true,
+        "bannerRect": [
+          115,
+          50,
+          161,
+          49
+        ],
+        "furnitureDockRect": null,
+        "hotbarRect": null,
+        "hintDockRect": null
+      }
+    },
+    {
+      "name": "12 hint toast phone",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/after/en/390x844/12-hint-toast-phone.png",
+      "measure": {
+        "hints": [],
+        "touchStickRect": null
+      }
+    },
+    {
+      "name": "13 open window bottom",
+      "status": "skipped",
+      "why": "locator.click: Element is not visible"
+    },
+    {
+      "name": "14 coop G",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/after/en/390x844/14-coop-G.png",
+      "measure": {
+        "panels": [
+          {
+            "title": "",
+            "rect": [
+              13,
+              16,
+              224,
+              36
+            ]
+          },
+          {
+            "title": "",
+            "rect": [
+              241,
+              16,
+              61,
+              36
+            ]
+          },
+          {
+            "title": "Co-op",
+            "rect": [
+              8,
+              120,
+              374,
+              191
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "15 quest header",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/after/en/390x844/15-quest-header.png",
+      "measure": {
+        "topLeftRect": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "topLeftText": "",
+        "questRect": null,
+        "questTitle": ""
+      }
+    }
+  ],
+  "errors": [],
+  "startTopLeftQuest": [
+    20,
+    62,
+    216,
+    42
+  ],
+  "phoneHintAtStart": [
+    {
+      "cls": "hint-dock",
+      "text": "Walk with W A S D or the stick on the left.",
+      "rect": [
+        84,
+        630,
+        222,
+        58
+      ]
+    },
+    {
+      "cls": "hint-line",
+      "text": "Walk with W A S D or the stick on the left.",
+      "rect": [
+        84,
+        630,
+        222,
+        54
+      ]
+    }
+  ],
+  "finishedAt": "2026-11-02T00:04:44.205Z",
+  "errorCount": 0
+}

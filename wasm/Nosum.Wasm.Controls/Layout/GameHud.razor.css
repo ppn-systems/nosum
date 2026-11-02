@@ -246,6 +246,11 @@
         display: none;
     }
 
+    /* The minimap's map button is not on a phone: the world map is a tile of the Menu window. Set here, where the column's rules are, so it wins. */
+    .hud-top-right ::deep .hud-minimap-button {
+        display: none;
+    }
+
     /* One Menu button, a touch target (docs/design/ui-standard.md section 6): 42 px square, with its name beside it, since it has no words of its own. */
     .hud-top-right ::deep .hud-menu-button {
         position: relative;

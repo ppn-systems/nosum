@@ -1,0 +1,734 @@
+{
+  "locale": "vi",
+  "viewport": "1280x720",
+  "base": "http://localhost:5080/?qa=1",
+  "startedAt": "2026-11-01T23:56:11.641Z",
+  "topRight": [
+    {
+      "label": "Thư",
+      "rect": [
+        1154,
+        27,
+        48,
+        48
+      ],
+      "w": 48,
+      "h": 48
+    },
+    {
+      "label": "Cài đặt",
+      "rect": [
+        1208,
+        27,
+        48,
+        48
+      ],
+      "w": 48,
+      "h": 48
+    },
+    {
+      "label": "Túi đồ [I]",
+      "rect": [
+        1211,
+        225,
+        42,
+        42
+      ],
+      "w": 42,
+      "h": 42
+    },
+    {
+      "label": "Chế tạo",
+      "rect": [
+        1211,
+        276,
+        42,
+        42
+      ],
+      "w": 42,
+      "h": 42
+    },
+    {
+      "label": "Giao dịch [T]",
+      "rect": [
+        1211,
+        327,
+        42,
+        42
+      ],
+      "w": 42,
+      "h": 42
+    },
+    {
+      "label": "Bạn bè",
+      "rect": [
+        1211,
+        378,
+        42,
+        42
+      ],
+      "w": 42,
+      "h": 42
+    },
+    {
+      "label": "Kỹ năng",
+      "rect": [
+        1211,
+        429,
+        42,
+        42
+      ],
+      "w": 42,
+      "h": 42
+    },
+    {
+      "label": "Bản đồ thế giới [Tab]",
+      "rect": [
+        1211,
+        480,
+        42,
+        42
+      ],
+      "w": 42,
+      "h": 42
+    },
+    {
+      "label": "Sổ sưu tập [J]",
+      "rect": [
+        1211,
+        531,
+        42,
+        42
+      ],
+      "w": 42,
+      "h": 42
+    },
+    {
+      "label": "Menu",
+      "rect": [
+        1211,
+        582,
+        42,
+        42
+      ],
+      "w": 42,
+      "h": 42
+    }
+  ],
+  "steps": [
+    {
+      "name": "01 hud start",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/before/vi/1280x720/01-hud-start.png",
+      "hud": true
+    },
+    {
+      "name": "02 minimap before M",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/before/vi/1280x720/02-minimap-before-M.png",
+      "measure": {
+        "minimap": true,
+        "minimapVisible": true,
+        "minimapRect": [
+          1076,
+          84,
+          180,
+          132
+        ],
+        "minimapButton": false,
+        "minimapButtonVisible": false,
+        "minimapButtonRect": null
+      }
+    },
+    {
+      "name": "03 minimap after M",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/before/vi/1280x720/03-minimap-after-M.png",
+      "measure": {
+        "minimap": false,
+        "minimapVisible": false,
+        "minimapRect": null,
+        "minimapButton": true,
+        "minimapButtonVisible": true,
+        "minimapButtonRect": [
+          1208,
+          84,
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "name": "04 minimap after second M",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/before/vi/1280x720/04-minimap-after-second-M.png",
+      "measure": {
+        "minimap": true,
+        "minimapVisible": true,
+        "minimapRect": [
+          1076,
+          84,
+          180,
+          132
+        ],
+        "minimapButton": false,
+        "minimapButtonVisible": false,
+        "minimapButtonRect": null
+      }
+    },
+    {
+      "name": "05 settings open",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/before/vi/1280x720/05-settings-open.png",
+      "label": "Cài đặt",
+      "measure": {
+        "hudCenterRect": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "panelRect": [
+          718,
+          24,
+          328,
+          54
+        ],
+        "scrollers": []
+      }
+    },
+    {
+      "name": "06 settings close",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/before/vi/1280x720/06-settings-close.png",
+      "measure": {
+        "panels": [
+          {
+            "title": "",
+            "rect": [
+              12,
+              12,
+              360,
+              199
+            ]
+          },
+          {
+            "title": "",
+            "rect": [
+              718,
+              24,
+              328,
+              54
+            ]
+          },
+          {
+            "title": "",
+            "rect": [
+              1052,
+              24,
+              96,
+              54
+            ]
+          },
+          {
+            "title": "",
+            "rect": [
+              250,
+              600,
+              672,
+              108
+            ]
+          },
+          {
+            "title": "",
+            "rect": [
+              928,
+              585,
+              102,
+              96
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "07 column menu open",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/before/vi/1280x720/07-column-menu-open.png",
+      "clicked": "Menu",
+      "measure": {
+        "menuColumnTotal": 8,
+        "menuColumnVisible": 0,
+        "menuColumnLabels": [],
+        "menuColumnRect": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "topRightVisible": 3,
+        "topRightLabels": [
+          "Thư",
+          "Cài đặt",
+          "Bản đồ nhỏ: bấm để mở bản đồ thế giới"
+        ],
+        "menuTiles": [
+          "Khách",
+          "Thú cưng",
+          "Hồ sơ"
+        ]
+      }
+    },
+    {
+      "name": "08 panel from menu",
+      "status": "skipped",
+      "why": "no menu tile for crafting or inventory; tiles: Khách | Thú cưng | Hồ sơ"
+    },
+    {
+      "name": "08b panel from menu closed",
+      "status": "ok",
+      "measure": {}
+    },
+    {
+      "name": "09 shop seed",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/before/vi/1280x720/09-shop-seed.png",
+      "measure": {
+        "rootRect": [
+          310,
+          96,
+          660,
+          544
+        ],
+        "buttonCount": 24,
+        "buttons": [
+          {
+            "text": "Đóng",
+            "rect": [
+              904,
+              117,
+              42,
+              42
+            ]
+          },
+          {
+            "text": "x1",
+            "rect": [
+              478,
+              178,
+              50,
+              42
+            ]
+          },
+          {
+            "text": "x5",
+            "rect": [
+              534,
+              178,
+              50,
+              42
+            ]
+          },
+          {
+            "text": "Tất cả",
+            "rect": [
+              590,
+              178,
+              90,
+              42
+            ]
+          },
+          {
+            "text": "Bớt",
+            "rect": [
+              695,
+              178,
+              60,
+              42
+            ]
+          },
+          {
+            "text": "Thêm",
+            "rect": [
+              873,
+              178,
+              70,
+              42
+            ]
+          },
+          {
+            "text": "Hạt củ cải vàng",
+            "rect": [
+              334,
+              232,
+              54,
+              54
+            ]
+          },
+          {
+            "text": "Mua",
+            "rect": [
+              574,
+              241,
+              60,
+              42
+            ]
+          },
+          {
+            "text": "Hạt củ cải đỏ",
+            "rect": [
+              643,
+              235,
+              54,
+              54
+            ]
+          },
+          {
+            "text": "Mua",
+            "rect": [
+              883,
+              241,
+              60,
+              42
+            ]
+          },
+          {
+            "text": "Hạt súp lơ",
+            "rect": [
+              334,
+              295,
+              54,
+              54
+            ]
+          },
+          {
+            "text": "Mua",
+            "rect": [
+              574,
+              301,
+              60,
+              42
+            ]
+          },
+          {
+            "text": "Hạt khoai tây",
+            "rect": [
+              643,
+              295,
+              54,
+              54
+            ]
+          },
+          {
+            "text": "Mua",
+            "rect": [
+              883,
+              301,
+              60,
+              42
+            ]
+          },
+          {
+            "text": "Hạt đậu que",
+            "rect": [
+              334,
+              355,
+              54,
+              54
+            ]
+          },
+          {
+            "text": "Mua",
+            "rect": [
+              574,
+              361,
+              60,
+              42
+            ]
+          },
+          {
+            "text": "Hạt cải xoăn",
+            "rect": [
+              643,
+              355,
+              54,
+              54
+            ]
+          },
+          {
+            "text": "Mua",
+            "rect": [
+              883,
+              361,
+              60,
+              42
+            ]
+          },
+          {
+            "text": "Hạt tỏi",
+            "rect": [
+              334,
+              415,
+              54,
+              54
+            ]
+          },
+          {
+            "text": "Mua",
+            "rect": [
+              574,
+              421,
+              60,
+              42
+            ]
+          },
+          {
+            "text": "Hạt dâu tây",
+            "rect": [
+              643,
+              415,
+              54,
+              54
+            ]
+          },
+          {
+            "text": "Mua",
+            "rect": [
+              883,
+              421,
+              60,
+              42
+            ]
+          },
+          {
+            "text": "Trước",
+            "rect": [
+              334,
+              481,
+              110,
+              42
+            ]
+          },
+          {
+            "text": "Sau",
+            "rect": [
+              546,
+              481,
+              90,
+              42
+            ]
+          }
+        ],
+        "smallTargets": [],
+        "stepper": [
+          {
+            "cls": "shop-qty",
+            "text": "",
+            "rect": [
+              769,
+              174,
+              90,
+              49
+            ]
+          }
+        ],
+        "moreControls": [
+          {
+            "text": "Bớt",
+            "rect": [
+              695,
+              178,
+              60,
+              42
+            ]
+          },
+          {
+            "text": "Thêm",
+            "rect": [
+              873,
+              178,
+              70,
+              42
+            ]
+          }
+        ],
+        "clipped": [
+          {
+            "cls": "slot   picked ",
+            "text": "Hạt củ cải vàng",
+            "scrollWidth": 63,
+            "clientWidth": 48
+          }
+        ]
+      }
+    },
+    {
+      "name": "10 npc dialog",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/before/vi/1280x720/10-npc-dialog.png",
+      "measure": {
+        "wrapRect": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "buttonCount": 3,
+        "buttons": [
+          {
+            "label": "Mua",
+            "rect": [
+              604,
+              645,
+              60,
+              42
+            ]
+          },
+          {
+            "label": "Trò chuyện",
+            "rect": [
+              670,
+              645,
+              130,
+              42
+            ]
+          },
+          {
+            "label": "Tạm biệt",
+            "rect": [
+              806,
+              645,
+              110,
+              42
+            ]
+          }
+        ],
+        "closeControlCount": 1,
+        "closeControls": [
+          "Tạm biệt"
+        ]
+      }
+    },
+    {
+      "name": "11 levelup banner",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/before/vi/1280x720/11-levelup-banner.png",
+      "measure": {
+        "bannerVisible": true,
+        "bannerRect": [
+          515,
+          75,
+          250,
+          66
+        ],
+        "furnitureDockRect": null,
+        "hotbarRect": null,
+        "hintDockRect": null
+      }
+    },
+    {
+      "name": "12 hint toast phone",
+      "status": "skipped",
+      "why": "phone only"
+    },
+    {
+      "name": "13 open window bottom",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/before/vi/1280x720/13-open-window-bottom.png",
+      "measure": {
+        "hudCenterRect": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "hotbarRect": null,
+        "touchControlsRect": null,
+        "elementAtHotbarTop": null
+      }
+    },
+    {
+      "name": "14 coop G",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/before/vi/1280x720/14-coop-G.png",
+      "measure": {
+        "panels": [
+          {
+            "title": "",
+            "rect": [
+              718,
+              24,
+              328,
+              54
+            ]
+          },
+          {
+            "title": "",
+            "rect": [
+              1052,
+              24,
+              96,
+              54
+            ]
+          },
+          {
+            "title": "Hợp tác xã",
+            "rect": [
+              310,
+              96,
+              660,
+              262
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "15 quest header",
+      "status": "ok",
+      "file": "docs/qa/fix-qa5-ui/before/vi/1280x720/15-quest-header.png",
+      "measure": {
+        "topLeftRect": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "topLeftText": "",
+        "questRect": null,
+        "questTitle": ""
+      }
+    }
+  ],
+  "errors": [],
+  "startTopLeftQuest": [
+    30,
+    27,
+    324,
+    42
+  ],
+  "phoneHintAtStart": [
+    {
+      "cls": "hint-dock",
+      "text": "Đi lại bằng W A S D hoặc cần điều khiển bên trái.",
+      "rect": [
+        371,
+        494,
+        538,
+        58
+      ]
+    },
+    {
+      "cls": "hint-line",
+      "text": "Đi lại bằng W A S D hoặc cần điều khiển bên trái.",
+      "rect": [
+        371,
+        494,
+        538,
+        52
+      ]
+    }
+  ],
+  "finishedAt": "2026-11-01T23:56:42.179Z",
+  "errorCount": 0
+}
