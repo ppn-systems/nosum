@@ -114,10 +114,11 @@ A feature does not invent a new kind of popup. Toasts never overlap each other, 
 
 ## 6. Touch and small screens (390×844)
 
-- The menu column collapses into one "Menu" button that opens `GameMenuWindow`; the minimap collapses into a button. The window then gives
-  a tile for every column panel, as well as the extras: the column is the only other door, and it is hidden here.
+- The menu column collapses into one "Menu" button that opens `GameMenuWindow`, and that is the only button of the column. The minimap has no
+  button of its own on a phone: the world map is a tile of the Menu window, like every column panel. The Menu button shows its name beside it.
 - Panels take the full width minus the edge margin; their content stacks vertically.
-- Touch targets are at least 14 `--u` square.
+- Touch targets are at least 42 px square (`--nosum-touch`, which is 14 `--u` on a desktop at 3 px). Text buttons and the icon buttons of a window
+  take this size on a phone; the HUD row keeps its own size.
 
 ## 7. Review checklist (every UI PR)
 

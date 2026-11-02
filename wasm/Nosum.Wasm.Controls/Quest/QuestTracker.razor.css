@@ -8,6 +8,9 @@
     align-items: center;
     gap: calc(var(--u) * 2);
     width: 100%;
+    /* The stone face is pale: the dark ink reads on it, where the cream label of the shared button does not (issue 15 of the QA pass 5). */
+    color: var(--nosum-ink);
+    text-shadow: none;
 }
 
 .quest-wrap ::deep .quest-head .game-icon.quest-scroll {
