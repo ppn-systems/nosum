@@ -9,6 +9,8 @@ the dev clock is shared.
 This PR changes harness code only. No product UI was changed. The earlier pass-10 write-up (the fixes for pass-9 items 9, 11, 21, 22, 23)
 moved to `docs/qa/world-pass10/fixes/README.md` with its evidence.
 
+Fixes to the ranked issues below are in [`ranked-fixes/README.md`](ranked-fixes/README.md) (issue 4 is left for an owner decision).
+
 ## Result
 
 Harness results are the scripts' own checks (`ok` means the check passed). Frame counts are the PNGs graded by eye.
