@@ -70,12 +70,17 @@ internal sealed class BotClient
             new TransportOptions { Address = _options.Host, Port = _options.Port },
             new WebSocketTransportOptions { Path = _options.Path, UseTls = _options.Tls });
         List<IDisposable> subscriptions = [];
+        string stage = "connect";
         try
         {
             using CancellationTokenSource connectTimeout = CancellationTokenSource.CreateLinkedTokenSource(stop);
             connectTimeout.CancelAfter(TimeSpan.FromSeconds(30));
+            long began = Stopwatch.GetTimestamp();
             await session.ConnectAsync(ct: connectTimeout.Token);
+            _stats.ConnectTime(Stopwatch.GetElapsedTime(began));
+            stage = "handshake";
             await session.HandshakeAsync(connectTimeout.Token);
+            stage = "guest";
 
             using StartGuest start = new() { PreferredLanguage = GameLanguage.English };
             AccountResult account = await RequestAsync<AccountResult>(session, start, connectTimeout.Token);
@@ -95,6 +100,7 @@ internal sealed class BotClient
                 _ = Interlocked.Increment(ref _stats.Dropped);
             }));
 
+            stage = "join";
             using JoinMap join = new() { MapId = Nosum.Gameplay.Maps.GameMaps.DefaultId };
             JoinMapResult joined = await RequestAsync<JoinMapResult>(session, join, connectTimeout.Token);
             if (joined.Status != JoinStatus.Ok || !_world.TryGet(joined.MapId, out MapInfo? map))
@@ -124,8 +130,8 @@ internal sealed class BotClient
         }
         catch (Exception ex)
         {
-            _stats.Error(ex.GetType().Name);
-            _stats.ErrorSample(ex);
+            _stats.Error(stage + ":" + ex.GetType().Name);
+            _stats.ErrorSample(ex, stage);
         }
         finally
         {
