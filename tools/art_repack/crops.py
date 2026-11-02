@@ -114,16 +114,40 @@ def _inked_seed(pic):
     return out
 
 
+# The stage-0 sprout is drawn a little larger and easier to read (world pass 8): the pack's sprout is 11 px tall, 12 px wide and 34 opaque pixels on a
+# 16 px tile, and its leaves are single pixels. Every transparent pixel next to the sprout (4-neighbourhood) becomes the darkest ink of the ramp, so the
+# leaves and the stem grow by one pixel on each side with the same shape and the same colours inside. Other pictures are left as they were.
+SEED_OUTLINE = SEED_RAMP[0]
+
+
+def _outlined_seed(pic):
+    out = Image(pic.width, pic.height)
+    for y in range(pic.height):
+        for x in range(pic.width):
+            out.px[y][x] = list(pic.px[y][x])
+    for y in range(pic.height):
+        for x in range(pic.width):
+            if pic.px[y][x][3] > 0:
+                continue
+            near = any(
+                0 <= x + dx < pic.width and 0 <= y + dy < pic.height and pic.px[y + dy][x + dx][3] > 0
+                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+            )
+            if near:
+                out.px[y][x] = [SEED_OUTLINE[0], SEED_OUTLINE[1], SEED_OUTLINE[2], 255]
+    return out
+
+
 def stages(src, crop_name):
     """The seed, three growth stages, ripe and produce pictures of a game crop: Tiny Farm's where it has the crop, else the crops pack's."""
     index, recipe, _ = RECIPES[crop_name]
     pack = cc0_stages(src.sheet('crops'), index, recipe)
     if crop_name not in FARM:
-        pack['seed'] = _inked_seed(pack['seed'])
+        pack['seed'] = _outlined_seed(_inked_seed(pack['seed']))
         return pack
     first, farm_recipe, unripe, _ = FARM[crop_name]
     st = farm_stages(src.sheet('farm'), first, farm_recipe, unripe)
-    st['seed'] = _inked_seed(pack['seed'])
+    st['seed'] = _outlined_seed(_inked_seed(pack['seed']))
     return st
 
 

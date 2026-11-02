@@ -10,7 +10,8 @@ namespace Nosum.IntegrationTests.Tools;
 
 /// <summary>
 /// The stage-0 picture of every crop (frame 0 of its row in <c>crops.png</c>) is a green sprout that reads on the tilled soil. Before world pass 7
-/// it was the pack's red sprout, whose colours matched the soil (contrast about 1.0 on the dark soil), so a planted tile looked bare.
+/// it was the pack's red sprout, whose colours matched the soil (contrast about 1.0 on the dark soil), so a planted tile looked bare. World pass 8
+/// outlines it, so the sprout is about two and a half times as many pixels.
 /// </summary>
 public sealed class CropSeedArtTests
 {
@@ -48,7 +49,9 @@ public sealed class CropSeedArtTests
                 }
             }
 
-            opaque.Should().BeGreaterThanOrEqualTo(10, $"crop row {row} has a seed picture of some size");
+            // World pass 8: the outlined sprouts have 26 to 185 opaque pixels (the smallest source pictures, rows 2, 3, 18 and 19, have 13 to 16 and
+            // stay small: an art follow-up). Before the outline the smallest was 13.
+            opaque.Should().BeGreaterThanOrEqualTo(25, $"crop row {row} has a seed picture large enough to read on a 16 px tile");
             green.Should().Be(opaque, $"every pixel of the seed picture of crop row {row} is green, so it reads on the soil");
         }
     }
