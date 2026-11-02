@@ -190,6 +190,9 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
         }
     }
 
+    /// <summary>Gets the localized label of the button that wears a clothing item from the bag.</summary>
+    public string WearText => this.Text("Wardrobe_Wear");
+
     /// <summary>Gets the localized title of the wardrobe panel.</summary>
     public string Title => this.Text("Wardrobe_Title");
 

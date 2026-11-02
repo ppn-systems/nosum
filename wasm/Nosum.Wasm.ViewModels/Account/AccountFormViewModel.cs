@@ -167,12 +167,6 @@ public sealed class AccountFormViewModel : IObservableViewModel
             ? _text["Account_Guest"]
             : string.Format(CultureInfo.CurrentCulture, _text["Account_SignedInAs"].Value, string.IsNullOrEmpty(this.CurrentSession.Email) ? this.CurrentSession.Nickname : this.CurrentSession.Email);
 
-    /// <summary>Gets the invitation shown to a guest whose registration prompt is unlocked.</summary>
-    public string UpgradePromptText => _text["Account_Upgrade_Prompt"];
-
-    /// <summary>Gets the text of the upgrade button.</summary>
-    public string UpgradeText => _text["Account_Upgrade_Action"];
-
     /// <summary>Gets the text of the sign-out button.</summary>
     public string SignOutText => _text["Account_SignOut"];
 

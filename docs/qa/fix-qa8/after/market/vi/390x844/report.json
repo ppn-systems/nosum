@@ -1,0 +1,65 @@
+{
+  "flow": "market",
+  "locale": "vi",
+  "viewport": "390x844",
+  "steps": [
+    {
+      "name": "B-list-open",
+      "ok": true,
+      "value": {
+        "window": "Chợ Mua Bán Hàng của tôi 40 8 6 4 3 Chọn một ô trong túi đồ để đăng bán."
+      },
+      "file": "01-B-list-open.png"
+    },
+    {
+      "name": "B-list-for-sale",
+      "ok": true,
+      "value": {
+        "window": "Chợ Mua Bán Hàng của tôi 40 8 6 4 2 Chọn một ô trong túi đồ để đăng bán. Đã đăng bán 1 × Củ cải vàng với giá 1.200 xu. Khi bán được bạn nhận"
+      },
+      "file": "02-B-list-for-sale.png"
+    },
+    {
+      "name": "B-close-market",
+      "ok": true
+    },
+    {
+      "name": "A-buy-confirm",
+      "ok": true,
+      "value": {
+        "confirm": "Xác nhận mua Mua 1 Củ cải vàng với giá 1.200 xu? Xác nhận Hủy"
+      },
+      "file": "03-A-buy-confirm.png"
+    },
+    {
+      "name": "A-buy-done",
+      "ok": true,
+      "value": {
+        "bought": true
+      },
+      "file": "04-A-buy-done.png"
+    },
+    {
+      "name": "A-close-market",
+      "ok": true
+    },
+    {
+      "name": "B-mail-collect-all",
+      "ok": true,
+      "value": {
+        "body": "Thư Hàng đã bán Còn 30 ngày Thư tự xóa sau 30 ngày. Thư có quà phải nhận quà trước khi xóa.",
+        "collected": "Thư Hàng đã bán Còn 30 ngày Thư tự xóa sau 30 ngày. Thư có quà phải nhận quà trước khi xóa."
+      },
+      "file": "05-B-mail-collect-all.png"
+    },
+    {
+      "name": "B-close-mail",
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "debugBuy": {
+    "before": 2,
+    "after": 2
+  }
+}

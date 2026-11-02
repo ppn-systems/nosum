@@ -28,8 +28,6 @@
   <data name="Account_Continue_As" xml:space="preserve"><value>Continue as {0}</value></data>
   <data name="Account_Continue_Forget" xml:space="preserve"><value>Sign out / use another account</value></data>
   <data name="Account_SignedInAs" xml:space="preserve"><value>Signed in as {0}</value></data>
-  <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Want to keep your progress? Link a Google or Microsoft account.</value></data>
-  <data name="Account_Upgrade_Action" xml:space="preserve"><value>Link account</value></data>
   <data name="Account_SignOut" xml:space="preserve"><value>Sign out</value></data>
   <data name="Account_SaveProgress_Heading" xml:space="preserve"><value>Keep your progress</value></data>
   <data name="Account_SaveProgress_Body" xml:space="preserve"><value>You are playing as a guest. Link a Google or Microsoft account to keep your farm, coins and belongings: it is the same player, with one more way to sign in. Then choose a nickname.</value></data>
@@ -86,6 +84,7 @@
   <data name="Inventory_Sort" xml:space="preserve"><value>Sort</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Hotbar</value></data>
   <data name="Inventory_Hint" xml:space="preserve"><value>Click to pick up · right-click to split half · Shift+click to quick-move</value></data>
+  <data name="Inventory_HintTouch" xml:space="preserve"><value>Tap to pick up · tap another slot to move it</value></data>
   <data name="Inventory_HintPicked" xml:space="preserve"><value>Holding {0}: click a target slot to place, click again to put down</value></data>
   <data name="Inventory_LockHotbar" xml:space="preserve"><value>Keep hotbar when sorting</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Quantity: {0}</value></data>
@@ -212,6 +211,7 @@
   <data name="Wardrobe_BagEmpty" xml:space="preserve"><value>You have no clothes in your bag.</value></data>
   <data name="Wardrobe_InstantNote" xml:space="preserve"><value>Changes apply at once and everyone on the map sees them. Change clothes in your bag.</value></data>
   <data name="Wardrobe_TakeOff" xml:space="preserve"><value>Take off</value></data>
+  <data name="Wardrobe_Wear" xml:space="preserve"><value>Wear</value></data>
   <data name="Wardrobe_Status_Ok" xml:space="preserve"><value>Done.</value></data>
   <data name="Wardrobe_Status_InvalidSkin" xml:space="preserve"><value>Invalid skin tone.</value></data>
   <data name="Wardrobe_Status_InvalidHairStyle" xml:space="preserve"><value>Invalid hair style.</value></data>
@@ -367,7 +367,6 @@
   <data name="Map_coopfarm_Name" xml:space="preserve"><value>Co-op land</value></data>
   <data name="WorldMap_Here" xml:space="preserve"><value>You are here</value></data>
   <data name="WorldMap_Shops" xml:space="preserve"><value>Shops: {0}</value></data>
-  <data name="WorldMap_HoursUnknown" xml:space="preserve"><value>Opening hours: not posted yet</value></data>
   <data name="WorldMap_Connections" xml:space="preserve"><value>Connects to:</value></data>
   <data name="WorldMap_Loading" xml:space="preserve"><value>Loading…</value></data>
   <data name="WorldMap_NoConnections" xml:space="preserve"><value>No exits yet</value></data>
@@ -1188,7 +1187,7 @@
   <data name="Pet_Adopt" xml:space="preserve"><value>Adopt</value></data>
   <data name="Pet_Mood" xml:space="preserve"><value>Mood</value></data>
   <data name="Pet_Pet" xml:space="preserve"><value>Pet</value></data>
-  <data name="Pet_AlreadyPetted" xml:space="preserve"><value>You already petted them today.</value></data>
+  <data name="Pet_PettedToday" xml:space="preserve"><value>Petted today. Back tomorrow.</value></data>
   <data name="Pet_Status_Ok" xml:space="preserve"><value>Done.</value></data>
   <data name="Pet_Status_NoPet" xml:space="preserve"><value>You have no pet yet.</value></data>
   <data name="Pet_Status_AlreadyHasPet" xml:space="preserve"><value>You already have a pet.</value></data>

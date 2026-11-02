@@ -127,12 +127,15 @@ public sealed class InventoryViewModel : IObservableViewModel, IDisposable
     /// <summary>Gets how many of the picked stack the next target receives; zero means the whole stack (or nothing is picked).</summary>
     public int MovingCount => _movingCount;
 
+    /// <summary>Gets or sets whether the player works by touch (a phone or tablet). The hint then names taps, not the mouse keys (docs/design/ui-standard.md section 6).</summary>
+    public bool TouchInput { get; set; }
+
     /// <summary>
     /// Gets the one-line hint under the bag: how to pick up, split and quick-move while nothing is picked, and where the picked stack goes
     /// while something is. The hint names the same clicks the page accepts, so a player does not have to guess them.
     /// </summary>
     public string Hint => _movingFrom < 0
-        ? _text["Inventory_Hint"]
+        ? _text[this.TouchInput ? "Inventory_HintTouch" : "Inventory_Hint"]
         : string.Format(CultureInfo.CurrentCulture, _text["Inventory_HintPicked"].Value, this.PickedQuantity);
 
     /// <summary>Gets the localized label of the hotbar.</summary>

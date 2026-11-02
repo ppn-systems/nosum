@@ -28,8 +28,6 @@
   <data name="Account_Continue_As" xml:space="preserve"><value>Tiếp tục với {0}</value></data>
   <data name="Account_Continue_Forget" xml:space="preserve"><value>Đăng xuất / dùng tài khoản khác</value></data>
   <data name="Account_SignedInAs" xml:space="preserve"><value>Đã đăng nhập: {0}</value></data>
-  <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Bạn muốn giữ tiến trình chơi? Hãy liên kết tài khoản Google hoặc Microsoft.</value></data>
-  <data name="Account_Upgrade_Action" xml:space="preserve"><value>Liên kết tài khoản</value></data>
   <data name="Account_SignOut" xml:space="preserve"><value>Đăng xuất</value></data>
   <data name="Account_SaveProgress_Heading" xml:space="preserve"><value>Lưu tiến trình</value></data>
   <data name="Account_SaveProgress_Body" xml:space="preserve"><value>Bạn đang chơi với tư cách khách. Liên kết tài khoản Google hoặc Microsoft để giữ nông trại, tiền xu và đồ đạc: đây vẫn là cùng một người chơi, chỉ thêm cách đăng nhập. Sau đó bạn chọn biệt danh.</value></data>
@@ -86,6 +84,7 @@
   <data name="Inventory_Sort" xml:space="preserve"><value>Sắp xếp</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Thanh vật phẩm</value></data>
   <data name="Inventory_Hint" xml:space="preserve"><value>Nhấn để nhấc · chuột phải để tách nửa · Shift+nhấn để chuyển nhanh</value></data>
+  <data name="Inventory_HintTouch" xml:space="preserve"><value>Chạm để nhấc · chạm ô khác để chuyển</value></data>
   <data name="Inventory_HintPicked" xml:space="preserve"><value>Đang nhấc {0}: nhấn ô đích để đặt, nhấn lại để bỏ xuống</value></data>
   <data name="Inventory_LockHotbar" xml:space="preserve"><value>Giữ thanh vật phẩm khi sắp xếp</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Số lượng: {0}</value></data>
@@ -212,6 +211,7 @@
   <data name="Wardrobe_BagEmpty" xml:space="preserve"><value>Trong túi không có đồ mặc nào.</value></data>
   <data name="Wardrobe_InstantNote" xml:space="preserve"><value>Đổi ngay, mọi người trên bản đồ đều thấy. Quần áo thay ở Túi đồ.</value></data>
   <data name="Wardrobe_TakeOff" xml:space="preserve"><value>Cởi ra</value></data>
+  <data name="Wardrobe_Wear" xml:space="preserve"><value>Mặc</value></data>
   <data name="Wardrobe_Status_Ok" xml:space="preserve"><value>Xong.</value></data>
   <data name="Wardrobe_Status_InvalidSkin" xml:space="preserve"><value>Màu da không hợp lệ.</value></data>
   <data name="Wardrobe_Status_InvalidHairStyle" xml:space="preserve"><value>Kiểu tóc không hợp lệ.</value></data>
@@ -367,7 +367,6 @@
   <data name="Map_coopfarm_Name" xml:space="preserve"><value>Đất hợp tác</value></data>
   <data name="WorldMap_Here" xml:space="preserve"><value>Bạn đang ở đây</value></data>
   <data name="WorldMap_Shops" xml:space="preserve"><value>Cửa hàng: {0}</value></data>
-  <data name="WorldMap_HoursUnknown" xml:space="preserve"><value>Giờ mở cửa: chưa có thông tin</value></data>
   <data name="WorldMap_Connections" xml:space="preserve"><value>Nối tới:</value></data>
   <data name="WorldMap_Loading" xml:space="preserve"><value>Đang tải…</value></data>
   <data name="WorldMap_NoConnections" xml:space="preserve"><value>Chưa có lối đi nào</value></data>
@@ -1188,7 +1187,7 @@
   <data name="Pet_Adopt" xml:space="preserve"><value>Nhận nuôi</value></data>
   <data name="Pet_Mood" xml:space="preserve"><value>Tâm trạng</value></data>
   <data name="Pet_Pet" xml:space="preserve"><value>Vuốt ve</value></data>
-  <data name="Pet_AlreadyPetted" xml:space="preserve"><value>Hôm nay bạn đã vuốt ve bạn ấy rồi.</value></data>
+  <data name="Pet_PettedToday" xml:space="preserve"><value>Hôm nay đã vuốt ve bạn ấy rồi. Ngày mai gặp lại nhé.</value></data>
   <data name="Pet_Status_Ok" xml:space="preserve"><value>Xong.</value></data>
   <data name="Pet_Status_NoPet" xml:space="preserve"><value>Bạn chưa có thú cưng.</value></data>
   <data name="Pet_Status_AlreadyHasPet" xml:space="preserve"><value>Bạn đã có một thú cưng rồi.</value></data>

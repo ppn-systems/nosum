@@ -31,6 +31,22 @@ public sealed class QuestTrackerViewModelTests
     }
 
     [Fact]
+    public void Fold_StartsOpenUnlessAskedToStartFolded_AndTheHeaderToggles()
+    {
+        using CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+        using QuestChannel channel = new(socket);
+        using QuestTrackerViewModel vm = new(channel, Localizer<Catalogue>(), Localizer<Language>());
+        vm.Folded.Should().BeFalse("the card is open on a desktop");
+
+        vm.StartFolded(true);
+        vm.Folded.Should().BeTrue("a phone starts with the title line only");
+
+        vm.ToggleFolded();
+        vm.Folded.Should().BeFalse();
+    }
+
+    [Fact]
     public void Objectives_ActiveQuest_ShowLocalizedTextAndCounts()
     {
         using CultureScope scope = new("en");

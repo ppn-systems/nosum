@@ -205,7 +205,7 @@ async function farmFlow(lk) {
   await step('pet-pet-today', async () => {
     await clickKey(lk, 'Pet_Pet'); await wait(1500);
     const text = await petReply();
-    if (!/Done\.|already petted|Pet_AlreadyPetted/i.test(text) && !new RegExp(esc(STRINGS[lk].Pet_AlreadyPetted)).test(text) && !new RegExp(esc(STRINGS[lk].Pet_Status_Ok)).test(text)) throw new Error('no petting reply: ' + text.slice(0, 120));
+    if (!/Done\.|petted today/i.test(text) && !new RegExp(esc(STRINGS[lk].Pet_PettedToday)).test(text) && !new RegExp(esc(STRINGS[lk].Pet_Status_Ok)).test(text)) throw new Error('no petting reply: ' + text.slice(0, 120));
     return { reply: text.slice(-80) };
   });
   await closeWindow(lk);
@@ -335,13 +335,14 @@ async function binFlow(lk) {
     return { window: (await windowText()).slice(0, 140) };
   });
   await closeWindow(lk);
-  // The batch takes 15 game minutes, which is about 7.5 real minutes: the furnace compares real server time with the start (FurnaceRules.StateOf),
-  // so a dev clock jump does not finish it (recorded in the README). The harness polls the furnace until the bar is ready, then collects it.
+  // The batch takes 30 game minutes (FurnaceRules.GameMinutes). The server times it on its game clock, and the client counts it down on the same
+  // clock (ServerClock, fed by the calendar after each dev clock jump), so one game day moves the batch to ready at once. The harness then polls
+  // the furnace briefly and collects the bar. Real time would be 15 minutes per batch (docs/qa/fix-qa8/README.md).
   await step('furnace-wait-and-collect', async () => {
-    const deadline = Date.now() + 16.5 * 60 * 1000; // FurnaceRules.GameMinutes = 30 game minutes = 15 real minutes
+    await qa('advanceClock', [1]); await wait(2500);
+    const deadline = Date.now() + 60 * 1000;
     const ready = nameRe(lk, 'Furnace_Collect');
     while (Date.now() < deadline) {
-      await wait(20000);
       await pressKey('Digit1'); // the hoe in hand, so E opens the furnace and does not set the furnace down again
       await pressKey('KeyE'); await wait(900);
       if (await page.getByRole('button', { name: ready }).first().isVisible().catch(() => false)) {
@@ -349,8 +350,9 @@ async function binFlow(lk) {
         return { collected: true, window: (await windowText()).slice(0, 120) };
       }
       await closeWindow(lk);
+      await wait(2000);
     }
-    throw new Error('the bar was not ready within 16.5 real minutes');
+    throw new Error('the bar was not ready after a dev clock jump of one game day');
   });
   await closeWindow(lk);
 }

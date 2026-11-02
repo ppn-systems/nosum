@@ -1,0 +1,65 @@
+{
+  "flow": "market",
+  "locale": "en",
+  "viewport": "390x844",
+  "steps": [
+    {
+      "name": "B-list-open",
+      "ok": true,
+      "value": {
+        "window": "Market Browse Sell My listings 40 8 6 4 3 Pick a slot of your inventory to list it."
+      },
+      "file": "01-B-list-open.png"
+    },
+    {
+      "name": "B-list-for-sale",
+      "ok": true,
+      "value": {
+        "window": "Market Browse Sell My listings 40 8 6 4 2 Pick a slot of your inventory to list it. Listed 1 × Parsnip for 1,200 coins. You receive 1,140 co"
+      },
+      "file": "02-B-list-for-sale.png"
+    },
+    {
+      "name": "B-close-market",
+      "ok": true
+    },
+    {
+      "name": "A-buy-confirm",
+      "ok": true,
+      "value": {
+        "confirm": "Confirm purchase Buy 1 of Parsnip for 1,200 coins? Confirm Cancel"
+      },
+      "file": "03-A-buy-confirm.png"
+    },
+    {
+      "name": "A-buy-done",
+      "ok": true,
+      "value": {
+        "bought": true
+      },
+      "file": "04-A-buy-done.png"
+    },
+    {
+      "name": "A-close-market",
+      "ok": true
+    },
+    {
+      "name": "B-mail-collect-all",
+      "ok": true,
+      "value": {
+        "body": "Mail Your listing sold 30 days left Parsnip x1 sold. You receive 1,140 coins after the fee. Delete Mail is deleted after 30 days. Collect a mail's gift before you delete it.",
+        "collected": "Mail Your listing sold 30 days left Parsnip x1 sold. You receive 1,140 coins after the fee. Delete Mail is deleted after"
+      },
+      "file": "05-B-mail-collect-all.png"
+    },
+    {
+      "name": "B-close-mail",
+      "ok": true
+    }
+  ],
+  "errors": [],
+  "debugBuy": {
+    "before": 2,
+    "after": 2
+  }
+}
