@@ -64,7 +64,7 @@
                 <GameRow Class="spread">
                     @if (Vm.IsFounder)
                     {
-                        <PlayerPicker Players="Vm.Players" ActionText="@Vm.Text("Coop_Invite")" EmptyText="@Vm.Text("Coop_NobodyNear")" OnPick="@(id => Vm.Invite(id))" />
+                        <PlayerPicker Players="Vm.Players" ActionText="@Vm.Text("Coop_Invite")" PendingText="@Vm.Text("Coop_Invited")" EmptyText="@Vm.Text("Coop_NobodyNear")" OnPick="@(id => Vm.Invite(id))" />
                     }
                     <GameButton Variant="danger" Text="@Vm.Text("Coop_Leave")" OnClick="@(() => Vm.Leave())" />
                 </GameRow>
