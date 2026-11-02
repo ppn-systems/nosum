@@ -142,6 +142,12 @@ async function phase(page, name, secs, act) {
   await wait(3000);
   }
 
+  // Optional: one key press before the measured phases (--key KeyM hides the minimap for this visit, for attribution of its draw calls).
+  if (opt('--key')) {
+    await page.keyboard.press(opt('--key'));
+    await wait(1500);
+  }
+
   // Park the farmer on the block so the camera and the walk stay on the plots.
   const results = [];
   results.push(await phase(page, 'idle', seconds));
