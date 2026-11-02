@@ -360,3 +360,13 @@ Measured with the same harness, before and after the change (`NOSUM_DB_BUDGET_DU
 
 - **2026-11-01, economy rebuild (ADR-035 amendment 2026-11-01):** `BuyListing` is at 4 reads (listing read once, the save is a compare-and-set on its
   status; both wallets in one query for every transfer). The row above is the measurement; the limit in `DbBudgetBaseline` is 4.
+
+## Phase 4 check: the offline seller's unread count (branch `perf/offline-mail-unread-count`)
+
+- **Corrected figure.** `BuyListing` (buy one listing) measures **4 reads, 2 writes, 1 transaction** on master, not the 6 reads in the table above. The
+  reads are the listing row, the buyer's and seller's wallets, and the two mail counts of the seller's sale notice.
+- **Change.** `PushUnreadAsync` now asks `IPlayerNotifier.IsConnected` first and skips the unread `COUNT` when the recipient is offline, since the push
+  could not be delivered. This removes one read from any mail sent to an offline player.
+- **Measured effect: none in this table.** The budget rig keeps the seller connected (`DbBudgetRun.Economy.cs`), so the offline path never runs in
+  these rows. The before and after tables are identical (`db-before.md` and `db-after.md`, same run settings).
+- **Not measured:** an offline-seller `BuyListing` row. Adding one is the next step before this change can be claimed as a saving.
