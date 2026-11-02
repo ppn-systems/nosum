@@ -580,6 +580,7 @@
   <data name="Today_Crops" xml:space="preserve"><value>Cây trồng mùa này: {0}</value></data>
   <data name="Today_Crops_None" xml:space="preserve"><value>Mùa này không có cây trồng nào</value></data>
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>Cây này không trồng được vào mùa này.</value></data>
+  <data name="Farm_Status_OutOfSeasonIn" xml:space="preserve"><value>Cây này chỉ trồng được vào {0}.</value></data>
   <data name="Farm_Status_Withered" xml:space="preserve"><value>Cây đã héo vì thiếu nước hoặc hết mùa. Hãy gieo hạt mới lên trên.</value></data>
   <data name="Farm_Thirsty_Morning" xml:space="preserve"><value>{0} cây cần tưới nước</value></data>
   <data name="Farm_Thirsty_Morning_One" xml:space="preserve"><value>1 cây cần tưới nước</value></data>

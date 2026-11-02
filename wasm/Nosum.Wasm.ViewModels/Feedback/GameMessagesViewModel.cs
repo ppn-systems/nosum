@@ -8,6 +8,7 @@ using Nosum.Contracts.Farm;
 using Nosum.Contracts.Market;
 using Nosum.Contracts.Placeable;
 using Nosum.Contracts.Player;
+using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Skills;
 using Nosum.Wasm.Socket.Market;
 using Nosum.Wasm.Socket.Farm;
@@ -197,11 +198,35 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
         _ = worked;
 
         // A swing that came too soon is dropped without a word: the key was just held (docs/adr/ADR-021 D8).
-        string? text = status == FarmStatus.NotMature && daysLeft > 0 ? this.TextOfNotMature(daysLeft) : this.TextOf(status);
+        string? text = status switch
+        {
+            FarmStatus.NotMature when daysLeft > 0 => this.TextOfNotMature(daysLeft),
+            FarmStatus.OutOfSeason => this.TextOfOutOfSeason(),
+            _ => this.TextOf(status),
+        };
         if (status != FarmStatus.Cooldown && text is not null)
         {
             this.Show(text);
         }
+    }
+
+    // A seed refused as out of season names the seasons its crop grows in (docs/adr/ADR-121 D1). The seed is the item in the selected slot when the
+    // reply arrives; when that slot holds no seed, the plain line stands.
+    private string TextOfOutOfSeason()
+    {
+        List<Season> seasons = FarmSeasonNotice.SeasonsOf(_inventory.Held?.ItemId ?? 0);
+        if (seasons.Count == 0)
+        {
+            return _text["Farm_Status_OutOfSeason"].Value;
+        }
+
+        List<string> names = new(seasons.Count);
+        foreach (Season season in seasons)
+        {
+            names.Add(_text["Season_" + season].Value);
+        }
+
+        return string.Format(System.Globalization.CultureInfo.CurrentCulture, _text["Farm_Status_OutOfSeasonIn"].Value, string.Join(", ", names));
     }
 
     private void OnPlaceCompleted(PlaceStatus status)
