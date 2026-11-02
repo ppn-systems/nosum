@@ -33,7 +33,7 @@ combination (`<locale>-<viewport>.json`). Capture script: `tests/browser/fix-qa5
 
 ## Gates
 
-- `dotnet build wasm/Nosum.Wasm.slnx`: 0 warnings (see the PR).
-- `dotnet test tests/Nosum.UnitTests`: see the PR for the count.
+- `dotnet build wasm/Nosum.Wasm.slnx --no-incremental`: 0 warnings, 0 errors.
+- `dotnet test tests/Nosum.UnitTests`: 3737 passed, 0 failed.
 - `node --test tests/browser/label-fit/*.mjs tests/browser/modules/*.mjs`: 40 pass.
 - Full `world-pass.cjs` was not rerun after the harness change.

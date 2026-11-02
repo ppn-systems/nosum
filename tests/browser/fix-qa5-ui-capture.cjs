@@ -156,9 +156,11 @@ async function captureOne(browser, loc, vp) {
     }
   };
 
-  // Closes open windows: an NPC or merchant dialog by its last action (Leave), anything else by Escape. Bounded.
+  // Closes open windows: an NPC or merchant dialog by its last action (Leave), a game panel by its own close button (.game-close),
+  // anything else by Escape. Escape alone can reopen the last player panel (docs/design/ui-standard.md, section 3), so the close
+  // button is preferred. Bounded.
   const closeAll = async () => {
-    for (let i = 0; i < 4; i += 1) {
+    for (let i = 0; i < 6; i += 1) {
       const npc = await page.$('.npc-box-wrap');
       const panel = await page.$('.game-panel, .trade-window, .shop-list');
       if (!npc && !panel) break;
@@ -166,6 +168,8 @@ async function captureOne(browser, loc, vp) {
         const leave = page.locator('.npc-actions button').last();
         if ((await leave.count()) > 0) await leave.click({ force: true }).catch(() => {});
         else await page.keyboard.press('Escape');
+      } else if ((await page.locator('.game-close').count()) > 0) {
+        await page.locator('.game-close').last().click({ force: true }).catch(() => {});
       } else {
         await page.keyboard.press('Escape');
       }

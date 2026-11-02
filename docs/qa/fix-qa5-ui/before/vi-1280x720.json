@@ -2,7 +2,7 @@
   "locale": "vi",
   "viewport": "1280x720",
   "base": "http://localhost:5080/?qa=1",
-  "startedAt": "2026-11-01T23:56:11.641Z",
+  "startedAt": "2026-11-02T00:05:26.417Z",
   "topRight": [
     {
       "label": "Thư",
@@ -729,6 +729,6 @@
       ]
     }
   ],
-  "finishedAt": "2026-11-01T23:56:42.179Z",
+  "finishedAt": "2026-11-02T00:06:02.778Z",
   "errorCount": 0
 }
