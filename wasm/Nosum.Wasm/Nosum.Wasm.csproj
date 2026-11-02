@@ -8,6 +8,15 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <!-- Precompressed map and font files (docs/perf/wasm-perf.md, round 5). The linked Tiled maps (.tmx, XML text) and the VT323 font (.ttf) were served
+       uncompressed: the first load fetched about 0.65 MB of maps before the farm was playable, and brotli takes the maps to about a tenth and the font
+       to a quarter. The SDK compresses only the pattern list below, and only the files the project discovers, so the linked content (SourceType
+       Project) needs CompressAllAssets; the pattern list still decides what is compressed, so PNG sprites and the rest are left as they are. -->
+  <PropertyGroup>
+    <StaticWebAssetPublishCompressAllAssets>true</StaticWebAssetPublishCompressAllAssets>
+    <CompressionIncludePatterns>**/*.tmx;**/*.ttf</CompressionIncludePatterns>
+  </PropertyGroup>
+
   <!-- Tester tools (Game/DevTools.cs, docs/adr/ADR-013 amendments) exist only in a build made with -p:NosumDevTools=true; a normal or Production publish has none. -->
   <PropertyGroup Condition="'$(NosumDevTools)' == 'true'">
     <DefineConstants>$(DefineConstants);NOSUM_DEV_TOOLS</DefineConstants>
