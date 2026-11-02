@@ -1,0 +1,102 @@
+{
+  "flow": "farm",
+  "locale": "vi",
+  "viewport": "390x844",
+  "steps": [
+    {
+      "name": "farm-start",
+      "ok": true,
+      "file": "01-farm-start.png"
+    },
+    {
+      "name": "grant-coop",
+      "ok": true
+    },
+    {
+      "name": "coop-built",
+      "ok": true,
+      "file": "02-coop-built.png"
+    },
+    {
+      "name": "grant-hay",
+      "ok": true
+    },
+    {
+      "name": "carpenter-open",
+      "ok": true,
+      "file": "03-carpenter-open.png"
+    },
+    {
+      "name": "buy-hen",
+      "ok": true,
+      "file": "04-buy-hen.png"
+    },
+    {
+      "name": "buy-cat",
+      "ok": true,
+      "file": "05-buy-cat.png"
+    },
+    {
+      "name": "carpenter-after-buys",
+      "ok": true,
+      "value": {
+        "coins": [
+          20560,
+          18140
+        ]
+      },
+      "file": "06-carpenter-after-buys.png"
+    },
+    {
+      "name": "feed-trough",
+      "ok": true,
+      "value": {
+        "hay": [
+          30,
+          6
+        ]
+      },
+      "file": "07-feed-trough.png"
+    },
+    {
+      "name": "day-rolls",
+      "ok": true,
+      "file": "08-day-rolls.png"
+    },
+    {
+      "name": "collect-produce",
+      "ok": true,
+      "value": {
+        "got": "Nhận được Trứng gà."
+      },
+      "file": "09-collect-produce.png"
+    },
+    {
+      "name": "pet-open",
+      "ok": true,
+      "file": "10-pet-open.png"
+    },
+    {
+      "name": "pet-pet-today",
+      "ok": true,
+      "value": {
+        "reply": " Mochi Mèo Tâm trạng 60 Vuốt ve Trả lại Hôm nay bạn đã vuốt ve bạn ấy rồi. Xong."
+      },
+      "file": "11-pet-pet-today.png"
+    },
+    {
+      "name": "day-rolls-again",
+      "ok": true,
+      "file": "12-day-rolls-again.png"
+    },
+    {
+      "name": "pet-open-next-day",
+      "ok": true,
+      "value": {
+        "reply": "0 Thú cưng Mochi Mèo Tâm trạng 70 Vuốt ve Trả lại Hôm nay bạn đã vuốt ve bạn ấy rồi. Xong."
+      },
+      "file": "13-pet-open-next-day.png"
+    }
+  ],
+  "errors": []
+}

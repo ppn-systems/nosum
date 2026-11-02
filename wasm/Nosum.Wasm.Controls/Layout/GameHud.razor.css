@@ -239,6 +239,12 @@
     pointer-events: none;
 }
 
+/* The Menu button's name is for a phone only: on a desktop the column's icons carry their names as tips, and the name would sit under the icon
+   (world pass 8: "Menu" overlapped the bottom icon at 1280x720). The phone rule below shows it. */
+.hud-top-right ::deep .hud-menu-label {
+    display: none;
+}
+
 /* Narrow and touch screens (a phone held upright, docs/adr/ADR-033 D2): the menu column collapses into its Menu button, the minimap into one map
    button (docs/design/ui-standard.md section 6). */
 @media (max-width: 640px), (pointer: coarse) {

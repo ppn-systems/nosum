@@ -317,9 +317,11 @@ function installTooltip() {
 
     // A touch screen has no hover: the emulated mouse-over of a tap would leave the tip on screen until the next tap (the Settings tip of a phone).
     const canHover = () => window.matchMedia("(hover: hover)").matches;
-    document.addEventListener("mouseover", (e) => {
-        const element = e.target instanceof Element && canHover() ? e.target.closest("[data-tip]") : null;
-        if (!element) { hide(); return; }
+    // A tip shows only after the pointer moves. A window that opens under a resting pointer (the Close control of the last window sits where the
+    // next window's Close does) makes the browser fire mouseover with no movement: that is not a hover, so no tip. A press or a key clears it too.
+    let pointerMoved = false;
+    const forgetMove = () => { pointerMoved = false; hide(); };
+    const show = (element) => {
         const text = element.getAttribute("data-tip") || "";
         if (!text) { hide(); return; }
         if (element === target && tip.classList.contains("shown")) { return; }
@@ -338,11 +340,28 @@ function installTooltip() {
         }
         tip.classList.add("shown");
         place(element);
+    };
+    // Chrome fires mouseover before mousemove, so the first real move after a press, a key or a window opening shows the tip under the pointer.
+    document.addEventListener("mousemove", (e) => {
+        if (pointerMoved) { return; }
+        pointerMoved = true;
+        const element = e.target instanceof Element && canHover() ? e.target.closest("[data-tip]") : null;
+        if (element) { show(element); }
+    }, { passive: true });
+    document.addEventListener("mouseover", (e) => {
+        const element = e.target instanceof Element && canHover() ? e.target.closest("[data-tip]") : null;
+        if (!element) { hide(); return; }
+        if (!pointerMoved) { hide(); return; }
+        show(element);
     });
-    document.addEventListener("mousedown", hide);
+    document.addEventListener("mousedown", forgetMove);
+    // A click or a key press can close the window the tip belongs to (its Close control, Escape, the panel key): the tip goes with it.
+    document.addEventListener("click", forgetMove);
+    document.addEventListener("keydown", forgetMove);
     document.addEventListener("mouseout", (e) => { if (!e.relatedTarget) { hide(); } });
-    // The element under the mouse can be removed (the menu closes): never leave the tip behind.
-    new MutationObserver(() => { if (target && !target.isConnected) { hide(); } }).observe(document.body, { childList: true, subtree: true });
+    // The element under the mouse can be removed, or hidden in place (a window closed by a class change): never leave the tip behind.
+    new MutationObserver(() => { if (target && (!target.isConnected || target.getClientRects().length === 0)) { hide(); } })
+        .observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
     window.addEventListener("blur", hide);
 }
 
