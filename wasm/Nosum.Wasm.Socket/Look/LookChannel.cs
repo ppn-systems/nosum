@@ -42,6 +42,13 @@ public sealed class LookChannel : IDisposable
     private readonly Lock _gate = new();
     private readonly Dictionary<uint, LookInfo> _looks = [];
 
+    // An appearance request sets all three parts, so two in flight at once could revert each other (the server may apply them in either order).
+    // The requests therefore go one at a time: the next one is sent when the last is answered, and it carries the newest wish. The wish stays
+    // readable until the last answer, so the wardrobe shows the choice at once.
+    private (int Skin, int Hair, int Dye)? _appearanceWish;
+    private bool _appearanceDirty;
+    private bool _appearanceBusy;
+
     /// <summary>Initializes the channel and starts listening for pushed looks.</summary>
     /// <param name="socket">The game connection.</param>
     /// <param name="localPlayerId">Returns the local player's id on the map (zero before joining).</param>
@@ -119,11 +126,53 @@ public sealed class LookChannel : IDisposable
     /// <summary>Asks for the looks of everyone on the map; the server also announces the player's own look to the others. Call after joining a map or changing map.</summary>
     public void Load() => _ = this.LoadAsync();
 
-    /// <summary>Chooses avatar parts.</summary>
+    /// <summary>
+    /// Looks up the appearance the player has chosen and the server has not answered for yet (the newest choice, while requests are in flight).
+    /// </summary>
+    /// <param name="skinId">The skin tone id.</param>
+    /// <param name="hairStyleId">The hair style id.</param>
+    /// <param name="hairDyeId">The hair dye id.</param>
+    /// <returns><see langword="true"/> when a choice is pending; otherwise the server's look is the one to show.</returns>
+    public bool TryGetPendingAppearance(out int skinId, out int hairStyleId, out int hairDyeId)
+    {
+        lock (_gate)
+        {
+            if (_appearanceWish is { } wish)
+            {
+                skinId = wish.Skin;
+                hairStyleId = wish.Hair;
+                hairDyeId = wish.Dye;
+                return true;
+            }
+        }
+
+        skinId = 0;
+        hairStyleId = 0;
+        hairDyeId = 0;
+        return false;
+    }
+
+    /// <summary>Chooses avatar parts. While an answer is pending, a new choice waits for it; of the choices that wait, only the newest is sent, after that answer.</summary>
     /// <param name="skinId">Skin tone id.</param>
     /// <param name="hairStyleId">Hair style id.</param>
     /// <param name="hairDyeId">Hair dye id.</param>
-    public void SetAppearance(int skinId, int hairStyleId, int hairDyeId) => _ = this.SetAsync(skinId, hairStyleId, hairDyeId);
+    public void SetAppearance(int skinId, int hairStyleId, int hairDyeId)
+    {
+        bool start;
+        lock (_gate)
+        {
+            _appearanceWish = (skinId, hairStyleId, hairDyeId);
+            _appearanceDirty = true;
+            start = !_appearanceBusy;
+            _appearanceBusy = true;
+        }
+
+        this.Changed?.Invoke();
+        if (start)
+        {
+            _ = this.SendAppearanceAsync();
+        }
+    }
 
     /// <summary>Wears the clothing item in an inventory slot.</summary>
     /// <param name="slot">Inventory slot.</param>
@@ -204,21 +253,57 @@ public sealed class LookChannel : IDisposable
         }
     }
 
+    // Sends the newest wish, one request at a time, until no newer wish arrived while the last one was in flight. A lost connection drops the
+    // wishes that were not sent; the pending choice then clears and the server's look is shown again.
     [SuppressMessage("Design", "CA1031", Justification = "A lost request changes nothing; the player tries again.")]
-    private async Task SetAsync(int skinId, int hairStyleId, int hairDyeId)
+    private async Task SendAppearanceAsync()
     {
-        try
+        while (true)
         {
-            using PacketScope<SetAppearance> request = PacketFactory<SetAppearance>.Acquire();
-            request.Value.SkinId = (byte)skinId;
-            request.Value.HairStyleId = (byte)hairStyleId;
-            request.Value.HairDyeId = (byte)hairDyeId;
-            LookResult reply = await _socket.RequestAsync<LookResult>(request.Value).ConfigureAwait(false);
-            this.Completed?.Invoke(reply.Status);
-        }
-        catch (Exception)
-        {
-            // Connection dropped.
+            bool idle;
+            (int Skin, int Hair, int Dye) wish = default;
+            lock (_gate)
+            {
+                idle = !_appearanceDirty;
+                if (idle)
+                {
+                    _appearanceWish = null;
+                    _appearanceBusy = false;
+                }
+                else
+                {
+                    _appearanceDirty = false;
+                    wish = _appearanceWish!.Value;
+                }
+            }
+
+            if (idle)
+            {
+                this.Changed?.Invoke();
+                return;
+            }
+
+            try
+            {
+                using PacketScope<SetAppearance> request = PacketFactory<SetAppearance>.Acquire();
+                request.Value.SkinId = (byte)wish.Skin;
+                request.Value.HairStyleId = (byte)wish.Hair;
+                request.Value.HairDyeId = (byte)wish.Dye;
+                LookResult reply = await _socket.RequestAsync<LookResult>(request.Value).ConfigureAwait(false);
+                this.Completed?.Invoke(reply.Status);
+            }
+            catch (Exception)
+            {
+                lock (_gate)
+                {
+                    _appearanceWish = null;
+                    _appearanceDirty = false;
+                    _appearanceBusy = false;
+                }
+
+                this.Changed?.Invoke();
+                return;
+            }
         }
     }
 

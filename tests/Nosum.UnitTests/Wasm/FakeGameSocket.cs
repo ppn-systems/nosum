@@ -14,6 +14,8 @@ internal sealed class FakeGameSocket : IGameSocket
 {
     private readonly Dictionary<Type, Func<IPacket, IPacket>> _replies = [];
     private readonly Dictionary<Type, List<Delegate>> _handlers = [];
+    private readonly HashSet<Type> _held = [];
+    private readonly List<Action> _heldAnswers = [];
 
     public event Action<GameSocketState>? StateChanged
     {
@@ -37,6 +39,9 @@ internal sealed class FakeGameSocket : IGameSocket
 
     public List<IPacket> Requests { get; } = [];
 
+    /// <summary>Called with each request while it is still alive (request packets are pooled and reused after the call); for tests that read a request's fields.</summary>
+    public Action<IPacket>? RequestSeen { get; set; }
+
     public void Start()
     {
     }
@@ -51,6 +56,26 @@ internal sealed class FakeGameSocket : IGameSocket
     public void ReplyWith<TResponse>(Func<IPacket, TResponse> reply)
         where TResponse : class, IPacket
         => _replies[typeof(TResponse)] = request => reply(request);
+
+    /// <summary>Holds the answers to requests that expect <typeparamref name="TResponse"/> until <see cref="ReleaseOldestHeld"/> is called.</summary>
+    public void HoldReplies<TResponse>()
+        where TResponse : class, IPacket
+        => _ = _held.Add(typeof(TResponse));
+
+    /// <summary>Gives the oldest held answer, which runs whatever waits on it (the next request is recorded inside this call).</summary>
+    /// <returns><see langword="false"/> when no answer is held.</returns>
+    public bool ReleaseOldestHeld()
+    {
+        if (_heldAnswers.Count == 0)
+        {
+            return false;
+        }
+
+        Action answer = _heldAnswers[0];
+        _heldAnswers.RemoveAt(0);
+        answer();
+        return true;
+    }
 
     /// <summary>Delivers a push to the subscribers of its type.</summary>
     public void Push<TPacket>(TPacket packet)
@@ -70,6 +95,15 @@ internal sealed class FakeGameSocket : IGameSocket
     {
         // Pooled request packets are returned right after the call: keep what the tests need to read.
         this.Requests.Add(request);
+        this.RequestSeen?.Invoke(request);
+        if (_held.Contains(typeof(TResponse)) && _replies.TryGetValue(typeof(TResponse), out Func<IPacket, IPacket>? held))
+        {
+            TaskCompletionSource<TResponse> answer = new();
+            TResponse value = (TResponse)held(request);
+            _heldAnswers.Add(() => answer.SetResult(value));
+            return new ValueTask<TResponse>(answer.Task);
+        }
+
         return _replies.TryGetValue(typeof(TResponse), out Func<IPacket, IPacket>? reply)
             ? ValueTask.FromResult((TResponse)reply(request))
             : throw new InvalidOperationException("No canned reply for " + typeof(TResponse).Name);

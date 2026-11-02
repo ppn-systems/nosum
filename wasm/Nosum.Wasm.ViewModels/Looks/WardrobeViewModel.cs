@@ -71,8 +71,20 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
         inventory.Changed += this.Raise;
     }
 
-    /// <summary>Gets the player's current look (the server's default until it has been sent).</summary>
-    public LookInfo Look => _looks.TryGetLocal(out LookInfo look) ? look : LookInfo.Default;
+    /// <summary>
+    /// Gets the look to show: the server's look (the default until it has been sent), with the appearance the player chose and the server has not
+    /// answered for yet. A refused choice drops out when the answer comes; the server stays the one who decides.
+    /// </summary>
+    public LookInfo Look
+    {
+        get
+        {
+            LookInfo look = _looks.TryGetLocal(out LookInfo sent) ? sent : LookInfo.Default;
+            return _looks.TryGetPendingAppearance(out int skin, out int hair, out int dye)
+                ? look with { SkinId = skin, HairStyleId = hair, HairDyeId = dye }
+                : look;
+        }
+    }
 
     /// <summary>
     /// Gets the layers of the character preview (facing down, standing), back to front, with the same frames and offsets the world

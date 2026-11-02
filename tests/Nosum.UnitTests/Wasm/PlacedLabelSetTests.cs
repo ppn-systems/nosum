@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Nosum.UnitTests.Wasm;
 
-/// <summary>docs/adr/ADR-091 and ADR-109: a label is not placed on top of a label of the same text placed earlier in the frame.</summary>
+/// <summary>docs/adr/ADR-091 and ADR-110: a label is not placed on top of a label of the same text placed earlier in the frame.</summary>
 public sealed class PlacedLabelSetTests
 {
     [Fact]

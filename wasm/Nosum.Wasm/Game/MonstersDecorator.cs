@@ -307,7 +307,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
                     _ => 0,
                 };
 
-                // One badge per cluster of elites with the same modifier (docs/adr/ADR-109); the rest of the pack keeps its sprite and bar.
+                // One badge per cluster of elites with the same modifier (docs/adr/ADR-110); the rest of the pack keeps its sprite and bar.
                 if (eliteLabelId > 0 && _eliteLabels.Take(eliteLabelId, worldX + 8, worldY - 14))
                 {
                     world.AddOverlay(

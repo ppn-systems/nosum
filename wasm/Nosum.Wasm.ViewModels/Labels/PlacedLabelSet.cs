@@ -4,7 +4,7 @@ namespace Nosum.Wasm.ViewModels.Labels;
 
 /// <summary>
 /// The labels already drawn in one frame, kept so a label of the same text does not stack on one placed this frame (docs/adr/ADR-091 for hazards,
-/// docs/adr/ADR-109 for elite badges). It is a fixed array, so a frame allocates nothing. Labels past <see cref="Capacity"/> are placed as before: the
+/// docs/adr/ADR-110 for elite badges). It is a fixed array, so a frame allocates nothing. Labels past <see cref="Capacity"/> are placed as before: the
 /// rule only thins clusters, it never drops a label that has no neighbour. Call <see cref="Reset"/> at the start of each frame.
 /// </summary>
 public sealed class PlacedLabelSet

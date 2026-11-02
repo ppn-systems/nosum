@@ -1,6 +1,6 @@
 # World ambience, round 6
 
-Evidence for round 6 of [`docs/design/critique-world-ambience.md`](../../design/critique-world-ambience.md) (section 10). Rule: [ADR-109](../../adr/ADR-109-elite-badges-do-not-stack.md).
+Evidence for round 6 of [`docs/design/critique-world-ambience.md`](../../design/critique-world-ambience.md) (section 10). Rule: [ADR-110](../../adr/ADR-110-elite-badges-do-not-stack.md).
 
 ## Frames
 

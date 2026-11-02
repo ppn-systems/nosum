@@ -197,11 +197,11 @@ unpainted cells and the exit beacon's strength.
 
 ## 10. Round 6
 
-Captures and checks: [`docs/qa/world-ambience-round6/`](../qa/world-ambience-round6/README.md). Rule: [ADR-109](../adr/ADR-109-elite-badges-do-not-stack.md).
+Captures and checks: [`docs/qa/world-ambience-round6/`](../qa/world-ambience-round6/README.md). Rule: [ADR-110](../adr/ADR-110-elite-badges-do-not-stack.md).
 Round 6 took the one open item from section 9 that is a fault, not a call: the stacked elite badge. The round 5 note had recorded it as "not a fault" and
 left it; on reading it again, two copies of the same title one tile apart are the stacking that ADR-091 fixed for hazards.
 
-- **Elite title badges of the same text are placed once per cluster** (ADR-109 D1). A Vietnamese "HUYẾT THỆ" pack now shows one badge where it showed
+- **Elite title badges of the same text are placed once per cluster** (ADR-110 D1). A Vietnamese "HUYẾT THỆ" pack now shows one badge where it showed
   two. Different modifiers still each show theirs. The bookkeeping moved to `PlacedLabelSet` and is shared with the hazard labels (D2); hazard behaviour
   is unchanged.
 - **Not confirmed in a live frame.** No QA path spawns an elite pack, so the captures in the round 6 folder show the ordinary views at 1280 × 720,

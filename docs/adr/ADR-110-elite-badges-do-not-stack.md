@@ -1,4 +1,4 @@
-# ADR-109: Elite title badges of the same text are placed once per cluster
+# ADR-110: Elite title badges of the same text are placed once per cluster
 
 ## Status
 
