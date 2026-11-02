@@ -352,14 +352,10 @@ internal static class ClientWiring
         GameMessagesViewModel messages = services.GetRequiredService<GameMessagesViewModel>();
         _ = services.GetRequiredService<ThirstWarning>();
         IStringLocalizer<Language> localizer = services.GetRequiredService<IStringLocalizer<Language>>();
+        // The knock-out notice comes from the vitals push alone (the server always sends the zero-HP vitals with a knock-out, whether a
+        // monster's strike or the farmer's own attack caused it). The attack reply's KnockedOut flag is the same event, so reading it here as
+        // well showed the notice twice, merged into a "×2" toast.
         combat.KnockedOut += () => messages.Notify(localizer["Combat_KnockedOut"].Value);
-        combat.AttackCompleted += attack =>
-        {
-            if (attack.KnockedOut)
-            {
-                messages.Notify(localizer["Combat_KnockedOut"].Value);
-            }
-        };
         combat.SkillCompleted += skill =>
         {
             // A refused cast says why, so a press the server does not accept is never silent (docs/adr/ADR-056 D5).
