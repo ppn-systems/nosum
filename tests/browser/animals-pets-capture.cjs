@@ -17,8 +17,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Labels as the game shows them in each language (Language.resx / Language.en.resx).
 const L = {
-  en: { guest: /as a guest|guest/i, build: 'Build', pets: 'Pets', buyChicken: /Buy Chicken/, menu: 'Menu', menuPet: 'Pet', pet: 'Pet', choose: 'Choose', next: 'Next', confirm: 'Confirm' },
-  vi: { guest: /khách|guest/i, build: 'Xây dựng', pets: 'Thú cưng', buyChicken: /Mua Gà/, menu: 'Menu', menuPet: 'Thú cưng', pet: 'Vuốt ve', choose: 'Chọn', next: 'Tiếp', confirm: 'Xác nhận' },
+  en: { guest: /as a guest|guest/i, build: 'Build', animals: 'Animals', pets: 'Pets', buyChicken: /Buy Chicken/, menu: 'Menu', menuPet: 'Pet', pet: 'Pet', choose: 'Choose', next: 'Next', confirm: 'Confirm' },
+  vi: { guest: /khách|guest/i, build: 'Xây dựng', animals: 'Vật nuôi', pets: 'Thú cưng', buyChicken: /Mua Gà/, menu: 'Menu', menuPet: 'Thú cưng', pet: 'Vuốt ve', choose: 'Chọn', next: 'Tiếp', confirm: 'Xác nhận' },
 }[LANG_CODE];
 
 // Tile of the farm where the coop is placed: the server accepts it and its door is open to the tile below (39, 44).
@@ -96,6 +96,8 @@ async function run() {
     await qa('teleport', ['town', 10, 86]); await sleep(2500);
     await page.keyboard.press('KeyE'); await sleep(1800);
     await page.getByRole('button', { name: L.build, exact: true }).click(); await sleep(1200);
+    // The animal fields sit on the Animals tab of the carpenter (docs/adr/ADR-107 D2); the Buildings tab has no input.
+    await page.getByRole('button', { name: L.animals, exact: true }).first().click(); await sleep(800);
     await step('carpenter-animals', () => shot(page, 'carpenter-animals'));
     await step('buy-chickens', async () => {
       for (const name of ['Hen', 'Dot']) {
