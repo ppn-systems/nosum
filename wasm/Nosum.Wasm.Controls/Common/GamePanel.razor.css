@@ -111,7 +111,8 @@
     text-shadow: none;
 }
 
+/* A question with up to three answers in one row: the L width (docs/design/ui-standard.md section 3), not a narrower one that wraps the answers. */
 .game-panel.dialog {
-    width: calc(var(--u) * 140);
+    width: calc(var(--u) * 220);
     max-width: 100%;
 }
