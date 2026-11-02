@@ -58,12 +58,22 @@ effect of each one. The English frames also fit (`after/1280x720-en-04-settings-
 ## 3. Wardrobe
 
 - Hair styles are bare numbers 1–8 under the heading "Kiểu tóc" (`before/1280x720-vi-05-wardrobe.png`). The
-  names exist only as tooltips. **Not changed.**
+  names exist only as tooltips. **Fixed in round 3** ([ADR-102](../adr/ADR-102-guest-progress-and-sign-out-question.md)):
+  the name shows under the row ("Đang đeo: …").
 - Nothing says that a change is immediate and that everyone on the map sees it, or where clothes are changed.
   Added a note (`after/1280x720-vi-05-wardrobe.png`).
 - "Preview before buying" does not apply: looks are free, the server validates each change, and this panel has
   no purchase. No preview was built.
-- The character preview is about 40 px tall beside three rows of swatches. **Not changed.**
+- The character preview was called "about 40 px tall" in round 1. **That was wrong.** Measured in round 4 on the
+  current build (`.preview` box, `docs/qa/account-round4/before/report.json`): 96 px tall at 1280×720 and 1920×1080
+  (80 px wide and 160 px tall at 1920), 64 px at 390×844. It is the same 16×32 frame as the world sprite, and it fits
+  beside the swatches at every size, so it is not changed.
+- **Fixed in round 4 ([ADR-109](../adr/ADR-109-wardrobe-appearance-requests-in-order.md)):** choosing a skin and then a
+  hair style within a few milliseconds reverted the skin. Each request sends the whole look, built from the last look the
+  server had sent, so the second request sent the old skin again. Reproduced on master in all six configurations
+  (`before/report.json`: `quick-choices-both-kept` = `no`, skin index 0 after two clicks). Now the requests go one at a
+  time, each with the newest choice, and the chosen look shows at once. After: `yes` in all six
+  (`after/report.json`), and the frames are in `after/*-wardrobe-after-quick.png`.
 
 ## 4. Mail
 
@@ -109,10 +119,34 @@ button. The remembered-session card was not exercised, so it is not graded here.
 Buttons (section 8): claim-all is `primary` (the one main action of the mail page); the key list and reset use
 `secondary`; the account sign-out keeps `danger`.
 
-## 8. Still open (not in this change)
+## 8. Still open
 
-- Hair-style names in the wardrobe; the wardrobe preview size.
-- A confirmation before deleting a mail.
-- What a guest loses by signing out, stated in the account block.
-- Reload persistence of settings and the in-world effect of each setting, not yet played.
-- Google and Microsoft sign-in, and the remembered-session card, need a container with client ids before they can be played.
+Round 4 (the list below is the state after it):
+
+- **Closed since round 1, with the record in the ADR:** hair-style names and the wardrobe caption ([ADR-102](../adr/ADR-102-guest-progress-and-sign-out-question.md));
+  the sign-out question for a guest and what a guest loses ([ADR-102](../adr/ADR-102-guest-progress-and-sign-out-question.md)); the
+  confirmation before deleting a mail (`MailDeleteOverlay`, round 2); the Sound label that wrapped (round 2).
+- **Closed in round 4:** the wardrobe's quick choices reverting each other ([ADR-109](../adr/ADR-109-wardrobe-appearance-requests-in-order.md)).
+  Settings reload persistence is now played: the "Show names" switch was turned off, the page reloaded, the guest signed in again, and
+  the switch was still off in all six configurations (`docs/qa/account-round4/after/report.json`, `names-off-after-reload`).
+  The same store is covered by `SettingsTests` (`Settings_StoredValuesAreLoaded`, `Serialize_RoundTrips`).
+- **Still open, not played here:**
+  - The in-world effect of each setting. Round 4 checked the switch and the stored value, not that a name plate disappears from
+    the farm; the minimap, motion, contrast and touch settings are not played either.
+  - The mail "collect all" run that left one gift collectable with the status "Đã nhận quà." (section 4). The round-1 cause was
+    not captured. `CollectAll_StopsAtTheFirstRefusal_AndShowsItsReason` covers the refusal path with a fake socket; the live reply was
+    not recorded, so the cause is still unknown.
+  - Google and Microsoft sign-in, and the remembered-session card (ADR-082). They need client ids, which this container does not have
+    and which are never committed.
+  - The wardrobe's equip and unequip are not sequenced with the appearance requests (ADR-109, consequences). They set only the worn
+    slots, so no revert was seen, but a quick equip beside a quick skin change was not played.
+
+## 9. Round 4: what was checked and changed
+
+- Self-critique of the account and settings features on the current `master`, where the round 1 to 3 work is already in (ADR-102, the round-2 mail and Sound fixes).
+- Played in headless Chromium against the Development server (PostgreSQL), as a guest, at 1280×720, 1920×1080 and 390×844, in
+  Vietnamese and English (`tests/browser/account-round4/capture.js`).
+- Found and fixed: the wardrobe's quick choices reverting each other (section 3, ADR-109). Four unit tests use the fake socket's held
+  answers (`WardrobeAppearanceTests`), and the browser check reproduced the bug before the change.
+- Checked, no change: settings reload persistence (six of six), the wardrobe preview size (measured, section 3).
+- Frames: `docs/qa/account-round4/before/` (master) and `after/` (this change); see the README there.

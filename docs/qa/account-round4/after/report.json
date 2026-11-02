@@ -1,0 +1,188 @@
+[
+  {
+    "tag": "1280x720-vi",
+    "step": "wardrobe-preview-box",
+    "width": 48,
+    "height": 96
+  },
+  {
+    "tag": "1280x720-vi",
+    "step": "quick-choices-both-kept",
+    "clicked": true,
+    "skinIndex": 1,
+    "hairIndex": 2,
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-vi",
+    "step": "names-off-before-reload",
+    "stored": "lang=1\nmusic=70\nsound=70\nmuted=0\nscale=0\npanel=100\nnames=0\ncalm=auto\ncontrast=0\nminimap=auto\ntouch=1\nhaptics=1\nkeys=\ntutorial=1\ntutorialDone=0\n"
+  },
+  {
+    "tag": "1280x720-vi",
+    "step": "names-off-after-reload",
+    "checked": false,
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-vi",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "wardrobe-preview-box",
+    "width": 48,
+    "height": 96
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "quick-choices-both-kept",
+    "clicked": true,
+    "skinIndex": 1,
+    "hairIndex": 2,
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "names-off-before-reload",
+    "stored": "lang=2\nmusic=70\nsound=70\nmuted=0\nscale=0\npanel=100\nnames=0\ncalm=auto\ncontrast=0\nminimap=auto\ntouch=1\nhaptics=1\nkeys=\ntutorial=1\ntutorialDone=0\n"
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "names-off-after-reload",
+    "checked": false,
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "1920x1080-vi",
+    "step": "wardrobe-preview-box",
+    "width": 80,
+    "height": 160
+  },
+  {
+    "tag": "1920x1080-vi",
+    "step": "quick-choices-both-kept",
+    "clicked": true,
+    "skinIndex": 1,
+    "hairIndex": 2,
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-vi",
+    "step": "names-off-before-reload",
+    "stored": "lang=1\nmusic=70\nsound=70\nmuted=0\nscale=0\npanel=100\nnames=0\ncalm=auto\ncontrast=0\nminimap=auto\ntouch=1\nhaptics=1\nkeys=\ntutorial=1\ntutorialDone=0\n"
+  },
+  {
+    "tag": "1920x1080-vi",
+    "step": "names-off-after-reload",
+    "checked": false,
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-vi",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "1920x1080-en",
+    "step": "wardrobe-preview-box",
+    "width": 80,
+    "height": 160
+  },
+  {
+    "tag": "1920x1080-en",
+    "step": "quick-choices-both-kept",
+    "clicked": true,
+    "skinIndex": 1,
+    "hairIndex": 2,
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-en",
+    "step": "names-off-before-reload",
+    "stored": "lang=2\nmusic=70\nsound=70\nmuted=0\nscale=0\npanel=100\nnames=0\ncalm=auto\ncontrast=0\nminimap=auto\ntouch=1\nhaptics=1\nkeys=\ntutorial=1\ntutorialDone=0\n"
+  },
+  {
+    "tag": "1920x1080-en",
+    "step": "names-off-after-reload",
+    "checked": false,
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-en",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "wardrobe-preview-box",
+    "width": 32,
+    "height": 64
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "quick-choices-both-kept",
+    "clicked": true,
+    "skinIndex": 1,
+    "hairIndex": 2,
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "names-off-before-reload",
+    "stored": "lang=1\nmusic=70\nsound=70\nmuted=0\nscale=0\npanel=100\nnames=0\ncalm=auto\ncontrast=0\nminimap=auto\ntouch=1\nhaptics=1\nkeys=\ntutorial=1\ntutorialDone=0\n"
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "names-off-after-reload",
+    "checked": false,
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "390x844-en",
+    "step": "wardrobe-preview-box",
+    "width": 32,
+    "height": 64
+  },
+  {
+    "tag": "390x844-en",
+    "step": "quick-choices-both-kept",
+    "clicked": true,
+    "skinIndex": 1,
+    "hairIndex": 2,
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-en",
+    "step": "names-off-before-reload",
+    "stored": "lang=2\nmusic=70\nsound=70\nmuted=0\nscale=0\npanel=100\nnames=0\ncalm=auto\ncontrast=0\nminimap=auto\ntouch=1\nhaptics=1\nkeys=\ntutorial=1\ntutorialDone=0\n"
+  },
+  {
+    "tag": "390x844-en",
+    "step": "names-off-after-reload",
+    "checked": false,
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-en",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  }
+]
