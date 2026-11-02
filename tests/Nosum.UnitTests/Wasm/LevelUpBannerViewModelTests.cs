@@ -30,8 +30,7 @@ public sealed class LevelUpBannerViewModelTests
         using WasmTestSupport.CultureScope scope = new("en");
         FakeGameSocket socket = new();
         using ProgressChannel progress = new(socket);
-        using Nosum.Wasm.Socket.Combat.CombatChannel combat = new(socket);
-        using LevelUpBannerViewModel vm = new(progress, combat, Localizer<Language>());
+        using LevelUpBannerViewModel vm = new(progress, Localizer<Language>());
         int raised = 0;
         vm.Changed += () => raised++;
 
@@ -44,16 +43,36 @@ public sealed class LevelUpBannerViewModelTests
     }
 
     [Fact]
-    public void Banner_ACombatChannelLevelUpThatIsNotACombatSkill_IsIgnored()
+    public void Banner_ACombatLevelUpThatComesAsThePacketAndAsTheCombatEvent_IsShownOnce()
     {
         using WasmTestSupport.CultureScope scope = new("en");
         FakeGameSocket socket = new();
         using ProgressChannel progress = new(socket);
         using Nosum.Wasm.Socket.Combat.CombatChannel combat = new(socket);
-        using LevelUpBannerViewModel vm = new(progress, combat, Localizer<Language>());
+        using LevelUpBannerViewModel vm = new(progress, Localizer<Language>());
+        int raised = 0;
+        vm.Changed += () => raised++;
+
+        // The server sends the LevelUp packet for a combat level; the combat channel then raises its own event for the same level.
+        using LevelUp packet = new() { Skill = (byte)SkillKind.Combat, Level = 3 };
+        socket.Push(packet);
+        combat.TriggerLevelUp(3);
+
+        vm.Message.Should().Be("Combat reached level 3!");
+        raised.Should().Be(1, "one level-up is one banner");
+    }
+
+    [Fact]
+    public void Banner_ACombatChannelLevelUpWithNoPacket_IsIgnored()
+    {
+        using WasmTestSupport.CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+        using ProgressChannel progress = new(socket);
+        using Nosum.Wasm.Socket.Combat.CombatChannel combat = new(socket);
+        using LevelUpBannerViewModel vm = new(progress, Localizer<Language>());
 
         combat.TriggerLevelUp(2);
 
-        vm.Message.Should().BeNull("the progress channel already reported a gathering level-up");
+        vm.Message.Should().BeNull("the server's LevelUp packet is the one source of the banner");
     }
 }

@@ -1,5 +1,7 @@
 // World QA pass 3 (docs/qa/world-pass3; pass 2 is docs/qa/world-pass). Plays the world features with Playwright on a local Development server and client
-// (ADR-079: the page opened with ?qa=1 exposes window.nosumQa: grant, advanceClock, teleport, season, levelUp, fishingBite).
+// (ADR-079: the page opened with ?qa=1 exposes window.nosumQa: grant, advanceDays, advanceSeasons, teleport, season, levelUp, fishingBite).
+// Clock units: advanceDays(n) moves n game days (a game day is 12 real hours); a season is 28 game days, so advanceDays(4) + advanceDays(10) is 14 days,
+// half a season, and never crosses a season boundary (pass 5 wrongly called it one season).
 // For each locale (vi-VN, en-US) and viewport (1280x720, 1920x1080, 390x844 touch) it runs the scenario below in one session and:
 //   - takes a screenshot per step (docs/qa/world-pass/<locale>/<viewport>/NN-<step>.png),
 //   - records a status per step: pass (a DOM outcome was seen), FAIL (the step threw or the outcome is missing), or
@@ -302,7 +304,7 @@ async function runOne(browser, locale, vpName, report) {
     return { status: 'captured', notes: 'sprinkler placed beside the crop? check the screenshot' };
   });
   await step('farm: advance 4 days (grow)', async () => {
-    await page.evaluate(() => window.nosumQa.advanceClock(4));
+    await page.evaluate(() => window.nosumQa.advanceDays(4));
     await wait(2000);
     return { status: 'captured', notes: 'crop growth after 4 game days' };
   });
@@ -314,7 +316,7 @@ async function runOne(browser, locale, vpName, report) {
     return { status: 'captured', notes: 'harvest result: check the screenshot and the bag' };
   });
   await step('farm: wither (no water, 10 days)', async () => {
-    await page.evaluate(() => window.nosumQa.advanceClock(10));
+    await page.evaluate(() => window.nosumQa.advanceDays(10));
     await wait(2000);
     return { status: 'captured', notes: 'unwatered crop withered? check the screenshot' };
   });
