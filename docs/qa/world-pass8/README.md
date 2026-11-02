@@ -1,4 +1,4 @@
-# World QA pass 8 (branch `claude/qa-pass8`, base `origin/master` d621f08)
+# World QA pass 8 (branch `claude/qa-pass8`, base `origin/master` d621f08, merged with e3a0326)
 
 Pass 7 opened the panels; pass 8 performs each action and checks it. Every flow runs as a guest on a Development server (`window.nosumQa`,
 ADR-079), in Vietnamese and English, at 1280x720 and 390x844. Each step saves a frame and records what it checked. The harness is
