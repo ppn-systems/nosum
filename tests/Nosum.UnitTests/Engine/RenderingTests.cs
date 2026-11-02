@@ -212,6 +212,44 @@ public sealed class RenderingTests
     }
 
     [Fact]
+    public void Flush_ManySpritesWithTies_DrawsInTheOrderOfAStableSort()
+    {
+        // The sort is an in-place heapsort (no allocation on the interpreter build), so it is checked against a reference order on a set big enough to
+        // exercise every heap level. Few distinct keys make ties common; the insertion index breaks the rest.
+        const int count = 300;
+        WorldSpriteBatch batch = new(count);
+        Camera2D camera = default;
+        camera.Follow(50, 50, 100, 100, 100, 100);
+        RenderCommandBuffer buffer = new(count);
+        buffer.Begin(1);
+        batch.Begin();
+        Random random = new(7);
+        List<(int Texture, int SortY, int SortX, int Id)> added = [];
+        for (int i = 0; i < count; i++)
+        {
+            int sortY = (random.Next(0, 6) * 10) - 20;
+            int sortX = random.Next(0, 6) * 10;
+            int id = random.Next(0, 3);
+            int texture = i + 1;
+            batch.Add(texture, 0, 0, 4, 4, 0, 0, sortY, sortX, id);
+            added.Add((texture, sortY, sortX, id));
+        }
+
+        batch.Flush(buffer, camera);
+
+        int[] ints = MemoryMarshal.Cast<byte, int>(buffer.Encode()).ToArray();
+        int[] drawn = Enumerable.Range(0, count).Select(i => ints[2 + (i * RenderCommandBuffer.IntsPerCommand)]).ToArray();
+        int[] expected = added
+            .OrderBy(a => a.SortY)
+            .ThenBy(a => a.SortX)
+            .ThenBy(a => a.Id)
+            .ThenBy(a => a.Texture)
+            .Select(a => a.Texture)
+            .ToArray();
+        drawn.Should().Equal(expected);
+    }
+
+    [Fact]
     public void Flush_DeferLabels_EmitsLabelsOnlyOnFlushLabelsAfterFrontDraws()
     {
         WorldSpriteBatch batch = new(8);

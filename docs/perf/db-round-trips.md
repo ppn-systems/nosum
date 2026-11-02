@@ -360,3 +360,21 @@ Measured with the same harness, before and after the change (`NOSUM_DB_BUDGET_DU
 
 - **2026-11-01, economy rebuild (ADR-035 amendment 2026-11-01):** `BuyListing` is at 4 reads (listing read once, the save is a compare-and-set on its
   status; both wallets in one query for every transfer). The row above is the measurement; the limit in `DbBudgetBaseline` is 4.
+
+## Phase 4: the unread-count push is skipped for an offline recipient (branch `perf/wasm-server-round5`)
+
+Every mail a player receives pushed the unread count to them, after a `COUNT` over the mailbox. A player who is offline has no connection to take the push, and
+reads the count when they sign in (the client reads the mailbox, `MailChannel`, and the listing carries `Unread`). So the `COUNT` was a read whose result nobody
+could receive. `IPlayerNotifier.IsConnected` lets `MailService` skip it; the default (`true`) keeps the old behaviour for every other notifier.
+
+Measured by two integration tests (`MailServiceTests.Send_ToAnOfflinePlayer_ReadsNoUnreadCount_AndStoresTheMail`, `Send_ToAConnectedPlayer_ReadsTheUnreadCountOnce`).
+The statements of one `SendAsync` are captured with an interceptor; the unread count is the `count(*)` over `read_at`. The mailbox-size check is also a `count(*)`
+(over every row of the recipient), and it is not part of this change.
+
+| Recipient | Unread-count statements per send, before | after |
+|:--|--:|--:|
+| Offline | 1 | **0** |
+| Connected | 1 | 1 |
+
+"Before" is the same test with the guard removed (the offline test fails with the `COUNT` present). The offline sale notice of a listing (`BuyListing` to an
+offline seller) goes through the same path; the budget's rows keep the seller connected, so the table above does not show it yet.
