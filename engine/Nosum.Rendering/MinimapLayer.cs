@@ -240,15 +240,18 @@ public sealed class MinimapLayer
         }
     }
 
-    // A sampled cell covers a block of tiles. It shows the most significant ground in the block (water, then walls, then tilled ground, then plain
-    // ground), so a lake's edge or a wall line keeps its place on a downscaled map. Reading only the block's corner lost them: the farm's ponds and the
-    // town's walls came and went with the tile the corner happened to sit on. A void block stays void.
+    // A sampled cell covers a block of tiles. Water shows if any tile of the block is water: ponds and shore edges are rare and must not vanish.
+    // Walls and tilled ground show when at least half the block's tiles have them; a single tree or rock no longer turns a whole block dark (the
+    // round 7 frames showed forests and towns as checkerboards under "any wall wins"). Otherwise the block is plain ground, and a block with no tiles
+    // stays void.
     private static int ColourOfBlock(TileMap map, int x0, int y0, int stride, in MinimapPalette palette)
     {
-        int best = 0;
-        int bestRank = -1;
         int xEnd = Math.Min(map.Width, x0 + stride);
         int yEnd = Math.Min(map.Height, y0 + stride);
+        int tiles = 0;
+        int water = 0;
+        int blocked = 0;
+        int tilled = 0;
         for (int y = y0; y < yEnd; y++)
         {
             for (int x = x0; x < xEnd; x++)
@@ -259,31 +262,43 @@ public sealed class MinimapLayer
                     continue;
                 }
 
-                int rank = RankOf(colour, palette);
-                if (rank > bestRank)
+                tiles++;
+                if (colour == palette.Water)
                 {
-                    best = colour;
-                    bestRank = rank;
+                    water++;
+                }
+                else if (colour == palette.Blocked)
+                {
+                    blocked++;
+                }
+                else if (colour == palette.Tilled)
+                {
+                    tilled++;
                 }
             }
         }
 
-        return best;
-    }
-
-    private static int RankOf(int colour, in MinimapPalette palette)
-    {
-        if (colour == palette.Water)
+        if (tiles == 0)
         {
-            return 3;
+            return 0;
         }
 
-        if (colour == palette.Blocked)
+        if (water > 0)
         {
-            return 2;
+            return palette.Water;
         }
 
-        return colour == palette.Tilled ? 1 : 0;
+        if (blocked * 2 >= tiles)
+        {
+            return palette.Blocked;
+        }
+
+        if (tilled * 2 >= tiles)
+        {
+            return palette.Tilled;
+        }
+
+        return palette.Ground;
     }
 
     private static int ColourOf(TileMap map, int x, int y, in MinimapPalette palette)
