@@ -1,0 +1,32 @@
+{
+  "size": "390x844",
+  "shots": [
+    "talk-greeting-vi-390x844.png",
+    "talk-1-vi-390x844.png",
+    "talk-2-vi-390x844.png",
+    "talk-greeting-en-390x844.png",
+    "talk-1-en-390x844.png",
+    "talk-2-en-390x844.png"
+  ],
+  "steps": {
+    "greeting-vi": {
+      "questLine": true
+    },
+    "talk1-vi": {
+      "questLine": false
+    },
+    "talk2-vi": {
+      "questLine": true
+    },
+    "greeting-en": {
+      "questLine": true
+    },
+    "talk1-en": {
+      "questLine": false
+    },
+    "talk2-en": {
+      "questLine": true
+    }
+  },
+  "errors": []
+}
