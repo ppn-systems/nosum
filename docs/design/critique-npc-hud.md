@@ -110,6 +110,43 @@ fix the phone capture exposed (finding 7). Finding 2 needs authored lines in bot
 for the owner. Both are recorded above rather than guessed at here. The waypoint (finding 1, open) needs location data that
 does not exist yet.
 
+## Round three (2026-11-02)
+
+Self-critique of the merged round-two build on master (ADR-093 through ADR-111), against the open items above and the frames in
+[`docs/qa/rebuild-npc-hud/after/`](../qa/rebuild-npc-hud/after/). The brief was to pick the open items that most improve feel and clarity
+without a new feature, and to rebuild them.
+
+### What the frames show now
+
+- **The quest line was said once.** The seed keeper's greeting names the buy-seeds quest (ADR-093 D3). The first Talk replaces it with the
+  pool, and nothing brings it back in that conversation. A farmer who wanted the step again had to close the box and reopen it. This is the
+  remainder of finding 2, and it is the item this round fixes.
+- **The HUD and the phone dialog are as round two left them.** The 390×844 dialog box has room for two lines of body text, and the
+  quest tracker, the Menu button and the box do not overlap. No new HUD gap was found in the frames.
+- **Still open, not picked:** finding 4's "where a missing item comes from" needs location data that does not exist yet (a new
+  feature). Finding 2's repetition over days is still not observed; it needs a multi-day play, not a capture.
+
+### Fixed this round (ADR-113)
+
+- **Finding 2, remainder: the quest line comes back.** When the active quest's place is this merchant, the quest line is said at the
+  greeting and at every second step (0, 2, 4 ...). The steps between keep the pool (ADR-080 D2). The text is already authored in both
+  languages; no new string.
+  - Frames: [`docs/qa/npc-talk-round-three/`](../qa/npc-talk-round-three/) (vi and en, three sizes): `talk-greeting`, `talk-1`
+    (a pool line) and `talk-2` (the quest line again). The JSON records each step's text check.
+  - Before: the master rule gives no quest line at step 2. There are no before-frames for this step, because the step did not exist
+    as a case; the unit test `KeyFor_TheActiveQuestIsAtThisMerchant_ItComesBackEverySecondStep` states the old rule's answer
+    (slot 2 is a pool line) and now asserts the new one.
+
+### What changed on this round
+
+| Change | Where | Wire | Tests |
+| :-- | :-- | :-- | :-- |
+| Quest line at every second step | `NpcGreeting.KeyFor` | none (client text) | `NpcGreetingTests` (`..._ItComesBackEverySecondStep`) |
+| Round-three captures | `tests/browser/npc-talk-quest-capture.cjs`, `docs/qa/npc-talk-round-three/` | none | browser run at 1280×720, 1920×1080, 390×844, vi and en, no page or console errors |
+| Decision record | `docs/adr/ADR-113-quest-line-returns-on-talk.md`, amends ADR-093 D3 | none | — |
+
+**Wire:** no packet, opcode or field changed, so `NosumProtocol.Version` stays 34.
+
 ## Acceptance
 
 Captures and the grading against `ui-standard.md` section 7 are in [`docs/qa/rebuild-npc-hud/README.md`](../qa/rebuild-npc-hud/README.md).

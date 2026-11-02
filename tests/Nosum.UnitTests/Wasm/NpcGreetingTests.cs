@@ -162,6 +162,16 @@ public sealed class NpcGreetingTests
     }
 
     [Fact]
+    public void KeyFor_TheActiveQuestIsAtThisMerchant_ItComesBackEverySecondStep()
+    {
+        NpcLineContext moment = NpcLineContext.Of(3, Season.Spring, WeatherKind.Sun, 9, false, false, false, "buy_seeds");
+
+        NpcGreeting.KeyFor(Merchant("seed_keeper"), moment, 2, _ => true).Should().Be("Npc_seed_keeper_Quest_buy_seeds");
+        NpcGreeting.KeyFor(Merchant("seed_keeper"), moment, 4, _ => true).Should().Be("Npc_seed_keeper_Quest_buy_seeds");
+        NpcGreeting.KeyFor(Merchant("seed_keeper"), moment, 3, _ => true).Should().StartWith("Npc_seed_keeper_Line_");
+    }
+
+    [Fact]
     public void KeyFor_TheActiveQuestIsElsewhere_TheGreetingIsWhatItWasWithoutAQuest()
     {
         NpcLineContext withQuest = NpcLineContext.Of(3, Season.Spring, WeatherKind.Sun, 9, false, false, false, "buy_seeds");

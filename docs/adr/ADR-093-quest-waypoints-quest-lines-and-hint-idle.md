@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted (D3 amended by [ADR-113](ADR-113-quest-line-returns-on-talk.md))
 
 Amends [ADR-033](ADR-033-client-settings-touch-onboarding.md) (the first-run hints, D3), [ADR-080](ADR-080-npc-dialogue-lines-and-seasonal-stock.md) (the greeting, D2) and
 [ADR-036](ADR-036-quest-chain-and-requests-board.md) (the quest chain). No wire change: `NosumProtocol.Version` does not move.
