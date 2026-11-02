@@ -65,9 +65,16 @@
 }
 
 .hud-top-left:empty,
-.game-hud:has(.hud-center > *) .hud-top-left,
-.game-hud:has(.hud-center > *) .hud-top-right ::deep .hud-menu-column {
+.game-hud:has(.hud-center > *) .hud-top-left {
     display: none;
+}
+
+/* With a window open the menu column goes, so the window keeps the centre. A wide screen has room for both: the widest window (XL, 340 u) is
+   centred, so the column at the right edge is clear of it from 1600 px (ui-standard section 2, checklist item 2). */
+@media (max-width: 1599px) {
+    .game-hud:has(.hud-center > *) .hud-top-right ::deep .hud-menu-column {
+        display: none;
+    }
 }
 
 /* The top centre: one banner at a time (the level-up and season banners, the catch card), which the card places absolutely. The calendar row
@@ -103,6 +110,24 @@
 
 .hud-top-right ::deep .hud-bar:first-child {
     height: calc(var(--u) * 18);
+}
+
+/* Row one is one row at every width (ui-standard section 2): on a phone the calendar gives way (its tomorrow forecast and season name go),
+   so the coins, Mail and Settings keep their places instead of wrapping under the Menu button. */
+@media (max-width: 640px) {
+    .hud-top-right ::deep .hud-bar:first-child {
+        flex-wrap: nowrap;
+        min-width: 0;
+    }
+
+    .hud-top-right ::deep .calendar {
+        min-width: 0;
+    }
+
+    .hud-top-right ::deep .calendar-season,
+    .hud-top-right ::deep .calendar-forecast-next {
+        display: none;
+    }
 }
 
 /* The menu column: one column of at most 8 cells, the Menu button last. Each cell is a framed 16 u square (the slot sprite) and holds a 14 u button,

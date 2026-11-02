@@ -8,7 +8,9 @@
    identities and chooses a nickname. All text and behaviour come from the view model; no network code here. The buttons are Focusable: this form
    is shown while the game does not own the keyboard (before sign-in, or over the game on upgrade). The two provider buttons are not framed in the
    game's wooden button: each draws its provider's own look (docs/adr/ADR-082). *@
-<GamePanel Title="@Vm.Title" Class="account" Role="form">
+@* The upgrade form (save the guest progress) is a window like any other: the title bar's close control cancels it (ui-standard section 3). A sign-in
+   form that must be answered (no guest to go back to) has no close control. *@
+<GamePanel Title="@Vm.Title" Class="account" Role="form" CloseText="@Vm.CancelText" OnClose="@(Vm.IsUpgradeMode ? EventCallback.Factory.Create(this, Vm.CancelUpgrade) : default)">
     <div class="account-form">
         <GameStack>
             @if (Vm.IsUpgradeMode)

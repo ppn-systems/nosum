@@ -1,10 +1,12 @@
 @using Nosum.Wasm.ViewModels.Settings
+@using Nosum.Wasm.Controls.Common
 @inherits ObservingComponent<OnboardingViewModel>
 
-@* The first-run hint (docs/adr/ADR-033 D3): one line, announced politely to screen readers, that fades after its time; it never takes the mouse or the keyboard. *@
+@* The first-run hint is the toast line's own message (docs/design/ui-standard.md section 5): it sits in the bottom-centre stack directly above the
+   toasts and the hotbar, in the same frame and width as a toast, one line at a time. It never takes the mouse or the keyboard. *@
 <div class="hint-dock" role="status" aria-live="polite">
     @if (Vm.IsVisible)
     {
-        <p class="hint-line" @key="Vm.HintKey" aria-label="@(Vm.Label + ": " + Vm.Hint)">@Vm.Hint</p>
+        <GamePanel @key="Vm.HintKey" Class="hud toast onboarding-hint" Role="status" Title="">@Vm.Hint</GamePanel>
     }
 </div>

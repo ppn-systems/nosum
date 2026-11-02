@@ -1,6 +1,7 @@
 .hint-dock {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     pointer-events: none;
 }
 
@@ -9,17 +10,8 @@
     display: none;
 }
 
-/* The fade runs as long as OnboardingViewModel.HintSeconds (12 s); the view model removes the line when it is over. */
-.hint-line {
-    margin: 0 0 calc(var(--u) * 2);
-    padding: var(--u) calc(var(--u) * 4);
-    max-width: calc(var(--u) * 180);
-    border: calc(var(--u) * 4) solid var(--nosum-edge);
-    border-image: var(--nosum-img-plaque) 4 / calc(var(--u) * 4) stretch;
-    background: var(--nosum-parchment) padding-box;
-    image-rendering: pixelated;
-    color: var(--nosum-ink);
-    text-align: center;
+/* The hint is a toast-line message: the frame is the toast's own (GamePanel), and it fades over HintSeconds (12 s); the view model removes the line when it is over. */
+.onboarding-hint {
     animation: hint-life 12s linear forwards;
 }
 
@@ -32,18 +24,13 @@
 
 /* With reduced motion the line simply stays its time and goes (the view model removes it). */
 @media (prefers-reduced-motion: reduce) {
-    .hint-line {
+    .onboarding-hint {
         animation: none;
     }
 }
 
-:root[data-motion="reduced"] .hint-line {
+:root[data-motion="reduced"] .onboarding-hint {
     animation: none;
 }
 
-/* Narrow touch screens: stay clear of the stick and the use button, which stand on either side at this height. */
-@media (pointer: coarse) and (max-width: 640px) {
-    .hint-line {
-        max-width: calc(100vw - var(--u) * 100);
-    }
-}
+
