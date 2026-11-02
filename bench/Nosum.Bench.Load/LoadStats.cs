@@ -36,6 +36,8 @@ internal sealed class LoadStats
 
     public IReadOnlyDictionary<string, int> Errors => _errors;
 
+    private readonly List<string> _samples = [];
+
     public void Snapshot(int bytes)
     {
         _ = Interlocked.Increment(ref _snapshots);
@@ -50,6 +52,33 @@ internal sealed class LoadStats
     public IReadOnlyDictionary<string, int> Statuses => _statuses;
 
     public void Error(string kind) => _ = _errors.AddOrUpdate(kind, 1, static (_, n) => n + 1);
+
+    /// <summary>Keeps the first few distinct failure messages (with the frame that threw), so the report says what failed and where, not only the type.</summary>
+    /// <param name="ex">The exception a bot ended with.</param>
+    public void ErrorSample(Exception ex)
+    {
+        string where = ex.StackTrace?.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? "no stack";
+        string sample = ex.GetType().Name + ": " + ex.Message + " @ " + where;
+        lock (_samples)
+        {
+            if (_samples.Count < 5 && !_samples.Contains(sample))
+            {
+                _samples.Add(sample);
+            }
+        }
+    }
+
+    /// <summary>The distinct failure samples recorded by <see cref="ErrorSample"/>.</summary>
+    public IReadOnlyList<string> ErrorSamples
+    {
+        get
+        {
+            lock (_samples)
+            {
+                return _samples.ToArray();
+            }
+        }
+    }
 
     public void FarmRoundTrip(double ms) => _farmMs.Enqueue(ms);
 
