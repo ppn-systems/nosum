@@ -41,6 +41,8 @@ internal static partial class QaEntry
               springReset: () => dev.ToSpring(),
               teleportToMonster: (mapId, dx = 0, dy = 0) => dev.TeleportToMonster(mapId, dx, dy),
               befriend: () => dev.Befriend(),
+              nodes: () => dev.Nodes(),
+              target: () => dev.Target(),
             });
           } catch (error) {
             // The hook is a tester aid: a failure here must not take the game down with it.

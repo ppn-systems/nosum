@@ -34,6 +34,10 @@ public readonly record struct NodeInfo(int Id, int X, int Y, byte Kind, byte Var
 /// </summary>
 public sealed class NodeChannel : IDisposable
 {
+    // How often an empty snapshot is asked again, and for how long (about half a second, far above a join's time on the server).
+    private const int EmptyAnswerRetries = 5;
+    private static readonly TimeSpan EmptyAnswerDelay = TimeSpan.FromMilliseconds(100);
+
     private readonly IGameSocket _socket;
     private readonly Func<long> _clock;
     private readonly IDisposable[] _subscriptions;
@@ -121,8 +125,16 @@ public sealed class NodeChannel : IDisposable
         int gen = _loads.BeginLoad();
         try
         {
-            using PacketScope<GetNodes> request = PacketFactory<GetNodes>.Acquire();
-            NodeSnapshot snapshot = await _socket.RequestAsync<NodeSnapshot>(request.Value).ConfigureAwait(false);
+            NodeSnapshot snapshot = await this.RequestSnapshotAsync().ConfigureAwait(false);
+
+            // A map change reaches the client before the server has put the player back on the map: a snapshot asked in that gap names no map and no
+            // nodes. The answer is asked again a few times, while this load is still the current one; a map without nodes keeps its empty answer.
+            for (int retry = 0; snapshot.MapId.Length == 0 && retry < EmptyAnswerRetries && _loads.IsCurrent(gen); retry++)
+            {
+                await Task.Delay(EmptyAnswerDelay).ConfigureAwait(false);
+                snapshot = await this.RequestSnapshotAsync().ConfigureAwait(false);
+            }
+
             if (!_loads.IsCurrent(gen))
             {
                 return;
@@ -152,6 +164,12 @@ public sealed class NodeChannel : IDisposable
         {
             _loads.EndLoad();
         }
+    }
+
+    private async Task<NodeSnapshot> RequestSnapshotAsync()
+    {
+        using PacketScope<GetNodes> request = PacketFactory<GetNodes>.Acquire();
+        return await _socket.RequestAsync<NodeSnapshot>(request.Value).ConfigureAwait(false);
     }
 
     private void OnChanged(NodeChanged packet)

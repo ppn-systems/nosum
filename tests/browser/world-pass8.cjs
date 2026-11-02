@@ -386,7 +386,101 @@ async function accountFlow(lk) {
 }
 
 
-// ---- the mines: the entrance elevator and its floors, a fight with a monster (teleported beside it, ADR-079 D9), and ore from a sweep of the floor
+// ---- the mines: the entrance elevator, a fight with a monster (teleported beside it, ADR-079 D9), the ladder down from floor 1 to floor 2, and copper ore
+// from floor 2. The client never learns which stone hides the ladder (the server sends it as a stone, docs/adr/ADR-026 D3), so the farmer tunnels: it
+// walks toward a goal, breaks what stands in its way with the pickaxe in hand, and walks on into the broken tile. A relocation of the player (a teleport
+// included) forgets a floor nobody else stands on (MineService), so no teleport is made once the farmer is on a floor.
+// The node mirror and the farmer's tile are read through QA hooks: `nodes()` (map id, then x,y,kind per node; 4 stone, 5 copper ore, 10 ladder) and
+// `target()` (the tile the action key works, and the Facing that works it; the farmer stands one step back from it).
+const KIND = { Stone: 4, CopperOre: 5, Ladder: 10 };
+const mirror = async () => {
+  const [map, ...entries] = (await qa('nodes')).split(';');
+  return { map, nodes: entries.filter(Boolean).map(e => { const [x, y, kind] = e.split(',').map(Number); return { x, y, kind }; }) };
+};
+// The farmer's tile: the action target minus the step the facing points to (Facing: Down 0, Right 1, Up 2, Left 3).
+const STEP = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+const farmerTile = async () => {
+  const [tx, ty, facing] = (await qa('target')).split(',').map(Number);
+  const [dx, dy] = STEP[facing];
+  return [tx - dx, ty - dy];
+};
+// The hotbar key (a digit) of the slot holding an item, found by the item's name (a slot's aria-label); null when the item is not on the hotbar.
+const hotkeyOf = (lk, key) => page.evaluate(name => {
+  const slot = [...document.querySelectorAll('.hotbar-slots button')].find(b => b.getAttribute('aria-label') === name);
+  const digit = slot ? slot.textContent.trim().match(/^\d/) : null;
+  return digit ? digit[0] : null;
+}, STRINGS[lk][key]);
+// The walk keys and their steps.
+const KEYS = { KeyD: [1, 0], KeyA: [-1, 0], KeyS: [0, 1], KeyW: [0, -1] };
+const OPPOSITE = { KeyD: 'KeyA', KeyA: 'KeyD', KeyS: 'KeyW', KeyW: 'KeyS' };
+// The keys to try, best first: the axis with the larger distance to the goal, then the other axis, then the two away from it.
+function keysToward(fx, fy, goal) {
+  const ddx = goal.x - fx;
+  const ddy = goal.y - fy;
+  const h = ddx > 0 ? 'KeyD' : 'KeyA';
+  const v = ddy > 0 ? 'KeyS' : 'KeyW';
+  const order = Math.abs(ddx) >= Math.abs(ddy) ? [h, v] : [v, h];
+  return [...order, OPPOSITE[order[0]], OPPOSITE[order[1]]];
+}
+// Tunnels toward `goal` until until() holds. A node in the way is swung at with the pickaxe in hand, one press a swing, until it is gone (a ladder
+// takes the farmer down on the press); a free tile is walked into. A step that does not move the farmer is a wall or a monster: the farmer tries the next
+// key, and after three blocked steps in a row it swings the sword at what is in front (hotbar slot 9, granted by the flow). A swing in recovery ignores
+// the walk keys, so every swing is followed by a pause. A key that failed is not tried again for eight actions (a monster moves). False when the actions
+// run out.
+async function tunnel(goal, until, maxActions, pick) {
+  const failed = new Map();
+  let blocked = 0;
+  for (let action = 0; action < maxActions; action++) {
+    if (await until()) return true;
+    const [fx, fy] = await farmerTile();
+    const { nodes } = await mirror();
+    const key = keysToward(fx, fy, goal).find(k => !(failed.has(fx + ',' + fy + ',' + k) && action - failed.get(fx + ',' + fy + ',' + k) < 8));
+    if (!key) { failed.clear(); continue; }
+    const [dx, dy] = KEYS[key];
+    const ahead = nodes.find(n => n.x === fx + dx && n.y === fy + dy);
+    if (process.env.DEBUG_TUNNEL) console.log('TUNNEL', action, 'at', fx, fy, 'key', key, 'ahead', ahead ? ahead.kind : '-', 'blocked', blocked, 'map', (await mirror()).map);
+    if (ahead) {
+      await hold(key, 100); // turns the farmer to the node (a blocked key turns without a step)
+      await pressKey('KeyE'); await wait(600);
+      blocked = 0;
+      continue;
+    }
+    await hold(key, 160);
+    const [nx, ny] = await farmerTile();
+    if (nx !== fx || ny !== fy) { blocked = 0; continue; }
+    failed.set(fx + ',' + fy + ',' + key, action);
+    blocked += 1;
+    if (blocked >= 3) {
+      blocked = 0;
+      await hold(key, 100);
+      await pressKey('Digit9'); await pressKey('KeyE'); await wait(900);
+      await pressKey('Digit' + pick); await wait(300);
+    }
+  }
+  return false;
+}
+// The four sides of a node: the offset of the standing tile and the key that turns the farmer toward the node from it.
+const SIDES = [[0, 1, 'KeyW'], [0, -1, 'KeyS'], [1, 0, 'KeyA'], [-1, 0, 'KeyD']];
+// The tile the action key works now (the QA hook `target()`): [tileX, tileY].
+const aimed_tile = async () => (await qa('target')).split(',').slice(0, 2).map(Number);
+// True when the node (its tile and kind) is no longer on the list: broken, or changed into something else (a stone that breaks into a ladder).
+const nodeGone = (nodes, node) => !nodes.some(n => n.x === node.x && n.y === node.y && n.kind === node.kind);
+// Waits up to about 3 s for the client to be on `map` (a floor change arrives as a join; the node list reloads after it).
+async function onMap(map) {
+  for (let i = 0; i < 12; i++) { if ((await mirror()).map === map) return true; await wait(250); }
+  return false;
+}
+// The bag count of an item by name: the inventory window is opened and closed around the read. Every slot of the bag and the hotbar that holds the
+// item counts; a slot's count is its quantity span (one when the slot has no span).
+async function bagCount(lk, key) {
+  await pressKey('KeyI'); await wait(700);
+  const count = await page.evaluate(name => [...document.querySelectorAll('button.slot[aria-label]')]
+    .filter(b => b.getAttribute('aria-label') === name)
+    .reduce((sum, b) => { const q = b.querySelector('.quantity'); return sum + (q ? Number(q.textContent.replace(/[^0-9]/g, '')) : 1); }, 0), STRINGS[lk][key]);
+  await closeWindow(lk);
+  return count;
+}
+
 async function mineFlow(lk) {
   await signInGuest(lk);
   await qa('grant', [0, 0, 5000]);
@@ -402,23 +496,95 @@ async function mineFlow(lk) {
   });
   await closeWindow(lk);
 
-  // Combat: a monster of the floor is beside the farmer (the server places the farmer; ADR-079 D9). The sword is in hand; the action key swings it.
-  // The client holds the monsters of the map the farmer is on, so the farmer first walks down the shaft to floor 1.
+  // The first arrival on floor 1 (the shaft from the entrance); nothing is broken yet, so the teleport loses nothing.
+  await goto('mine1', 8, 8, 2500);
+
+  // Descend: the planner hides the ladder under a stone among the farthest quarter of the floor's stones from the arrival tile (docs/adr/ADR-026 D3).
+  // The farmer tunnels to those candidates, nearest first, and breaks each one; a ladder that shows is used from the tile it stands on.
+  await step('descend-floors', async () => {
+    const pick = await hotkeyOf(lk, 'Item_pickaxe_Name');
+    if (!pick) throw new Error('no pickaxe on the hotbar');
+    if (!(await onMap('mine1'))) throw new Error('not on floor 1: ' + (await mirror()).map);
+    await pressKey('Digit' + pick);
+    const [sx, sy] = await farmerTile();
+    const tried = new Set();
+    let candidates = 0;
+    for (let round = 0; round < 24; round++) {
+      if ((await mirror()).map === 'mine2') break;
+      const [fx, fy] = await farmerTile();
+      const stones = (await mirror()).nodes.filter(n => n.kind === KIND.Stone);
+      stones.sort((a, b) => Math.hypot(b.x - sx, b.y - sy) - Math.hypot(a.x - sx, a.y - sy));
+      const far = stones.slice(0, Math.max(1, Math.ceil(stones.length / 4))).filter(n => !tried.has(n.x + ',' + n.y));
+      if (far.length === 0) {
+        // Nothing far is loaded yet (the client mirrors the chunks near the farmer): tunnel toward the next waypoint of a sweep, which loads more.
+        const wp = [[44, 8], [44, 36], [4, 36], [4, 8], [44, 22]][round % 5];
+        await tunnel({ x: wp[0], y: wp[1] }, async () => (await mirror()).map === 'mine2', 40, pick);
+        if ((await mirror()).map === 'mine2') break;
+        continue;
+      }
+      far.sort((a, b) => (Math.abs(a.x - fx) + Math.abs(a.y - fy)) - (Math.abs(b.x - fx) + Math.abs(b.y - fy)));
+      const target = far[0];
+      tried.add(target.x + ',' + target.y);
+      candidates += 1;
+      const gone = async () => nodeGone((await mirror()).nodes, target) || (await mirror()).map === 'mine2';
+      await tunnel({ x: target.x, y: target.y }, gone, 40, pick);
+      const ladder = (await mirror()).nodes.find(n => n.kind === KIND.Ladder);
+      if (ladder) {
+        // The ladder stands where the stone was: the farmer faces it (the tunnel broke it from the tile in front), so one press takes it down.
+        await tunnel({ x: ladder.x, y: ladder.y }, async () => (await mirror()).map === 'mine2', 20, pick);
+      }
+    }
+    if (!(await onMap('mine2'))) throw new Error(`no ladder took the farmer down to floor 2 (${candidates} far stones tried)`);
+    return { map: 'mine2', candidates };
+  });
+
+  // Ore: a copper ore of floor 2 (the planner places it on floors 1 to 39). Nothing on the floor is broken before it, so a teleport beside the ore
+  // loses nothing (a floor is rebuilt from its seed; the ore stays) and spares the walk through the monsters. The farmer stands on a free side of the
+  // ore, turns to it, and reads back the tile the action key works: the press is made only when that is the ore's tile.
+  await step('ore-mine', async () => {
+    if (!(await onMap('mine2'))) throw new Error('not on floor 2: ' + (await mirror()).map);
+    const floor = await mirror();
+    const pick = await hotkeyOf(lk, 'Item_pickaxe_Name');
+    const ore = floor.nodes.find(n => n.kind === KIND.CopperOre);
+    if (!ore) throw new Error('no copper ore node on floor 2 in the client mirror');
+    const taken = new Set(floor.nodes.map(n => n.x + ',' + n.y));
+    const before = await bagCount(lk, 'Item_copper_ore_Name');
+    await pressKey('Digit' + pick);
+    const gone = async () => nodeGone((await mirror()).nodes, ore);
+    let broke = false;
+    for (const [dx, dy, turn] of SIDES) {
+      if (broke) break;
+      if (taken.has((ore.x + dx) + ',' + (ore.y + dy))) continue;
+      await goto('mine2', ore.x + dx, ore.y + dy, 900);
+      await wait(800);
+      let aimed = false;
+      for (let attempt = 0; attempt < 3 && !aimed; attempt++) {
+        await hold(turn, 150); await wait(250);
+        const [tx, ty] = await aimed_tile();
+        aimed = tx === ore.x && ty === ore.y;
+      }
+      if (!aimed) continue;
+      for (let i = 0; i < 3; i++) { await pressKey('KeyE'); await wait(700); }
+      await wait(500);
+      broke = await gone();
+    }
+    if (!broke) throw new Error(`the copper ore at ${ore.x},${ore.y} did not break from any side`);
+    const after = await bagCount(lk, 'Item_copper_ore_Name');
+    if (!(after > before)) throw new Error(`no copper ore in the bag: ${before} -> ${after}`);
+    return { ore: [ore.x, ore.y], bag: [before, after] };
+  });
+
+  // Combat, last (a knock-out carries the farmer home, which would end the descent): a monster of floor 2 is beside the farmer (the server places the
+  // farmer; ADR-079 D9). The sword is in hand; the action key swings it.
   await step('fight-monster', async () => {
-    await goto('mine1', 8, 8, 2500);
-    await qa('teleportToMonster', ['mine1']); await wait(2000);
+    if (!(await onMap('mine2'))) throw new Error('not on floor 2: ' + (await mirror()).map);
+    await qa('teleportToMonster', ['mine2']); await wait(2000);
     await pressKey('Digit9');
     const hits = [];
     for (let i = 0; i < 6; i++) { await pressKey('KeyE'); await wait(700); }
     return { swings: 6, hits };
   });
-
-  // Descending is not driven: the elevator lists only the floors the player has reached ("Deepest: floor 0" on a new account), and the stairs of
-  // floor 1 are not located by the harness. Recorded as skipped.
-  report.steps.push({ name: 'descend-floors', ok: false, skipped: true, note: 'not driven: no reached floor beyond 0; see the README' });
-  // Ore is not driven: the floor's nodes are placed by the server and are not in the client's text, and the sweep's teleports and keys ended in the
-  // farmhouse (world pass 8, docs/qa/world-pass8/README.md). It is recorded as skipped, not as a pass.
-  report.steps.push({ name: 'ore-mine', ok: false, skipped: true, note: 'not driven: no ore node position from the client; see the README' });
+  await closeWindow(lk);
 }
 
 

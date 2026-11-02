@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Nosum.Contracts.Farm.S2C;
 using Nosum.Contracts.Node.S2C;
@@ -228,5 +229,37 @@ public sealed class NodeChannelTests
         socket.Push(state);
 
         Mirror(channel).Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Load_AsksAgain_WhileTheServerNamesNoMap_AndKeepsTheFirstMapItNames()
+    {
+        // A map change reaches the client before the player is back on the map on the server: the first two answers name no map and no nodes.
+        int asks = 0;
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ =>
+        {
+            asks++;
+            if (asks < 3)
+            {
+                return new NodeSnapshot();
+            }
+
+            NodeSnapshot snapshot = new() { MapId = "mine1", WaterLeft = 9, WaterCapacity = 40 };
+            snapshot.Nodes.Add(Row(7, 3, 4, NodeKind.Stone, 1));
+            return snapshot;
+        });
+        using NodeChannel channel = new(socket);
+
+        channel.Load();
+        for (int i = 0; i < 200 && channel.MapId.Length == 0; i++)
+        {
+            await Task.Delay(20);
+        }
+
+        channel.MapId.Should().Be("mine1");
+        asks.Should().Be(3);
+        Mirror(channel).Should().ContainSingle().Which.Should().BeEquivalentTo(new { Id = 7, X = 3, Y = 4, Kind = (byte)NodeKind.Stone });
+        channel.WaterLeft.Should().Be(9);
     }
 }

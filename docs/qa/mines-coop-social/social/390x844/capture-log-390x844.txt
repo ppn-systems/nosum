@@ -1,0 +1,16 @@
+ok   befriend QaFriend6412
+ok   vi-390x844-friends-online (listed)
+ok   vi-390x844-chat
+FAIL vi-390x844-trade: locator.click: Timeout 6000ms exceeded.
+FAIL vi-390x844-visit-farm: locator.click: Timeout 6000ms exceeded.
+FAIL vi-390x844-coop-deposit: locator.click: Timeout 6000ms exceeded.
+FAIL vi-390x844-coop-invite: locator.click: Timeout 6000ms exceeded.
+ok   vi-390x844 play
+ok   befriend QaFriend6262
+ok   en-390x844-friends-online (listed)
+ok   en-390x844-chat
+ok   en-390x844-trade
+ok   en-390x844-visit-farm
+ok   en-390x844-coop-deposit
+ok   en-390x844-coop-invite
+ok   en-390x844 play
