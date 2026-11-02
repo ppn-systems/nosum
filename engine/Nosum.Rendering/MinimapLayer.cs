@@ -122,7 +122,7 @@ public sealed class MinimapLayer
         {
             for (int x = 0; x < _mapWidth; x++)
             {
-                _cellColor[(y * _mapWidth) + x] = ColourOf(map, x * _stride, y * _stride, palette);
+                _cellColor[(y * _mapWidth) + x] = ColourOfBlock(map, x * _stride, y * _stride, _stride, palette);
             }
         }
 
@@ -238,6 +238,52 @@ public sealed class MinimapLayer
         {
             commands.FillRect(originX + _dotX[i], originY + _dotY[i], DotSize, DotSize, _dotColor[i]);
         }
+    }
+
+    // A sampled cell covers a block of tiles. It shows the most significant ground in the block (water, then walls, then tilled ground, then plain
+    // ground), so a lake's edge or a wall line keeps its place on a downscaled map. Reading only the block's corner lost them: the farm's ponds and the
+    // town's walls came and went with the tile the corner happened to sit on. A void block stays void.
+    private static int ColourOfBlock(TileMap map, int x0, int y0, int stride, in MinimapPalette palette)
+    {
+        int best = 0;
+        int bestRank = -1;
+        int xEnd = Math.Min(map.Width, x0 + stride);
+        int yEnd = Math.Min(map.Height, y0 + stride);
+        for (int y = y0; y < yEnd; y++)
+        {
+            for (int x = x0; x < xEnd; x++)
+            {
+                int colour = ColourOf(map, x, y, palette);
+                if (colour == 0)
+                {
+                    continue;
+                }
+
+                int rank = RankOf(colour, palette);
+                if (rank > bestRank)
+                {
+                    best = colour;
+                    bestRank = rank;
+                }
+            }
+        }
+
+        return best;
+    }
+
+    private static int RankOf(int colour, in MinimapPalette palette)
+    {
+        if (colour == palette.Water)
+        {
+            return 3;
+        }
+
+        if (colour == palette.Blocked)
+        {
+            return 2;
+        }
+
+        return colour == palette.Tilled ? 1 : 0;
     }
 
     private static int ColourOf(TileMap map, int x, int y, in MinimapPalette palette)

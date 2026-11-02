@@ -115,6 +115,39 @@ public sealed class MinimapLayerTests
     }
 
     [Fact]
+    public void Build_SampledMap_ShowsWaterWhenItIsNotOnTheBlockCorner()
+    {
+        // A 150 x 100 map is sampled three tiles to a cell. The only water tile sits inside the first block, not on its corner.
+        int[] tiles = Enumerable.Repeat(1, 150 * 100).ToArray();
+        tiles[(1 * 150) + 1] = 2;
+        MinimapLayer minimap = new() { Visible = true };
+        minimap.Build(Map(150, 100, tiles), "lake", MinimapPalette.Default).Should().BeTrue();
+        RenderCommandBuffer buffer = new(4096);
+        buffer.Begin(1);
+
+        minimap.Draw(buffer, 10, 10, 0x14171CCC, 0x0B0D10FF);
+
+        TintsOf(Draws(buffer), buffer.Count).Should().Contain(MinimapPalette.Default.Water);
+    }
+
+    [Fact]
+    public void Build_SampledMapBlockWithNoTiles_StaysVoid()
+    {
+        // One ground tile in the whole map: its block shows ground, and every other block is void and draws nothing.
+        int[] tiles = new int[150 * 100];
+        tiles[(3 * 150) + 3] = 1;
+        MinimapLayer minimap = new() { Visible = true };
+        minimap.Build(Map(150, 100, tiles), "island", MinimapPalette.Default).Should().BeTrue();
+        RenderCommandBuffer buffer = new(64);
+        buffer.Begin(1);
+
+        minimap.Draw(buffer, 10, 10, 0x14171CCC, 0x0B0D10FF);
+
+        // The border, the backing and the one run.
+        buffer.Count.Should().Be(3);
+    }
+
+    [Fact]
     public void AddDot_PlayerOnAnotherTile_RecordsOneDotForTheFrame()
     {
         MinimapLayer minimap = new() { Visible = true };
