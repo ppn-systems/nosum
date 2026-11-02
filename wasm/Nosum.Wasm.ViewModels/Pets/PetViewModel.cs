@@ -18,6 +18,7 @@ public sealed class PetViewModel : PanelViewModel, IDisposable
 {
     private readonly PetChannel _pets;
     private bool _rehomeAsked;
+    private bool _pettingAsked;
 
     /// <summary>Initializes the view model and follows the pet state.</summary>
     /// <param name="pets">The pet connection.</param>
@@ -87,8 +88,12 @@ public sealed class PetViewModel : PanelViewModel, IDisposable
         _pets.Adopt(kind, name.Trim());
     }
 
-    /// <summary>Pets the pet, once a game day.</summary>
-    public void PetIt() => _pets.Pet();
+    /// <summary>Pets the pet, once a game day. The answer says how much energy the petting gave (docs/design/critique-animals-pets.md, finding 9).</summary>
+    public void PetIt()
+    {
+        _pettingAsked = this.CanPet;
+        _pets.Pet();
+    }
 
     /// <summary>Opens the give-back question. Nothing is sent until the player confirms it.</summary>
     public void AskRehome()
@@ -140,7 +145,13 @@ public sealed class PetViewModel : PanelViewModel, IDisposable
 
     private void OnCompleted(PetStatus status)
     {
-        this.SetStatus(this.StatusText(status), status == PetStatus.Ok);
+        // Only a petting that the panel asked for reports the energy: a rehoming or an adoption answers with its own line.
+        bool petted = _pettingAsked;
+        _pettingAsked = false;
+        string text = status == PetStatus.Ok && petted
+            ? this.Text("Pet_Status_Petted", Number(PetRules.PettingEnergy))
+            : this.StatusText(status);
+        this.SetStatus(text, status == PetStatus.Ok);
         this.Completed?.Invoke(status);
     }
 
