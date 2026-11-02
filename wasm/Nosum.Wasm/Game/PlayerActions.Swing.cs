@@ -233,8 +233,9 @@ internal sealed partial class PlayerActions
     }
 
     // The bin's answer: a sale that paid makes the coins pop over the bin the farmer shipped to (the server decides the price and the payment).
-    private void OnMarketCompleted(MarketAction action, MarketStatus status, long earned)
+    private void OnMarketCompleted(MarketAction action, MarketStatus status, long earned, Guid listingId)
     {
+        _ = listingId;
         if (action == MarketAction.Ship && status == MarketStatus.Ok && earned > 0)
         {
             this.Juice.Press(FarmJuiceKind.Coins, _shipTileX, _shipTileY, _tileSizePx, (long)(_nowSeconds * 1000));

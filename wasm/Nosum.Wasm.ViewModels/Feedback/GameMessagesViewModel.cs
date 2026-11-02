@@ -178,8 +178,9 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
         }
     }
 
-    private void OnMarketCompleted(MarketAction action, MarketStatus status, long earned)
+    private void OnMarketCompleted(MarketAction action, MarketStatus status, long earned, Guid listingId)
     {
+        _ = listingId;
         if (action != MarketAction.Ship)
         {
             return;

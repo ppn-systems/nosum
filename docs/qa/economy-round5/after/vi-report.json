@@ -1,0 +1,44 @@
+{
+  "lang": "vi",
+  "base": "http://localhost:5080",
+  "captured": [
+    "390x844/vi-seller-sell-empty.png",
+    "390x844/vi-seller-sell-picked.png",
+    "390x844/vi-seller-listed.png",
+    "390x844/vi-buyer-browse.png",
+    "390x844/vi-buyer-browse-sorted.png",
+    "390x844/vi-buyer-buy-confirm.png",
+    "390x844/vi-buyer-bought-large.png",
+    "390x844/vi-buyer-sell-picked.png",
+    "390x844/vi-buyer-sell-priced.png"
+  ],
+  "skipped": [],
+  "errors": [],
+  "measures": [
+    {
+      "viewport": "390x844",
+      "clientHeight": 597,
+      "scrollHeight": 597,
+      "fits": true,
+      "listings": 6,
+      "rowHeight": 65,
+      "listHeight": 410,
+      "pager": "Trước\n    Trang 1/19\n    Sau",
+      "kids": [
+        "DIV.game-row:42",
+        "DIV.market-filter:79",
+        "DIV.listing-list:410",
+        "DIV.game-row:42"
+      ],
+      "filter": {
+        "h": 79,
+        "w": 340,
+        "kids": [
+          "INPUT.game-input market-search:340x33",
+          "BUTTON.game-button primary  :37x42",
+          "DIV.game-row :197x42"
+        ]
+      }
+    }
+  ]
+}

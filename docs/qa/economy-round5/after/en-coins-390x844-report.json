@@ -1,0 +1,27 @@
+{
+  "lang": "en",
+  "base": "http://localhost:5080",
+  "captured": [
+    "390x844/en-buyer-market-bought.png",
+    "390x844/en-buyer-shop-bought.png",
+    "390x844/en-seller-mail-collected.png"
+  ],
+  "checks": [
+    {
+      "screen": "buyer-market-bought",
+      "expected": "/Bought Parsnip x1 for 60 coins\\./",
+      "found": true
+    },
+    {
+      "screen": "buyer-shop-bought",
+      "expected": "/Bought .+ x1 for 12 coins\\. It is in your inventory\\./",
+      "found": true
+    },
+    {
+      "screen": "seller-mail-collected",
+      "expected": "/Collected 2 items and 160 coins\\./",
+      "found": true
+    }
+  ],
+  "errors": []
+}

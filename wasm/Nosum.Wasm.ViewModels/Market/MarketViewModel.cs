@@ -82,6 +82,10 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     private MarketListingRequest? _pendingListing;
     private MarketListingRequest? _lastListed;
     private MarketPurchaseRequest? _pendingPurchase;
+
+    // The listing each buy in flight asked for, so its answer can say what was bought and what it cost (the price is the listing's own, fixed).
+    private readonly Dictionary<Guid, ListingInfo> _buying = [];
+
     private int _historyItemId;
     private MarketSort _sort = MarketSort.Newest;
     private int _pageSize = CoinRules.ListingsPerPage;
@@ -422,7 +426,14 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
     public void Buy(Guid listingId)
     {
         ListingInfo found = _market.Browsed.Listings.FirstOrDefault(l => l.Id == listingId);
-        if (found.Id != listingId || found.Price < LargePurchase)
+        if (found.Id != listingId)
+        {
+            _market.Buy(listingId);
+            return;
+        }
+
+        _buying[listingId] = found;
+        if (found.Price < LargePurchase)
         {
             _market.Buy(listingId);
             return;
@@ -456,6 +467,7 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
             return;
         }
 
+        _ = _buying.Remove(_pendingPurchase.ListingId);
         _pendingPurchase = null;
         this.Raise();
     }
@@ -617,15 +629,24 @@ public sealed class MarketViewModel : PanelViewModel, IDisposable
         return hours == 1 ? this.Text("Market_Expires_One") : this.Text("Market_Expires", hours);
     }
 
-    private void OnCompleted(MarketAction action, MarketStatus status, long earned)
+    private void OnCompleted(MarketAction action, MarketStatus status, long earned, Guid listingId)
     {
         _ = earned;
+
+        // The listing this buy asked for, if the page still showed it when the buy was sent (see Buy).
+        ListingInfo bought = default;
+        bool hasBought = action == MarketAction.Buy && _buying.Remove(listingId, out bought);
         if (status == MarketStatus.Ok)
         {
             if (action == MarketAction.Create && _lastListed is { } listed)
             {
                 // What was listed, and what the seller gets when it sells: the fee is the server's rule (CoinRules), shown, never decided here.
                 this.SetStatus(this.Text("Market_Done_CreateDetail", listed.Quantity, listed.ItemName, Number(listed.Price), Number(CoinRules.SellerProceeds(listed.Price)), CoinRules.MarketFeePercent), good: true);
+            }
+            else if (hasBought)
+            {
+                // What was bought and what it cost: the price is the listing's, which the server has accepted.
+                this.SetStatus(this.Text("Market_Done_BuyDetail", bought.Quantity.ToString(CultureInfo.InvariantCulture), _describer.Describe(0, bought.ItemId, 1).Name, Number(bought.Price)), good: true);
             }
             else
             {

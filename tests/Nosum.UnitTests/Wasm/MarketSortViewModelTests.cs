@@ -256,6 +256,57 @@ public sealed class MarketSortViewModelTests
     }
 
     [Fact]
+    public void Buy_Done_NamesWhatWasBoughtAndWhatItCost()
+    {
+        using CultureScope scope = new("en", "en-US");
+        Guid listing = Guid.NewGuid();
+        ListingsPage page = new() { Total = 1 };
+        page.Rows.Add(new ListingRow { ListingId = listing, ItemId = ItemCatalog.Parsnip, Quantity = 5, Price = 300, SellerNickname = "Mai" });
+        (MarketViewModel vm, FakeGameSocket socket) = Create(page);
+        socket.ReplyWith<MarketResult>(_ => new MarketResult { Status = MarketStatus.Ok });
+        vm.Open();
+
+        vm.Buy(listing);
+
+        vm.Status.Should().Be("Bought Parsnip x5 for 300 coins.");
+        vm.StatusIsGood.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Buy_LargePurchaseConfirmed_NamesWhatWasBought()
+    {
+        using CultureScope scope = new("en", "en-US");
+        Guid listing = Guid.NewGuid();
+        ListingsPage page = new() { Total = 1 };
+        page.Rows.Add(new ListingRow { ListingId = listing, ItemId = ItemCatalog.Parsnip, Quantity = 5, Price = MarketViewModel.LargePurchase, SellerNickname = "Mai" });
+        (MarketViewModel vm, FakeGameSocket socket) = Create(page);
+        socket.ReplyWith<MarketResult>(_ => new MarketResult { Status = MarketStatus.Ok });
+        vm.Open();
+        vm.Buy(listing);
+
+        vm.ConfirmPurchase();
+
+        vm.Status.Should().Be("Bought Parsnip x5 for 1,000 coins.");
+    }
+
+    [Fact]
+    public void Buy_Refused_ShowsTheRefusalNotAPurchase()
+    {
+        using CultureScope scope = new("en", "en-US");
+        Guid listing = Guid.NewGuid();
+        ListingsPage page = new() { Total = 1 };
+        page.Rows.Add(new ListingRow { ListingId = listing, ItemId = ItemCatalog.Parsnip, Quantity = 5, Price = 300, SellerNickname = "Mai" });
+        (MarketViewModel vm, FakeGameSocket socket) = Create(page);
+        socket.ReplyWith<MarketResult>(_ => new MarketResult { Status = MarketStatus.ListingGone });
+        vm.Open();
+
+        vm.Buy(listing);
+
+        vm.Status.Should().NotContain("Bought");
+        vm.StatusIsGood.Should().BeFalse();
+    }
+
+    [Fact]
     public void Browsed_OwnListing_SaysHowManyHoursItHasLeft()
     {
         using CultureScope scope = new("en", "en-US");

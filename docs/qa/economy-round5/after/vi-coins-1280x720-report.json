@@ -1,0 +1,27 @@
+{
+  "lang": "vi",
+  "base": "http://localhost:5080",
+  "captured": [
+    "1280x720/vi-buyer-market-bought.png",
+    "1280x720/vi-buyer-shop-bought.png",
+    "1280x720/vi-seller-mail-collected.png"
+  ],
+  "checks": [
+    {
+      "screen": "buyer-market-bought",
+      "expected": "/Đã mua .+ x1 với giá 60 xu\\./",
+      "found": true
+    },
+    {
+      "screen": "buyer-shop-bought",
+      "expected": "/Đã mua .+ x1 với giá 12 xu\\. Món đồ đã vào túi của bạn\\./",
+      "found": true
+    },
+    {
+      "screen": "seller-mail-collected",
+      "expected": "/Đã nhận 2 món đồ và 160 xu\\./",
+      "found": true
+    }
+  ],
+  "errors": []
+}

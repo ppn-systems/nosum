@@ -49,8 +49,8 @@ const PARSNIPS_TO_GRANT = LISTING_SET.reduce((sum, l) => sum + l.qty, 0);
 
 // Labels per language (Language.resx). Sort labels exist only once the sort control is built; the script skips the step otherwise.
 const T = LANG_CODE === 'en'
-  ? { sell: 'Sell', browse: 'Browse', list: 'List for sale', buy: 'Buy', quantity: 'Quantity', sortLow: 'Cheapest each', sortHigh: 'Priciest each', npcSell: 'Sell', confirm: 'Confirm' }
-  : { sell: 'Bán', browse: 'Mua', list: 'Đăng bán', buy: 'Mua', quantity: 'Số lượng', sortLow: 'Rẻ nhất/món', sortHigh: 'Đắt nhất/món', npcSell: 'Bán', confirm: 'Xác nhận' };
+  ? { sell: 'Sell', browse: 'Browse', list: 'List for sale', buy: 'Buy', quantity: 'Quantity', sortLow: 'Cheapest', sortHigh: 'Priciest', npcSell: 'Sell', confirm: 'Confirm' }
+  : { sell: 'Bán', browse: 'Mua', list: 'Đăng bán', buy: 'Mua', quantity: 'Số lượng', sortLow: 'Rẻ nhất', sortHigh: 'Đắt nhất', npcSell: 'Bán', confirm: 'Xác nhận' };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = (...a) => console.log('[market-capture]', ...a);
