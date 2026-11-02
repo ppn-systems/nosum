@@ -399,6 +399,7 @@ internal static class ClientWiring
 
         // A finger gets the tap prompts (docs/adr/ADR-097); the keyboard and mouse prompts stay the default.
         services.GetRequiredService<FishingViewModel>().TouchInput = device.IsTouchInput;
+        services.GetRequiredService<InventoryViewModel>().TouchInput = device.IsTouchInput;
 
         // A phone or touch screen collapses the HUD menu column; the game menu then lists the column panels as tiles (docs/design/ui-standard.md section 6).
         ToolbarViewModel toolbar = services.GetRequiredService<ToolbarViewModel>();

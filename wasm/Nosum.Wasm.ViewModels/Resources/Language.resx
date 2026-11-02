@@ -86,6 +86,7 @@
   <data name="Inventory_Sort" xml:space="preserve"><value>Sắp xếp</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Thanh vật phẩm</value></data>
   <data name="Inventory_Hint" xml:space="preserve"><value>Nhấn để nhấc · chuột phải để tách nửa · Shift+nhấn để chuyển nhanh</value></data>
+  <data name="Inventory_HintTouch" xml:space="preserve"><value>Chạm để nhấc · chạm ô khác để chuyển</value></data>
   <data name="Inventory_HintPicked" xml:space="preserve"><value>Đang nhấc {0}: nhấn ô đích để đặt, nhấn lại để bỏ xuống</value></data>
   <data name="Inventory_LockHotbar" xml:space="preserve"><value>Giữ thanh vật phẩm khi sắp xếp</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Số lượng: {0}</value></data>

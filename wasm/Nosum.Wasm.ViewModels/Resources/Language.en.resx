@@ -86,6 +86,7 @@
   <data name="Inventory_Sort" xml:space="preserve"><value>Sort</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Hotbar</value></data>
   <data name="Inventory_Hint" xml:space="preserve"><value>Click to pick up · right-click to split half · Shift+click to quick-move</value></data>
+  <data name="Inventory_HintTouch" xml:space="preserve"><value>Tap to pick up · tap another slot to move it</value></data>
   <data name="Inventory_HintPicked" xml:space="preserve"><value>Holding {0}: click a target slot to place, click again to put down</value></data>
   <data name="Inventory_LockHotbar" xml:space="preserve"><value>Keep hotbar when sorting</value></data>
   <data name="Inventory_Quantity" xml:space="preserve"><value>Quantity: {0}</value></data>
