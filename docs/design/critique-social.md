@@ -73,3 +73,20 @@ Status of the findings above after the round-3 pass (docs/qa/social-round3/READM
 - **Blocker found on master, not in the critique:** the renderer module declared `fitLabel` twice, so the page did not start on master. Fixed.
 - **Still in the backlog:** finding 4 (co-op entry point), 3 (phone door for Trade and Friends), 5 (invite by nickname), 10 (labels on the column),
   14 (Escape after a chat line).
+
+## Round 5 (2026-11-02)
+
+Branch `feat/social-round-5`. Frames: [`../qa/social-round5/`](../qa/social-round5/) (`capture-log.txt` there; script
+`tests/browser/social-round5-capture.cjs`). Captured at 1280×720, 1920×1080 and 390×844 in vi and en, on a Development server with a
+published client. Guests only, as before.
+
+- **Finding 7 (invite still offered after it is sent): fixed.** The server accepts the invitation (`CoopResult` Ok), then `CoopChannel`
+  raises `InviteSent` with the map id, and the picker shows that player as **Invited** (disabled, `Coop_Invited`). Only an accepted
+  invitation counts: a refused one leaves the button as it was (`CoopInviteSentTests`). Browser-checked: the disabled "Invited"
+  button is in every frame. The mark lasts while the co-op page is open; a server list of pending invites is still backlog.
+- **Finding 9 (item grid clipped): not reproduced on master.** The before frame predates the XL size for trade and co-op (`GameMenuWindow`,
+  commit 0d0b383). On this build the trade bag and the co-op warehouse bag show all nine columns whole at 1280×720 and on the phone
+  (`after/`). The frames at 1920×1080 are in the set; the grid was not re-checked there by eye beyond the capture.
+- **Still in the backlog:** finding 3 (phone door for Trade and Friends), 4 (co-op entry point), 5 (invite by nickname), 10 (labels
+  on the column), 14 (Escape after a chat line).
+- Protocol unchanged (34). No new ADR: the change is in the client's socket channel and view model.
