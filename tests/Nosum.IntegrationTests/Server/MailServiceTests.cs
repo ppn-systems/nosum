@@ -6,11 +6,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Nalix.Abstractions.Networking.Packets;
 using Nosum.Abstractions.Inventory;
 using Nosum.Abstractions.Mail;
@@ -296,6 +298,42 @@ public sealed class MailServiceTests : IClassFixture<PostgresFixture>
         (await _mail.CollectAsync(player, keep)).Should().Be(MailStatus.Ok, "the oldest mail carried coins, so it was kept");
     }
 
+    [Fact]
+    public async Task Send_ToAnOfflinePlayer_ReadsNoUnreadCount_AndStoresTheMail()
+    {
+        // Nobody is connected to take the push, and the count is read when the mailbox opens (GetMail): the send skips the COUNT (one read a mail).
+        Guid player = await CreatePlayerAsync();
+        SqlLog log = new();
+        MailService mail = this.MailWith(log, new PlayerPresence(connected: false));
+
+        _ = await mail.SendAsync(player, "test.offline", []);
+
+        log.Statements.Where(IsUnreadCount).Should().BeEmpty("no connection takes the unread count");
+        (await mail.ListAsync(player)).Should().ContainSingle().Which.Code.Should().Be("test.offline");
+        (await mail.CountUnreadAsync(player)).Should().Be(1, "the count is still right when the player opens the mailbox");
+    }
+
+    [Fact]
+    public async Task Send_ToAConnectedPlayer_ReadsTheUnreadCountOnce()
+    {
+        Guid player = await CreatePlayerAsync();
+        SqlLog log = new();
+        MailService mail = this.MailWith(log, new PlayerPresence(connected: true));
+
+        _ = await mail.SendAsync(player, "test.online", []);
+
+        log.Statements.Count(IsUnreadCount).Should().Be(1, "the push carries the count");
+    }
+
+    // The unread count is the COUNT over the rows the player has not read (read_at IS NULL); the mailbox size check also counts, over every row.
+    private static bool IsUnreadCount(string sql) => sql.Contains("count(", StringComparison.OrdinalIgnoreCase) && sql.Contains("read_at", StringComparison.OrdinalIgnoreCase);
+
+    private MailService MailWith(SqlLog log, PlayerPresence presence)
+    {
+        DbContextOptions<NosumDbContext> counted = new DbContextOptionsBuilder<NosumDbContext>(_database.Options).AddInterceptors(log).Options;
+        return new MailService(new EfUnitOfWorkFactory(counted), _transfers, presence, _clock);
+    }
+
     private async Task<int> ParsnipsOfAsync(Guid player)
     {
         InventoryView view = await _inventory.GetAsync(player);
@@ -321,6 +359,63 @@ public sealed class MailServiceTests : IClassFixture<PostgresFixture>
         context.Players.Add(player);
         _ = await context.SaveChangesAsync();
         return player.Id;
+    }
+
+    // A notifier whose one answer is whether the player is connected; a push to a connected player is taken, a push to any other is not.
+    private sealed class PlayerPresence(bool connected) : IPlayerNotifier
+    {
+        public bool IsConnected(Guid playerId) => connected;
+
+        public ValueTask<bool> TrySendAsync(Guid playerId, IPacket packet, CancellationToken cancellationToken = default) => ValueTask.FromResult(connected);
+    }
+
+    // The SQL the mail service runs in its own unit of work: reads of every kind, a COUNT included.
+    private sealed class SqlLog : DbCommandInterceptor
+    {
+        private readonly List<string> _statements = [];
+
+        public IReadOnlyList<string> Statements
+        {
+            get
+            {
+                lock (_statements)
+                {
+                    return _statements.ToArray();
+                }
+            }
+        }
+
+        public override InterceptionResult<DbDataReader> ReaderExecuting(DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result)
+        {
+            this.Record(command);
+            return result;
+        }
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            this.Record(command);
+            return ValueTask.FromResult(result);
+        }
+
+        public override InterceptionResult<object> ScalarExecuting(DbCommand command, CommandEventData eventData, InterceptionResult<object> result)
+        {
+            this.Record(command);
+            return result;
+        }
+
+        public override ValueTask<InterceptionResult<object>> ScalarExecutingAsync(DbCommand command, CommandEventData eventData, InterceptionResult<object> result, CancellationToken cancellationToken = default)
+        {
+            this.Record(command);
+            return ValueTask.FromResult(result);
+        }
+
+        private void Record(DbCommand command)
+        {
+            lock (_statements)
+            {
+                _statements.Add(command.CommandText);
+            }
+        }
     }
 
     private sealed class RecordingNotifier : IPlayerNotifier
