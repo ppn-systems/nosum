@@ -438,7 +438,9 @@ public sealed partial class FarmService : IFarmService, IChunkStateContributor, 
                     }
 
                     FarmVerdict water = FarmRules.Water(current, nowMs, _calendar, out FarmTile watered, outdoors, sprinklerSinceMs);
-                    QuestEvent? quest = current is { HasCrop: true } && !withered ? new QuestEvent(QuestEventKind.CropWatered) : null;
+                    // The watering step of the tutorial ("Water the soil", a tilled tile) counts any tile the can actually wet, planted or bare; a crop
+                    // that has withered is not a watering the step asks for.
+                    QuestEvent? quest = water == FarmVerdict.Ok && !(current is { HasCrop: true } && withered) ? new QuestEvent(QuestEventKind.CropWatered) : null;
                     return water == FarmVerdict.Ok ? new Plan(water, FarmAction.Watered, watered, [], "farm.water", quest, item.Id, 0) : Plan.Refuse(water);
                 }
 
