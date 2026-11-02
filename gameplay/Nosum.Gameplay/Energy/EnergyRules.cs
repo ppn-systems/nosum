@@ -72,6 +72,18 @@ public static class EnergyRules
     public static (int Energy, long RefilledDay) Refill(int energy, long refilledDay, long today)
         => today > refilledDay ? (MaxEnergy, today) : (energy, refilledDay);
 
+    /// <summary>
+    /// Gets the energy a client shows for a reading it took on <paramref name="readDay"/> (docs/adr/ADR-114 D1). The server refills on the first
+    /// read after the game day changes, so a reading from an earlier day already counts as full: the HUD and the exhaustion state follow the
+    /// server without waiting for the next push. A client with no reading day shows what the reading said.
+    /// </summary>
+    /// <param name="energy">The energy in the last reading.</param>
+    /// <param name="maxEnergy">The largest energy in the last reading.</param>
+    /// <param name="readDay">The game day the reading was taken on, or <see langword="null"/> when the calendar was not known then.</param>
+    /// <param name="today">The current game day.</param>
+    /// <returns>The energy to show.</returns>
+    public static int Shown(int energy, int maxEnergy, long? readDay, long today) => readDay is { } day && today > day ? maxEnergy : energy;
+
     /// <summary>Spends energy.</summary>
     /// <param name="energy">The energy now.</param>
     /// <param name="cost">What to spend.</param>

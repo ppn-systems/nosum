@@ -116,7 +116,7 @@ internal static class ClientWiring
         services.AddSingleton(sp => new BuildingChannel(sp.GetRequiredService<IGameSocket>()));
         services.AddSingleton(sp => new NodeChannel(sp.GetRequiredService<IGameSocket>()));
         services.AddSingleton<GroundItemChannel>();
-        services.AddSingleton(sp => new ProgressChannel(sp.GetRequiredService<IGameSocket>()));
+        services.AddSingleton(sp => new ProgressChannel(sp.GetRequiredService<IGameSocket>(), sp.GetRequiredService<CalendarChannel>()));
         services.AddSingleton(sp => new CombatChannel(sp.GetRequiredService<IGameSocket>()));
         services.AddSingleton<QuestChannel>();
         services.AddSingleton<QuestWaypointViewModel>();
