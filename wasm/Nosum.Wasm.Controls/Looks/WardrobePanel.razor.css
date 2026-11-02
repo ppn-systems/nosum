@@ -21,3 +21,21 @@
     gap: var(--nosum-gap);
     min-width: 0;
 }
+
+/* The window's two parts (look, clothes): one at a time on the tab bar (docs/design/ui-standard.md section 3). */
+.ward-tabs {
+    display: flex;
+    gap: calc(var(--u) * 2);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.ward-part {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nosum-gap);
+}
+
+.ward-part:not(.active) {
+    display: none;
+}

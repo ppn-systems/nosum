@@ -53,13 +53,28 @@ public sealed class MinimapVisibilityTests
     }
 
     [Fact]
-    public void CoveredByAPanel_ShowsNeitherCardNorButton()
+    public void CoveredByAPanel_KeepsTheCardDrawnForTheScreenWidthToDecide()
     {
+        // A window is narrower than the corner's breakpoint hides the card by CSS (HudMinimap.razor.css) and the map by the canvas (MapScene.Minimap);
+        // from 1600 px it stays beside the window. The view model still draws the card and reports the cover.
         MinimapViewModel frame = Frame();
         frame.Shown = true;
         frame.Covered = true;
 
+        frame.Drawn.Should().BeTrue();
+        frame.Covered.Should().BeTrue();
+        frame.ShowsButton.Should().BeFalse("a shown map has no button, covered or not");
+    }
+
+    [Fact]
+    public void HiddenBySettingsAndCovered_ShowsTheButtonOnly()
+    {
+        MinimapViewModel frame = Frame();
+        frame.Shown = true;
+        frame.Hidden = true;
+        frame.Covered = true;
+
         frame.Drawn.Should().BeFalse();
-        frame.ShowsButton.Should().BeFalse("a panel over the corner hides the frame until it closes");
+        frame.ShowsButton.Should().BeTrue("the player hid the map: its one button stays in the column's place");
     }
 }

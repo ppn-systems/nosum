@@ -34,16 +34,19 @@
                     <ItemSlotButton Slot="listing.Item" Compact="true" />
                     @* One line: "Name x3 · Seller: name". A long line ends in an ellipsis (ADR-101). *@
                     <span class="listing-main"><span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span> <span class="listing-seller">@listing.SellerText</span></span>
-                    <span class="listing-price">@listing.PriceText</span>
-                    <GameButton Variant="secondary" Text="@Vm.Text("Market_History")" Title="@Vm.Text("Market_History_Tip")" OnClick="@(() => Vm.ShowHistory(itemId))" />
-                    @if (listing.IsMine)
-                    {
-                        <span>@Vm.Text("Market_YourListing")</span>
-                    }
-                    else
-                    {
-                        <GameButton Text="@Vm.Text("Market_Buy")" OnClick="@(() => Vm.Buy(id))" />
-                    }
+                    @* The price and the actions: one group, so a phone puts them on the line under the name (ui-standard section 1, issue 12). *@
+                    <span class="listing-foot">
+                        <span class="listing-price">@listing.PriceText</span>
+                        <GameButton Variant="secondary" Text="@Vm.Text("Market_History")" Title="@Vm.Text("Market_History_Tip")" OnClick="@(() => Vm.ShowHistory(itemId))" />
+                        @if (listing.IsMine)
+                        {
+                            <span>@Vm.Text("Market_YourListing")</span>
+                        }
+                        else
+                        {
+                            <GameButton Text="@Vm.Text("Market_Buy")" OnClick="@(() => Vm.Buy(id))" />
+                        }
+                    </span>
                 </GameRow>
             }
             </div>
@@ -115,8 +118,10 @@
                     <ItemSlotButton Slot="listing.Item" Compact="true" />
                     @* Your own listing: how long it stays up (48 hours), then the price. *@
                     <span class="listing-main"><span class="listing-name">@listing.Item.Name x@(listing.Item.Quantity)</span> <span class="listing-seller">@listing.ExpiryText</span></span>
-                    <span class="listing-price">@listing.PriceText</span>
-                    <GameButton Variant="danger" Text="@Vm.Text("Market_Cancel")" OnClick="@(() => Vm.Cancel(id))" />
+                    <span class="listing-foot">
+                        <span class="listing-price">@listing.PriceText</span>
+                        <GameButton Variant="danger" Text="@Vm.Text("Market_Cancel")" OnClick="@(() => Vm.Cancel(id))" />
+                    </span>
                 </GameRow>
             }
             </div>

@@ -83,7 +83,7 @@
   <data name="Inventory_Close" xml:space="preserve"><value>Close</value></data>
   <data name="Inventory_Sort" xml:space="preserve"><value>Sort</value></data>
   <data name="Inventory_Hotbar" xml:space="preserve"><value>Hotbar</value></data>
-  <data name="Inventory_Hint" xml:space="preserve"><value>Click to pick up · right-click to split half · Shift+click to quick-move</value></data>
+  <data name="Inventory_Hint" xml:space="preserve"><value>Click: pick up · right-click: half · Shift+click: move</value></data>
   <data name="Inventory_HintTouch" xml:space="preserve"><value>Tap to pick up · tap another slot to move it</value></data>
   <data name="Inventory_HintPicked" xml:space="preserve"><value>Holding {0}: click a target slot to place, click again to put down</value></data>
   <data name="Inventory_LockHotbar" xml:space="preserve"><value>Keep hotbar when sorting</value></data>
@@ -187,6 +187,8 @@
   <data name="Market_Status_NotShippable" xml:space="preserve"><value>The bin does not buy this item.</value></data>
   <data name="Market_Status_InvalidSlot" xml:space="preserve"><value>Pick a valid slot.</value></data>
   <data name="Market_Status_TooBig" xml:space="preserve"><value>That would exceed the largest balance.</value></data>
+  <data name="Wardrobe_Tab_Look" xml:space="preserve"><value>Look</value></data>
+  <data name="Wardrobe_Tab_Clothes" xml:space="preserve"><value>Clothes</value></data>
   <data name="Wardrobe_Title" xml:space="preserve"><value>Wardrobe</value></data>
   <data name="Wardrobe_Skin_Heading" xml:space="preserve"><value>Skin tone</value></data>
   <data name="Wardrobe_Skin" xml:space="preserve"><value>Skin tone {0}</value></data>
@@ -810,6 +812,7 @@
   <data name="Furnace_Working" xml:space="preserve"><value>Smelting {0}, {1} left.</value></data>
   <data name="Furnace_Ready" xml:space="preserve"><value>The bar is done!</value></data>
   <data name="Furnace_Start" xml:space="preserve"><value>Smelt {0}</value></data>
+  <data name="Furnace_Collected" xml:space="preserve"><value>Collected the bar.</value></data>
   <data name="Furnace_Collect" xml:space="preserve"><value>Collect bar</value></data>
   <data name="Farm_Status_InvalidArea" xml:space="preserve"><value>This tool cannot swing that wide.</value></data>
   <data name="Shop_Title_blacksmith" xml:space="preserve"><value>Blacksmith</value></data>

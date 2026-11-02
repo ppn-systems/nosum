@@ -83,6 +83,31 @@
     }
 }
 
+/* The price and the actions are one group: on a desktop the group is not a box of its own (its cells are the row's), so the row is one line. */
+.listing-foot {
+    display: contents;
+}
+
+/* A phone (docs/design/ui-standard.md section 6): the slot stands beside two lines. The name and seller line has the full width (so a seller
+   name is not cut to a stub), and the price and the actions sit on the line under it. */
+@media (max-width: 640px) {
+    .listing-list ::deep .listing-row {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .listing-list ::deep .listing-row > :first-child {
+        grid-row: 1 / span 2;
+    }
+
+    .listing-foot {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--u) * 2);
+        grid-column: 2;
+        min-width: 0;
+    }
+}
+
 /* One line each: "Name x3 Seller: name" ends in an ellipsis instead of wrapping (ADR-101). */
 .listing-main {
     display: block;

@@ -115,6 +115,33 @@ public sealed class FurnaceViewModelTests
     }
 
     [Fact]
+    public void Collect_WhenItWorks_SaysOnTheWindowThatTheBarIsCollected()
+    {
+        using CultureScope scope = new("en");
+        (FurnaceViewModel vm, FakeGameSocket socket, ManualTime time) = Create();
+        socket.ReplyWith(_ => new FurnaceResult { Status = FurnaceStatus.Ok, ObjectId = 4 });
+        socket.Push(new FurnaceChanged { ObjectId = 4, State = FurnaceStateCode.Working, OreItemId = ItemCatalog.CopperOre, RemainingMs = 5000 });
+        time.Now = time.Now.AddSeconds(6);
+
+        vm.Collect();
+
+        vm.Status.Should().Be("Collected the bar.");
+        vm.StatusIsGood.Should().BeTrue("the window's status line shows it in the ok colour");
+    }
+
+    [Fact]
+    public void Start_WhenItWorks_SaysNothing_TheCountdownSpeaksForIt()
+    {
+        (FurnaceViewModel vm, FakeGameSocket socket, _) = Create((0, ItemCatalog.CopperOre, 10), (1, ItemCatalog.Coal, 2));
+        socket.ReplyWith(_ => new FurnaceResult { Status = FurnaceStatus.Ok, ObjectId = 4 });
+
+        vm.Start(ItemCatalog.CopperOre);
+
+        vm.Status.Should().BeEmpty();
+        vm.StatusIsGood.Should().BeFalse();
+    }
+
+    [Fact]
     public void ARefusalToStart_ShowsItsText()
     {
         using CultureScope scope = new("en");

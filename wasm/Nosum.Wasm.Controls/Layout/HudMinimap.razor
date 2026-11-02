@@ -7,7 +7,7 @@
    same column; a phone has no map button, its Menu window lists the world map (docs/design/ui-standard.md section 6). *@
 @if (Vm.Drawn)
 {
-    <button type="button" class="hud-minimap" aria-label="@Vm.Tip" data-tip="@Vm.Tip" @onmousedown:preventDefault @onclick="OnOpen"></button>
+    <button type="button" class="hud-minimap @(Vm.Covered ? "covered" : null)" aria-label="@Vm.Tip" data-tip="@Vm.Tip" @onmousedown:preventDefault @onclick="OnOpen"></button>
 }
 else if (Vm.ShowsButton)
 {

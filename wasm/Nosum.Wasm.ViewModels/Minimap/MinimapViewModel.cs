@@ -54,7 +54,11 @@ public sealed class MinimapViewModel : PanelViewModel
         }
     }
 
-    /// <summary>Gets or sets whether a panel covers the HUD's top-right corner; the frame and the map hide meanwhile, and show again after it closes.</summary>
+    /// <summary>
+    /// Gets or sets whether a panel is open. A window narrower than 1600 px covers the HUD's top-right corner, so the frame and the map hide
+    /// meanwhile (GameHud.razor.css and MapScene.Minimap); from 1600 px the window is centred clear of the corner and the minimap stays beside it,
+    /// as the menu column does (docs/design/ui-standard.md section 2).
+    /// </summary>
     public bool Covered
     {
         get => _covered;
@@ -70,8 +74,8 @@ public sealed class MinimapViewModel : PanelViewModel
         }
     }
 
-    /// <summary>Gets whether the frame and the map are drawn now: shown by the player's choice, not hidden in settings, and not covered by a panel.</summary>
-    public bool Drawn => _shown && !_hidden && !_covered;
+    /// <summary>Gets whether the frame is drawn now: shown by the player's choice and not hidden in settings. A covered frame is hidden by CSS on a narrow screen.</summary>
+    public bool Drawn => _shown && !_hidden;
 
     /// <summary>
     /// Gets whether the frame shows its one map button instead of the card: only when the player hid the map (Settings, or a phone by default).

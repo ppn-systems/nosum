@@ -33,6 +33,12 @@ internal sealed partial class MapScene
     private const int HudFrameWidth = 60;
     private const int HudFrameEdge = 5;
 
+    // How far the card's wood sits past the grid's edge (one UI pixel, the sprite's transparent margin); see HudMinimap.razor.css.
+    private const int HudFrameOutset = 1;
+
+    // The screen width (CSS pixels) from which a window leaves the minimap's corner free: the same breakpoint as the menu column's (GameHud.razor.css).
+    private const int MinimapWideWidth = 1600;
+
     private readonly MinimapLayer _minimap = new();
 
     // The player's choice with M this session; null until the first press, when the minimap is shown.
@@ -53,8 +59,10 @@ internal sealed partial class MapScene
             _minimapFrame.Shown = shown;
         }
 
-        // A panel over the corner hides the map too (MinimapViewModel.Covered).
-        _minimap.Visible = shown && _minimapFrame?.Covered != true;
+        // A window over the corner hides the map too (MinimapViewModel.Covered), on a narrow screen only: from MinimapWideWidth the window is
+        // centred clear of the card, so the map stays (GameHud.razor.css, HudMinimap.razor.css).
+        bool covered = _minimapFrame?.Covered == true && canvasWidth < MinimapWideWidth;
+        _minimap.Visible = shown && !covered;
         if (!_minimap.Visible)
         {
             return;
@@ -95,7 +103,8 @@ internal sealed partial class MapScene
 
         // The frame's inside (MinimapLayer.MaxWidth by MaxHeight) is the dark backing; the map is centred on it.
         int worldWidth = (canvasWidth + scale - 1) / scale;
-        int frameRight = worldWidth - HudEdge;
+        // The card's margin-right is -1 u (HudMinimap.razor.css), so its wood reaches the column's edge; the map is drawn with it, one unit further out.
+        int frameRight = worldWidth - HudEdge + HudFrameOutset;
         int contentLeft = frameRight - HudFrameWidth + HudFrameEdge;
         int contentTop = HudEdge + HudBarHeight + HudGap + HudFrameEdge;
         _commands.FillRect(contentLeft, contentTop, MinimapLayer.MaxWidth, MinimapLayer.MaxHeight, MinimapFrameColour);

@@ -32,6 +32,9 @@ public sealed class FurnaceViewModel : PanelViewModel, IDisposable
     private readonly InventoryChannel _inventory;
     private readonly ItemDescriber _describer;
     private readonly GameMessagesViewModel? _messages;
+
+    // True from a Collect press until the server answers, so the answer's "Ok" can say the bar was collected.
+    private bool _collectPending;
     private int _objectId;
 
     /// <summary>Initializes the view model.</summary>
@@ -161,6 +164,7 @@ public sealed class FurnaceViewModel : PanelViewModel, IDisposable
     {
         if (this.State == FurnaceStateCode.Ready)
         {
+            _collectPending = true;
             _furnaces.Collect(_objectId);
         }
     }
@@ -182,9 +186,13 @@ public sealed class FurnaceViewModel : PanelViewModel, IDisposable
 
     private void OnCompleted(FurnaceStatus status)
     {
+        // A collect that worked says so (a smelt start shows the countdown instead, so it stays quiet).
+        bool collected = _collectPending;
+        _collectPending = false;
         if (status == FurnaceStatus.Ok)
         {
-            this.ClearStatus();
+            // The window stays open while a bar is collected, and the message line is hidden under a window: the answer goes on the window's own status line.
+            this.SetStatus(collected ? this.Text("Furnace_Collected") : string.Empty, good: collected);
             return;
         }
 
