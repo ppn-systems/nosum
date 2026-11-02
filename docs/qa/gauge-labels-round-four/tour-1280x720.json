@@ -1,0 +1,32 @@
+{
+  "size": "1280x720",
+  "shots": [
+    "hud-farm-vi-1280x720.png",
+    "journal-all-vi-1280x720.png",
+    "journal-found-vi-1280x720.png",
+    "journal-missing-vi-1280x720.png",
+    "npc-greeting-vi-1280x720.png",
+    "npc-talk1-vi-1280x720.png",
+    "npc-talk2-vi-1280x720.png",
+    "hud-farm-en-1280x720.png",
+    "journal-all-en-1280x720.png",
+    "journal-found-en-1280x720.png",
+    "journal-missing-en-1280x720.png",
+    "npc-greeting-en-1280x720.png",
+    "npc-talk1-en-1280x720.png",
+    "npc-talk2-en-1280x720.png"
+  ],
+  "texts": {
+    "tabs-vi": 1,
+    "journal-vi": "Đã khám phá 8 / 212 món",
+    "greeting-vi": "",
+    "talk1-vi": "",
+    "talk2-vi": "",
+    "tabs-en": 1,
+    "journal-en": "Discovered 8 of 212 items",
+    "greeting-en": "",
+    "talk1-en": "",
+    "talk2-en": ""
+  },
+  "errors": []
+}

@@ -147,6 +147,51 @@ without a new feature, and to rebuild them.
 
 **Wire:** no packet, opcode or field changed, so `NosumProtocol.Version` stays 34.
 
+## Round four (2026-11-02)
+
+Self-critique of the round-three build on master, against the open items above and the HUD regions of
+[`ui-standard.md`](ui-standard.md) section 2. The brief was clarity only (no new feature, no decision the owner has not made): the
+calendar and coin badges, the toasts and hints on the hotbar frame (ADR-116), the quest tracker and the dialogue. The 1280×720
+rule that hides the minimap, the column and the hotbar while a window is open is unchanged.
+
+### What the frames show now
+
+- **The three gauges have no name on screen.** The HP, MP and energy tubes beside the hotbar are red, blue and green, and nothing
+  says which is which. The name is in the tooltip only. A mouse player reads it by hovering; a touch player cannot hover, and the
+  colours alone are not a legend. This is the one gap in the frames of a normal day, and it is the item this round fixes.
+- **Checked, not changed:**
+  - *Calendar bar:* the season, day and time are words; the two weather icons (today, and tomorrow dimmed) carry their meaning in the
+    tooltip. The top-right row stays one row on a phone (ADR-108), so there is no room for words there.
+  - *Coin badge:* the coin sprite is its own label; the number is the balance.
+  - *Quest card:* the fold glyph ("-" / "+") is the same toggle as the title, which is the whole card.
+  - *Toasts and the hint:* on the hotbar frame (ADR-116), one at a time. Read in the frames, not changed this round.
+
+### Fixed this round
+
+- **The gauges name themselves.** Each tube has a short name under it on a parchment tag, the same tag as the low-HP note:
+  "HP", "MP", "Energy" (Vietnamese: "Máu", "Phép", "Sức"). The numbers stay in the tooltip and the screen-reader name. The caption is
+  `aria-hidden`, because the tube already carries the same label for a screen reader.
+  - Frames: [`docs/qa/gauge-labels-round-four/`](../qa/gauge-labels-round-four/) (vi and en, three sizes), and the before frames
+    of [`docs/qa/rebuild-npc-hud/before/`](../qa/rebuild-npc-hud/before/) for comparison.
+  - "Energy" is wider than its 10 u tube and overhangs it by a few pixels. At 390×844 it ends a few pixels inside the right edge
+    (not clipped), but it is the caption nearest the edge; the next pass should check it against the 16 px gutter before any
+    longer word is added. Shortening it to a code was rejected: "EN" is not a word a player reads at a glance.
+  - Test: `ProgressTests.ViewModel_TubeCaptions_NameEachTube_InBothLanguages`.
+
+### Open, not picked (unchanged)
+
+- **Finding 4, where a missing item comes from.** Needs location data for each item; a new feature.
+- **Finding 2, repetition over days.** Needs several days of play, not a capture.
+
+### What changed on this round
+
+| Change | Where | Wire | Tests |
+| :-- | :-- | :-- | :-- |
+| Caption under each gauge tube | `EnergyBar.razor(.css)`, `ProgressViewModel` (`HpCaption`, `MpCaption`, `EnergyCaption`), `Hp_Caption`, `Mp_Caption`, `Energy_Caption` in `Language(.en).resx` | none (client text) | `ProgressTests.ViewModel_TubeCaptions_NameEachTube_InBothLanguages` |
+
+**Wire:** no packet, opcode or field changed, so `NosumProtocol.Version` stays 34. No ADR: the change adds a label, it decides no
+architecture or rule.
+
 ## Acceptance
 
 Captures and the grading against `ui-standard.md` section 7 are in [`docs/qa/rebuild-npc-hud/README.md`](../qa/rebuild-npc-hud/README.md).
