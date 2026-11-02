@@ -186,7 +186,7 @@ public sealed partial class ThemeSpritesTests
         return (BinaryPrimitives.ReadInt32BigEndian(header.AsSpan(16)), BinaryPrimitives.ReadInt32BigEndian(header.AsSpan(20)));
     }
 
-    private static string RepositoryRoot([CallerFilePath] string here = "") => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(here)!, "..", "..", ".."));
+    private static string RepositoryRoot() => RepositoryPaths.Root;
 
     [GeneratedRegex("""^\s{4}(\w+): "([^"]+)",""", RegexOptions.Multiline)]
     private static partial Regex SheetRegex();

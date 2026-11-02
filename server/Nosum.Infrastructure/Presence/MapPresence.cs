@@ -22,6 +22,7 @@ namespace Nosum.Infrastructure.Presence;
 public sealed class MapPresence : IMapPresence, IChunkMap
 {
     private readonly IConnectionGroupRegistry _groups;
+    private readonly ViewerFanout _fanout;
     private readonly ConcurrentDictionary<ulong, PlayerPresence> _byConnection = new();
     // The claimed leave of each connection that is leaving, and the task that completes once its handlers and record are done.
     private readonly ConcurrentDictionary<ulong, Task> _leaving = new();
@@ -39,6 +40,7 @@ public sealed class MapPresence : IMapPresence, IChunkMap
 
         _groups = groups;
         _onClosed = this.OnConnectionClosed;
+        _fanout = new ViewerFanout(this);
     }
 
     /// <inheritdoc/>
@@ -216,27 +218,18 @@ public sealed class MapPresence : IMapPresence, IChunkMap
     }
 
     /// <inheritdoc/>
-    [SuppressMessage("Design", "CA1031", Justification = "Best-effort fan-out: one dead connection must not cost the rest of the map its update.")]
     public async ValueTask MulticastAsync(string instanceKey, IPacket packet, IConnection? except = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(packet);
 
+        // Every member's send runs under the push deadline, so one stuck member cannot hold the others (docs/adr/ADR-087, amendment 2026-11-02).
+        List<IConnection> members = [];
         foreach (IConnection member in _groups.GetGroupMembers(MapGroup.Name(instanceKey)))
         {
-            if (ReferenceEquals(member, except) || member.IsDisposed)
-            {
-                continue;
-            }
-
-            try
-            {
-                await member.SendAsync(packet, NetworkTransport.TCP, enableEncrypt: this.EncryptSends, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception)
-            {
-                // A closing connection is cleaned up by its close event.
-            }
+            members.Add(member);
         }
+
+        await _fanout.SendAsync(members, packet, except, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>

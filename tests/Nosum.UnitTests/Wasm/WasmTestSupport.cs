@@ -36,9 +36,9 @@ internal static class WasmTestSupport
 
     public static ItemDescriber Describer() => new(new FixedIcons(), Localizer<Catalogue>(), Text());
 
-    public static HashSet<string> Keys(string file, [CallerFilePath] string here = "")
+    public static HashSet<string> Keys(string file)
     {
-        string root = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(here)!, "..", "..", ".."));
+        string root = RepositoryPaths.Root;
         string path = Path.Combine(root, "wasm", "Nosum.Wasm.ViewModels", "Resources", file);
         return XDocument.Load(path).Root!.Elements("data").Select(e => (string)e.Attribute("name")!).ToHashSet();
     }

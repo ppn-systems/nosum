@@ -43,6 +43,7 @@ node bench/wasm-perf/serve.cjs artifacts/smoke-pub/wwwroot 5080 &
 node tests/browser/smoke/boot-smoke.cjs http://localhost:5080/ --timeout-ms 120000
 ```
 
-The smoke exits 1 on a page error, a console error (except a resource 404), no frames, or a flat canvas. CI runs no tests today
-(`.github/workflows` holds the deploy and security workflows), so these run by hand before a PR that touches `wasm/` or the render backend.
+The smoke exits 1 on a page error, a console error (except a resource 404), no frames, or a flat canvas. CI (`.github/workflows/ci.yml`)
+runs the unit suite, the `node --test` line above (without the smoke) and the integration suite; the smoke still runs by hand before a PR
+that touches `wasm/` or the render backend.
 

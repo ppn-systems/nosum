@@ -14,8 +14,8 @@ namespace Nosum.UnitTests.Wasm;
 
 public sealed class WardrobeTextTests
 {
-    private static string ResourcesDir([System.Runtime.CompilerServices.CallerFilePath] string here = "")
-        => Path.Combine(Path.GetDirectoryName(here)!, "..", "..", "..", "wasm", "Nosum.Wasm.ViewModels", "Resources");
+    private static string ResourcesDir()
+        => Path.Combine(RepositoryPaths.Root, "wasm", "Nosum.Wasm.ViewModels", "Resources");
 
     private static readonly string[] s_files = ["Language.resx", "Language.en.resx"];
 

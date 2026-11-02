@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
 using Nosum.Abstractions.Accounts;
 using Nosum.Abstractions.Presence;
+using Nosum.Contracts.World.S2C;
 
 namespace Nosum.IntegrationTests.Server;
 
@@ -92,6 +93,52 @@ public class StallingPresence : DispatchProxy
             && args is { Length: 3 } && args[0] is IConnection connection && args[2] is CancellationToken token
             && this.Target.TryGet(connection, out PlayerPresence? player) && this.Stalled.ContainsKey(player.AccountId))
         {
+            return new ValueTask(Task.Delay(Timeout.Infinite, token));
+        }
+
+        return SlowLeaveStates.Forward(this.Target, targetMethod, args);
+    }
+}
+
+/// <summary>
+/// A presence whose chunk sends (<c>ChunkState</c>, <c>ChunkLeft</c>) to every account except the exempt ones never complete until cancelled: a
+/// client that stops taking the chunk state of the area it stands in. Everything else forwards to the real presence. <see cref="Stalls"/> counts
+/// the sends that were held, so a test can prove the stall was reached.
+/// </summary>
+public class ChunkStallingPresence : DispatchProxy
+{
+    /// <summary>Gets or sets the real presence the calls forward to.</summary>
+    public IMapPresence Target { get; set; } = null!;
+
+    /// <summary>Gets or sets the accounts whose chunk sends go through at once.</summary>
+    public ConcurrentDictionary<Guid, byte> Exempt { get; set; } = new();
+
+    /// <summary>Gets the number of chunk sends that were held.</summary>
+    public ConcurrentBag<Guid> Stalls { get; } = new();
+
+    /// <summary>Wraps <paramref name="target"/>; chunk sends to accounts not in <paramref name="exempt"/> hang until cancelled.</summary>
+    public static IMapPresence Wrap(IMapPresence target, ConcurrentDictionary<Guid, byte> exempt, ConcurrentBag<Guid> stalls)
+    {
+        ChunkStallingPresence proxy = (ChunkStallingPresence)(object)DispatchProxy.Create<IMapPresence, ChunkStallingPresence>()!;
+        proxy.Target = target;
+        proxy.Exempt = exempt;
+        proxy.SetStalls(stalls);
+        return (IMapPresence)(object)proxy;
+    }
+
+    private ConcurrentBag<Guid>? _stalls;
+
+    private void SetStalls(ConcurrentBag<Guid> stalls) => _stalls = stalls;
+
+    /// <inheritdoc/>
+    protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
+    {
+        ArgumentNullException.ThrowIfNull(targetMethod);
+        if (targetMethod.Name == nameof(IMapPresence.SendAsync)
+            && args is { Length: 3 } && args[0] is IConnection connection && args[1] is ChunkState or ChunkLeft && args[2] is CancellationToken token
+            && this.Target.TryGet(connection, out PlayerPresence? player) && !this.Exempt.ContainsKey(player.AccountId))
+        {
+            _stalls?.Add(player.AccountId);
             return new ValueTask(Task.Delay(Timeout.Infinite, token));
         }
 

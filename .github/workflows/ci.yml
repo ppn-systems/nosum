@@ -1,0 +1,74 @@
+# Continuous integration: every solution builds with warnings as errors, then the unit, browser-module and integration tests run.
+# Runs on every pull request and on every push to master. Read-only, no secrets: the PostgreSQL service uses the development role
+# that the integration tests and the Development server already use (server/Nosum.Infrastructure NosumDatabase.DevelopmentConnectionString).
+# The browser boot smoke (tests/browser/smoke) is not part of this workflow: it needs a published client, the Development host and Playwright.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: nosum
+          POSTGRES_PASSWORD: dev_password_not_for_production
+          POSTGRES_DB: nosum_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nosum -d nosum_dev"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('global.json', '**/*.csproj', '**/Directory.Packages.props', '**/Directory.Build.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Install the WebAssembly workload
+        run: dotnet workload install wasm-tools
+
+      - name: Build the server, client, engine and tests (warnings are errors)
+        run: |
+          for solution in engine/Nosum.Engine.slnx server/Nosum.slnx wasm/Nosum.Wasm.slnx tests/Nosum.Tests.slnx; do
+            dotnet build "$solution" -c Release -warnaserror -m:2
+          done
+
+      - name: Unit tests
+        run: dotnet test tests/Nosum.UnitTests/Nosum.UnitTests.csproj -c Release --no-build
+
+      - name: Browser module tests (node --test)
+        run: node --test $(find tests/browser -name '*.test.mjs' | sort)
+
+      - name: Integration tests (PostgreSQL service container)
+        env:
+          NOSUM_TEST_POSTGRES: Host=localhost;Port=5432;Database=postgres;Username=nosum;Password=dev_password_not_for_production
+        run: dotnet test tests/Nosum.IntegrationTests/Nosum.IntegrationTests.csproj -c Release --no-build

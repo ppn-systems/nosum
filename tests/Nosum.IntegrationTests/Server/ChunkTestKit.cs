@@ -25,6 +25,8 @@ using Nosum.Abstractions.Presence;
 using Nosum.Contracts.Account;
 using Nosum.Contracts.Account.C2S;
 using Nosum.Contracts.Account.S2C;
+using Nosum.Contracts.Emote.C2S;
+using Nosum.Contracts.Emote.S2C;
 using Nosum.Contracts.Farm;
 using Nosum.Contracts.Farm.C2S;
 using Nosum.Contracts.Farm.S2C;
@@ -67,7 +69,7 @@ internal sealed class ChunkHost : IAsyncDisposable
 
     public IMapCatalog Maps => InstanceManager.Instance.GetExistingInstance<IMapCatalog>()!;
 
-    public static async Task<ChunkHost> StartAsync(PostgresFixture database, TimeSpan timeout, bool development = false)
+    public static async Task<ChunkHost> StartAsync(PostgresFixture database, TimeSpan timeout, bool development = false, ServerSeams? seams = null)
     {
         using TcpListener probe = new(IPAddress.Loopback, 0);
         probe.Start();
@@ -76,7 +78,7 @@ internal sealed class ChunkHost : IAsyncDisposable
 
         HostServices.Register(database.Options);
         TestAccounts.UseFakeVerifiers(database.Options);
-        NetworkApplication app = Program.BuildApplication(port, null, development);
+        NetworkApplication app = Program.BuildApplication(port, null, development, seams);
         ChunkHost host = new(app, port, timeout);
         await app.ActivateAsync(host.Timeout);
         return host;
@@ -134,6 +136,7 @@ internal sealed class ChunkClient : IAsyncDisposable
     private readonly ConcurrentQueue<NodeChanged> _nodeChanges = new();
     private readonly ConcurrentQueue<GroundItemSpawned> _groundSpawns = new();
     private readonly ConcurrentQueue<GroundItemTaken> _groundTakens = new();
+    private readonly ConcurrentQueue<uint> _emotes = new();
     private long _bytes;
     private int _snapshotCount;
     private long _entryCount;
@@ -166,6 +169,7 @@ internal sealed class ChunkClient : IAsyncDisposable
             session.On<NodeChanged>(n => _nodeChanges.Enqueue(new NodeChanged { MapId = n.MapId, Removed = [.. n.Removed], Upserted = [.. n.Upserted.Select(CopyNode)] })),
             session.On<GroundItemSpawned>(g => _groundSpawns.Enqueue(new GroundItemSpawned { MapId = g.MapId, Item = CopyGround(g.Item) })),
             session.On<GroundItemTaken>(g => _groundTakens.Enqueue(new GroundItemTaken { MapId = g.MapId, Id = g.Id, Reason = g.Reason })),
+            session.On<EmoteShown>(e => _emotes.Enqueue(e.PlayerId)),
             session.On<PlacedChanged>(p => _placedChanges.Enqueue(new PlacedChanged { MapId = p.MapId, Removed = [.. p.Removed], Upserted = [.. p.Upserted.Select(o => new PlacedObjectRow { Id = o.Id, ItemId = o.ItemId, TileX = o.TileX, TileY = o.TileY, Rotation = o.Rotation })] })),
         ];
     }
@@ -190,6 +194,9 @@ internal sealed class ChunkClient : IAsyncDisposable
     public IReadOnlyCollection<FarmTilesChanged> FarmChanges => _farmChanges;
 
     public IReadOnlyCollection<PlacedChanged> PlacedChanges => _placedChanges;
+
+    /// <summary>The player ids of the emotes this client was shown, in arrival order.</summary>
+    public IReadOnlyCollection<uint> EmotesShown => _emotes;
 
     public IReadOnlyCollection<NodeChanged> NodeChanges => _nodeChanges;
 
@@ -250,6 +257,13 @@ internal sealed class ChunkClient : IAsyncDisposable
     {
         using GetNodes request = new();
         return await _session.RequestAsync<NodeSnapshot>(request, ct: ct);
+    }
+
+    /// <summary>Sends an emote and waits for the server's answer.</summary>
+    public async Task<EmoteResult> SendEmoteAsync(byte emote, CancellationToken ct)
+    {
+        using SendEmote request = new() { Emote = emote };
+        return await _session.RequestAsync<EmoteResult>(request, ct: ct);
     }
 
     /// <summary>Claims a position the way the real client does, about every 120 ms.</summary>
