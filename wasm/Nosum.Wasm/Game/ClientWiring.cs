@@ -112,7 +112,7 @@ internal static class ClientWiring
         services.AddSingleton<PlaceableChannel>();
         services.AddSingleton<CraftingChannel>();
         services.AddSingleton<ChestChannel>();
-        services.AddSingleton(sp => new FurnaceChannel(sp.GetRequiredService<IGameSocket>()));
+        services.AddSingleton(sp => new FurnaceChannel(sp.GetRequiredService<IGameSocket>(), new ServerClock(sp.GetRequiredService<CalendarChannel>())));
         services.AddSingleton(sp => new BuildingChannel(sp.GetRequiredService<IGameSocket>()));
         services.AddSingleton(sp => new NodeChannel(sp.GetRequiredService<IGameSocket>()));
         services.AddSingleton<GroundItemChannel>();

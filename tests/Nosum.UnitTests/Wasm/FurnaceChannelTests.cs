@@ -121,16 +121,17 @@ public sealed class FurnaceChannelTests
     }
 
     [Fact]
-    public async Task Finished_RaisedOnceTheBatchReachesItsReadyTime()
+    public async Task Finished_RaisedWhenTheClockReachesTheReadyTime_EvenWhenItJumpsThere()
     {
         ManualTime time = new();
         FakeGameSocket socket = new();
         using FurnaceChannel channel = new(socket, time);
         TaskCompletionSource<int> finished = new(TaskCreationOptions.RunContinuationsAsynchronously);
         channel.Finished += id => finished.TrySetResult(id);
-        FurnaceChanged push = new() { ObjectId = 7, State = FurnaceStateCode.Working, OreItemId = ItemCatalog.CopperOre, RemainingMs = 50 };
+        FurnaceChanged push = new() { ObjectId = 7, State = FurnaceStateCode.Working, OreItemId = ItemCatalog.CopperOre, RemainingMs = 60_000 };
 
         socket.Push(push);
+        time.Now = time.Now.AddMilliseconds(60_000); // a dev clock jump: the batch is done on the server's clock at once
 
         (await finished.Task.WaitAsync(TimeSpan.FromSeconds(5))).Should().Be(7);
         push.Dispose();
