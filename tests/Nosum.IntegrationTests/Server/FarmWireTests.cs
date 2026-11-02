@@ -140,9 +140,10 @@ public sealed partial class FarmWireTests : IClassFixture<PostgresFixture>
             InventorySlotRow seedsLeft = await farmer.WaitForSlotAsync(s => s.Slot == 2, timeout.Token);
             (seedsLeft.ItemId, seedsLeft.Quantity).Should().Be((ItemCatalog.ParsnipSeeds, 7));
 
-            // A young crop cannot be harvested; a second seed cannot be planted on it.
+            // A young crop cannot be harvested; a second seed cannot be planted on it. The seed's refusal names the days still needed
+            // (docs/adr/ADR-094 D2), so the player learns when the crop is ready rather than that the spot is taken.
             (await farmer.UseAsync(1, x, y, timeout.Token)).Action.Should().Be(FarmAction.Watered);
-            (await farmer.UseAsync(2, x, y, timeout.Token)).Status.Should().Be(FarmStatus.HasCrop);
+            (await farmer.UseAsync(2, x, y, timeout.Token)).Should().BeEquivalentTo(new { Status = FarmStatus.NotMature, DaysLeft = (byte)CropCatalog.All[0].TotalGrowthDays });
             (await farmer.UseAsync(30, x, y, timeout.Token)).Status.Should().Be(FarmStatus.InvalidSlot);
             (await farmer.UseAsync(8, x, y, timeout.Token)).Status.Should().Be(FarmStatus.NotMature);
 

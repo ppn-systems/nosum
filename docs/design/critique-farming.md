@@ -190,3 +190,42 @@ three. Not played: a ripe harvest by tap with the scythe, the scythe drag, the c
 4. Phones: the device gate (round-one finding 8) is still open; the owner decides whether the 390x844 layout ships.
 5. A scythe drag over a row works one tile per press (ADR-106 D1); a player who wants a harvest along a row uses the wide key (R) or repeats taps.
    Not played in a frame this round.
+
+## Round five addendum (ADR-111)
+
+Replayed on `claude/farming-round5` (from master `931a5d5`), 1280x720, 1920x1080 and 390x844 (a width-override test copy, the product still gates phones at
+1024 px), vi and en. Captures: `docs/qa/farming-round5/` (README there). Script: `tests/browser/farm-round5-capture.cjs`. The round is narrow on purpose: one open
+item that a player meets on the first crop, and that the owner had not decided.
+
+**Played:** till a tile, sow parsnip seeds, wait out the toast, then a seed tap on the same growing crop (day 0, nothing watered).
+
+### Findings and what changed
+
+1. **A seed on a growing crop was refused with no time (round-one finding 5, backlog).** The reply was "A crop already grows here." (vi "Chỗ này đã có cây
+   trồng."). The server already computed the days left for a harvest attempt (ADR-094 D2) but not for this refusal. Fixed: a seed refused by a living, unripe crop
+   replies `NotMature` with `DaysLeft`, so the line reads "Not ready, 4 days left" (vi "Chưa chín, còn 4 ngày") (ADR-111 D1). Before/after text: the old
+   string is `Farm_Status_HasCrop` on master; the after frames are `docs/qa/farming-round5/after/`. No before capture was taken, since the old line is the
+   text the server still sends for a ripe crop.
+2. **Checked, no change needed:** a hoe on a tilled tile answers "already tilled" (`AlreadyTilled`, the check comes before the crop), which is accurate; a
+   pickaxe on a growing crop keeps "A crop already grows here." (clearing waits for nothing, so "Not ready" would mislead, ADR-111 D2).
+3. **Not changed, still an owner decision:** the message line and the first-run hint (round-three finding 2 and 3), the growth stage on the tile (round one 4),
+   the drag in the first-run hint (round four 5, second half), the tap with a can on a ripe crop (round three 6), phones (round one 8). Each needs a layout, art,
+   copy or product call; none is a rule bug.
+4. **Kept on purpose:** the scythe drag works one tile per press (ADR-106 D1). A drag that harvests a row would take ripe crops the player only meant to pass.
+
+### Changed in this round (ADR-111)
+
+| Finding | Change | Where |
+|:--|:--|:--|
+| 1 seed on a growing crop names no time | `NotMature` with `DaysLeft` for a seed refused by an unripe crop (`IsGrowthWait`) | `server/Nosum.Infrastructure/Farm/FarmService.cs` |
+
+No wire change: protocol 34 stays. Tests: `FarmWireTests` (the seed refusal now expects `NotMature` with four days left). The server build is warning-free
+(`-warnaserror`), the farm and node wire tests pass (31), and the full server run passes: 849 integration and 3765 unit tests.
+
+### Backlog after round five, ranked by how much play it would change
+
+1. Owner decision: the message line holds the hover stage, a hint and two toasts at once (round three 2), and the first-run hint covers the work area (round three 3).
+2. Owner decision: the growth stage readable on the tile, not only on hover (round one 4, round three 4).
+3. Owner decision: teach the drag in the first-run hint (round four 5, second half).
+4. Owner decision: should a can tap harvest a ripe crop, or only the action key and the scythe (round three 6).
+5. Owner decision: phones, the device gate and the 390x844 layout (round one 8, round four 4).
