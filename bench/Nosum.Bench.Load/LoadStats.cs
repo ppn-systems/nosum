@@ -37,12 +37,21 @@ internal sealed class LoadStats
     public IReadOnlyDictionary<string, int> Errors => _errors;
 
     private readonly List<string> _samples = [];
+    private readonly ConcurrentQueue<double> _connectMs = new();
 
     public void Snapshot(int bytes)
     {
         _ = Interlocked.Increment(ref _snapshots);
         _ = Interlocked.Add(ref _snapshotBytes, bytes);
     }
+
+    /// <summary>Records how long one WebSocket connect took (the transport only, before the handshake).</summary>
+    /// <param name="elapsed">The time the connect took.</param>
+    public void ConnectTime(TimeSpan elapsed) => _connectMs.Enqueue(elapsed.TotalMilliseconds);
+
+    /// <summary>The connect times recorded so far, as percentiles.</summary>
+    /// <returns>The percentiles in milliseconds.</returns>
+    public Percentiles Connects() => Percentiles.Of(_connectMs.ToArray());
 
     /// <summary>Counts one answer by feature and status name, so the report can show why requests were refused.</summary>
     /// <param name="feature">The feature, such as <c>farm</c>.</param>
@@ -55,10 +64,12 @@ internal sealed class LoadStats
 
     /// <summary>Keeps the first few distinct failure messages (with the frame that threw), so the report says what failed and where, not only the type.</summary>
     /// <param name="ex">The exception a bot ended with.</param>
-    public void ErrorSample(Exception ex)
+    /// <param name="stage">The step the bot was in (connect, handshake, guest, join, or a loop step).</param>
+    public void ErrorSample(Exception ex, string stage)
     {
         string where = ex.StackTrace?.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? "no stack";
-        string sample = ex.GetType().Name + ": " + ex.Message + " @ " + where;
+        string inner = ex.InnerException is { } cause ? " (inner " + cause.GetType().Name + ": " + cause.Message + ")" : string.Empty;
+        string sample = stage + ": " + ex.GetType().Name + ": " + ex.Message + inner + " @ " + where;
         lock (_samples)
         {
             if (_samples.Count < 5 && !_samples.Contains(sample))

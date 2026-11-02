@@ -40,6 +40,8 @@ internal static class Report
         double perClient = connected == 0 ? 0 : snapshots / seconds / connected;
         _ = text.AppendLine(string.Create(c, $"snapshots    {perClient:0.0}/s per client (the server sends 10/s), {bytes / seconds / 1024:0.0} KiB/s in total, {(connected == 0 ? 0 : bytes / seconds / 1024 / connected):0.00} KiB/s per client (before encryption)"));
         _ = text.AppendLine(string.Create(c, $"moves        {end.Corrections - start.Corrections} refused by the server"));
+        Percentiles connect = stats.Connects();
+        _ = text.AppendLine(string.Create(c, $"connect      {connect.Count} WebSocket connects: p50 {connect.P50:0.0} ms, p99 {connect.P99:0.0} ms, max {connect.Max:0.0} ms"));
         Percentiles farm = stats.Farm();
         Percentiles chat = stats.Chat();
         _ = text.AppendLine(string.Create(c, $"tool uses    {end.FarmSent - start.FarmSent} sent, {end.FarmOk - start.FarmOk} accepted; round trip p50 {farm.P50:0.0} ms, p95 {farm.P95:0.0} ms, p99 {farm.P99:0.0} ms (n={farm.Count})"));
