@@ -8,6 +8,7 @@ using Nosum.Core;
 using Nosum.Gameplay.Maps;
 using Nosum.Rendering;
 using Nosum.Wasm.Socket.Combat;
+using Nosum.Wasm.ViewModels.Labels;
 
 namespace Nosum.Wasm.Game;
 
@@ -46,6 +47,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
     private readonly string _mapId;
     private readonly CombatChannel _combat;
     private readonly CombatLabels? _labels;
+    private readonly PlacedLabelSet _eliteLabels = new();
     private readonly int _sheetTexture;
     private readonly int _itemsTexture;
     private readonly List<MonsterClientRow> _scratch = new(16);
@@ -143,6 +145,7 @@ internal sealed partial class MonstersDecorator : IMapDecorator
     {
         _combat.CopyMonsters(_scratch);
         _combat.CopyStrikeWindups(_windupScratch);
+        _eliteLabels.Reset();
         for (int i = 0; i < _scratch.Count; i++)
         {
             MonsterClientRow m = _scratch[i];
@@ -304,7 +307,8 @@ internal sealed partial class MonstersDecorator : IMapDecorator
                     _ => 0,
                 };
 
-                if (eliteLabelId > 0)
+                // One badge per cluster of elites with the same modifier (docs/adr/ADR-109); the rest of the pack keeps its sprite and bar.
+                if (eliteLabelId > 0 && _eliteLabels.Take(eliteLabelId, worldX + 8, worldY - 14))
                 {
                     world.AddOverlay(
                         RenderCommandBuffer.LabelTexture,

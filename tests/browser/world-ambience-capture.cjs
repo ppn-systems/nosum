@@ -21,6 +21,7 @@ const LOCALES = { en: 'en-US', vi: 'vi-VN' };
 const VIEWPORTS = {
   '1280x720': { width: 1280, height: 720, phone: false },
   '390x844': { width: 390, height: 844, phone: true },
+  '1920x1080': { width: 1920, height: 1080, phone: false },
 };
 const wantedLocales = (process.env.LOCALES || 'en').split(',').map((s) => s.trim()).filter(Boolean);
 const wantedViewports = (process.env.VIEWPORTS || '1280x720,390x844').split(',').map((s) => s.trim()).filter(Boolean);
@@ -41,7 +42,7 @@ const MAPS = process.env.MAPS
       const [x, y] = xy.split(',').map(Number);
       return { id, tile: [x, y], tag: tag || id };
     })
-  : DEFAULT_MAPS;
+  : DEFAULT_MAPS.map((map) => ({ tag: map.id, ...map })); // a default map's frame is named by its id; without a tag every map wrote the same file
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

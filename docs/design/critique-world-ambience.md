@@ -1,6 +1,6 @@
 # World ambience critique (rebuild-world-ambience)
 
-**Status:** Reviewed on the `before` build (master at 384cb1d), then three changes made. Captures and the
+**Status:** Reviewed on the `before` build (master at 384cb1d), then three changes made (rounds 1 to 6; round 6 is section 10). Captures and the
 numbers behind this review are in [`docs/qa/rebuild-world-ambience/`](../qa/rebuild-world-ambience/). Round 2 (section 6)
 closed the fall, deep-mine, transition and snow gaps and set the mix from measurements. Owner decision still open: a
 listening pass on the mix levels (section 5).
@@ -194,3 +194,18 @@ Captures and checks: [`docs/qa/world-ambience-round5/`](../qa/world-ambience-rou
 
 Still open for the owner: the stray letter's live confirmation (needs a before build at the same clock and tile), the listening pass, the minimap's
 unpainted cells and the exit beacon's strength.
+
+## 10. Round 6
+
+Captures and checks: [`docs/qa/world-ambience-round6/`](../qa/world-ambience-round6/README.md). Rule: [ADR-109](../adr/ADR-109-elite-badges-do-not-stack.md).
+Round 6 took the one open item from section 9 that is a fault, not a call: the stacked elite badge. The round 5 note had recorded it as "not a fault" and
+left it; on reading it again, two copies of the same title one tile apart are the stacking that ADR-091 fixed for hazards.
+
+- **Elite title badges of the same text are placed once per cluster** (ADR-109 D1). A Vietnamese "HUYẾT THỆ" pack now shows one badge where it showed
+  two. Different modifiers still each show theirs. The bookkeeping moved to `PlacedLabelSet` and is shared with the hazard labels (D2); hazard behaviour
+  is unchanged.
+- **Not confirmed in a live frame.** No QA path spawns an elite pack, so the captures in the round 6 folder show the ordinary views at 1280 × 720,
+  1920 × 1080 and 390 × 844, English and Vietnamese, as a regression check. The clustering is proven by `PlacedLabelSetTests` and by the rule's
+  existing tests, not by a frame. A pack capture needs a dev spawn for elites, which is a new tool and not in this round.
+- **Still open, all for the owner:** the listening pass (section 5), the minimap's unpainted cells, and the exit beacon's strength.
+  The stray letter's live confirmation (section 9) is still open too; nothing in this round touched it.
