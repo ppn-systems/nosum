@@ -810,7 +810,7 @@
   <data name="Furnace_Status_OutOfReach" xml:space="preserve"><value>Bạn đứng quá xa lò.</value></data>
   <data name="Furnace_Status_Busy" xml:space="preserve"><value>Lò đang có mẻ nung.</value></data>
   <data name="Furnace_Status_NotSmeltable" xml:space="preserve"><value>Không nung được thứ này.</value></data>
-  <data name="Furnace_Status_NotEnough" xml:space="preserve"><value>Cần 5 quặng và 1 than đá.</value></data>
+  <data name="Furnace_Status_NotEnough" xml:space="preserve"><value>Cần {0} quặng và {1} than đá.</value></data>
   <data name="Furnace_Status_NothingToCollect" xml:space="preserve"><value>Lò không có gì để lấy.</value></data>
   <data name="Furnace_Status_NotReady" xml:space="preserve"><value>Thỏi chưa nung xong.</value></data>
   <data name="Furnace_Status_NoSpace" xml:space="preserve"><value>Túi đồ không còn chỗ cho thỏi.</value></data>

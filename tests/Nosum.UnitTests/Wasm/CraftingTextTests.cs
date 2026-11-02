@@ -55,6 +55,24 @@ public sealed class CraftingTextTests
     }
 
     [Fact]
+    public void Language_FurnaceNotEnoughTakesItsCostsFromTheRules()
+    {
+        // The refusal names the ore and coal a job needs; the numbers come from FurnaceRules, so the text holds two placeholders and no digit of its own.
+        foreach (string file in s_files)
+        {
+            string text = Value(file, "Furnace_Status_NotEnough");
+            text.Should().Contain("{0}", file).And.Contain("{1}", file);
+            text.Replace("{0}", string.Empty, System.StringComparison.Ordinal).Replace("{1}", string.Empty, System.StringComparison.Ordinal).Should().NotMatchRegex(@"\d", file);
+        }
+    }
+
+    private static string Value(string file, string key)
+    {
+        string path = System.IO.Path.Combine(RepositoryPaths.Root, "wasm", "Nosum.Wasm.ViewModels", "Resources", file);
+        return System.Xml.Linq.XDocument.Load(path).Root!.Elements("data").Single(e => (string)e.Attribute("name")! == key).Element("value")!.Value;
+    }
+
+    [Fact]
     public void Catalogue_EveryCraftedItemHasANameAndDescriptionInBothLanguages()
     {
         string[] needed = [.. ItemCatalog.All.Where(i => i.Kind is ItemKind.Placeable or ItemKind.Food || i.Id is ItemCatalog.IronOre or ItemCatalog.CopperBar or ItemCatalog.IronBar)

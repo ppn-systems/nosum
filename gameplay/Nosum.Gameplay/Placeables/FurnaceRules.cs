@@ -30,7 +30,10 @@ public static class FurnaceRules
     /// <summary>Coal one job consumes.</summary>
     public const int CoalCost = 1;
 
-    /// <summary>Game minutes one job takes (a game minute is a thirtieth of a real minute at the default day length).</summary>
+    /// <summary>
+    /// Game minutes one job takes. At the default day length a game day is 12 real hours and has 1440 game minutes, so a game minute is half a
+    /// real minute and a job runs 15 real minutes: the countdown on the furnace page is real time.
+    /// </summary>
     public const int GameMinutes = 30;
 
     /// <summary>Tells which bar an ore smelts into.</summary>

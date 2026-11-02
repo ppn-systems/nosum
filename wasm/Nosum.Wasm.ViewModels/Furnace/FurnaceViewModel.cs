@@ -196,7 +196,10 @@ public sealed class FurnaceViewModel : PanelViewModel, IDisposable
             return;
         }
 
-        string text = this.Text("Furnace_Status_" + status);
+        // The refusal names the real costs, read from the rules, so the words cannot drift from what the server charges.
+        string text = status == FurnaceStatus.NotEnough
+            ? this.Text("Furnace_Status_NotEnough", FurnaceRules.OreCost, FurnaceRules.CoalCost)
+            : this.Text("Furnace_Status_" + status);
         if (status is FurnaceStatus.OutOfReach or FurnaceStatus.NotYours or FurnaceStatus.UnknownObject)
         {
             // Out of reach or not ours: the page cannot do anything, so it closes and the message line says why.

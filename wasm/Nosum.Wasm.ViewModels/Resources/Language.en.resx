@@ -810,7 +810,7 @@
   <data name="Furnace_Status_OutOfReach" xml:space="preserve"><value>You stand too far from the furnace.</value></data>
   <data name="Furnace_Status_Busy" xml:space="preserve"><value>The furnace already has a batch.</value></data>
   <data name="Furnace_Status_NotSmeltable" xml:space="preserve"><value>That cannot be smelted.</value></data>
-  <data name="Furnace_Status_NotEnough" xml:space="preserve"><value>You need 5 ore and 1 coal.</value></data>
+  <data name="Furnace_Status_NotEnough" xml:space="preserve"><value>You need {0} ore and {1} coal.</value></data>
   <data name="Furnace_Status_NothingToCollect" xml:space="preserve"><value>The furnace has nothing to collect.</value></data>
   <data name="Furnace_Status_NotReady" xml:space="preserve"><value>The bar is not done yet.</value></data>
   <data name="Furnace_Status_NoSpace" xml:space="preserve"><value>Your bag has no room for the bar.</value></data>
