@@ -51,6 +51,13 @@ public sealed class PlayerNotifier : IPlayerNotifier
     public TimeSpan SendDeadline { get; set; } = DefaultSendDeadline;
 
     /// <inheritdoc/>
+    public bool IsConnected(Guid playerId)
+    {
+        IConnection? connection = _sessions.GetActive(playerId);
+        return connection is not null && !connection.IsDisposed;
+    }
+
+    /// <inheritdoc/>
     [SuppressMessage("Design", "CA1031", Justification = "Best effort: a closing connection is cleaned up by its close event and the player reads the state when they next ask.")]
     public async ValueTask<bool> TrySendAsync(Guid playerId, IPacket packet, CancellationToken cancellationToken = default)
     {

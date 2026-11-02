@@ -371,6 +371,12 @@ public sealed class MailService : IMailService
 
     private async Task PushUnreadAsync(Guid playerId, CancellationToken cancellationToken)
     {
+        // An offline player cannot take the push, and reads the count when they next open the mailbox: skip the count query (one read per mail).
+        if (!_notifier.IsConnected(playerId))
+        {
+            return;
+        }
+
         try
         {
             int unread = await this.CountUnreadAsync(playerId, cancellationToken).ConfigureAwait(false);
