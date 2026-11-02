@@ -1,0 +1,15 @@
+/* The window sits 125 u from the top (the HUD row, the gutter and half the window's 186 u height), so the confirm is centred on it: the window's
+   search and sort row above the confirm stays in view (docs/design/ui-standard.md section 5). The overlay centres its child, so a margin of
+   (250 u - 100vh) puts the box's centre at 125 u. A phone's window fills the screen, so the box stays centred there. */
+/* The wrapper takes the screen's width, so the dialog's own width (220 u, at most the screen) is centred in it on a phone too. */
+.market-confirm {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+@media (min-width: 641px) {
+    .market-confirm {
+        margin-top: calc(var(--u) * 250 - 100vh);
+    }
+}

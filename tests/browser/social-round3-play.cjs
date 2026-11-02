@@ -18,8 +18,8 @@ const SIZES = {
   '390x844': { ...devices['iPhone 14'], viewport: { width: 390, height: 844 } },
 };
 const L = {
-  vi: { cancel: /Hủy giao dịch/, guest: /khách|guest/i, menu: /^Menu$/, trade: /Giao dịch/, invite: /Mời/, accept: /Đồng ý/, confirm: /Xác nhận/, friends: /Bạn bè/, visit: /Thăm nông trại/, coop: /Hợp tác xã/, found: /^Lập/, deposit: /^Gửi vào$/, online: /Trực tuyến/, continueAs: /Tiếp tục với/, seeds: /Hạt/, stockTab: /^Kho$/, membersTab: /^Thành viên$/ },
-  en: { cancel: /Cancel trade/, guest: /khách|guest/i, menu: /^Menu$/, trade: /^Trade/, invite: /Invite/, accept: /^Accept$/, confirm: /^Confirm$/, friends: /^Friends$/, visit: /^Visit farm$/, coop: /^Co-op$/, found: /^Found/, deposit: /^Deposit$/, online: /Online/, continueAs: /Continue as/, seeds: /seeds/i, stockTab: /^Stock$/, membersTab: /^Members$/ },
+  vi: { cancel: /Hủy giao dịch/, guest: /khách|guest/i, menu: /^Menu$/, trade: /Giao dịch/, invite: /Mời/, accept: /Đồng ý/, confirm: /Xác nhận/, friends: /Bạn bè/, visit: /Thăm nông trại/, coop: /Hợp tác xã/, found: /^Lập/, deposit: /^Gửi vào$/, online: /Trực tuyến/, continueAs: /Tiếp tục với/, seeds: /Hạt/, stockTab: /^Kho$/, membersTab: /^Thành viên$/, logTab: /^Nhật ký$/ },
+  en: { cancel: /Cancel trade/, guest: /khách|guest/i, menu: /^Menu$/, trade: /^Trade/, invite: /Invite/, accept: /^Accept$/, confirm: /^Confirm$/, friends: /^Friends$/, visit: /^Visit farm$/, coop: /^Co-op$/, found: /^Found/, deposit: /^Deposit$/, online: /Online/, continueAs: /Continue as/, seeds: /seeds/i, stockTab: /^Stock$/, membersTab: /^Members$/, logTab: /^Log$/ },
 };
 const ITEM_PARSNIP_SEEDS = 100;
 const log = [];
@@ -236,7 +236,13 @@ async function play(browser, code, size) {
     await pickSeeds(b);
     await b.getByRole('button', { name: t.deposit }).first().click({ timeout: 6000 });
     await b.screenshot({ path: path.join(OUT, p + 'coop-deposit-receiver.png') });
-    await seen(a.getByText(t.coop, { exact: true })).then(c => c.click({ timeout: 6000 })).catch(() => {});
+  });
+  // The co-op log is one tab of the co-op window. It is a checked step: if the log cannot be opened, this step fails (no silent catch).
+  await step(p + 'coop-log', async () => {
+    if (await a.getByRole('button', { name: t.logTab }).count() === 0) {
+      await seen(a.getByText(t.coop, { exact: true })).then(c => c.click({ timeout: 6000 }));
+    }
+    await seen(a.getByRole('button', { name: t.logTab })).then(b => b.dispatchEvent('click', null, { timeout: 6000 }));
     await snap(a, p + 'coop-log');
   });
 

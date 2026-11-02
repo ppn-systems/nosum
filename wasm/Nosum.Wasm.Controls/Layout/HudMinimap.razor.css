@@ -7,7 +7,9 @@
     box-sizing: border-box;
     width: calc(var(--u) * 60);
     height: calc(var(--u) * 44);
-    margin: 0;
+    /* The panel sprite has one unit of transparent margin on its outer edge, so the wood stopped one unit inside the column and the top row's frames
+       (issue 13, 1920 wide: 5 px). The card is drawn one unit further out; the canvas moves the map with it (MapScene.Minimap). */
+    margin: 0 calc(var(--u) * -1) 0 0;
     padding: 0;
     border: var(--frame-edge) solid var(--nosum-edge);
     border-image: var(--nosum-img-panel) 5 / var(--frame-edge) stretch;
@@ -15,6 +17,14 @@
     image-rendering: pixelated;
     cursor: var(--nosum-cursor-pointer, pointer);
     pointer-events: auto;
+}
+
+/* A window open on a narrow screen covers the card (GameHud.razor.css: the menu column goes there too). From 1600 px the window is centred clear of
+   the card, so the card stays beside it. */
+@media (max-width: 1599px) {
+    .hud-minimap.covered {
+        display: none;
+    }
 }
 
 /* The collapsed card: one framed map button in the column's place (GameHud.razor.css frames it with the column). */

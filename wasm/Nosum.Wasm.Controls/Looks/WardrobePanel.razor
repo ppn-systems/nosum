@@ -13,66 +13,78 @@
             </div>
         </GameSection>
         <div class="ward-options">
-            <GameNotice Kind="info" Text="@Vm.Text("Wardrobe_InstantNote")" />
-            <GameSection Title="@Vm.Text("Wardrobe_Skin_Heading")">
-                <GameRow>
-                    @foreach (PartChoice choice in Vm.Skins)
-                    {
-                        int id = choice.Id;
-                        <GameSwatch Colour="@choice.Css" Label="@choice.Label" Current="choice.IsCurrent" OnClick="() => Vm.SetSkin(id)" />
-                    }
-                </GameRow>
-            </GameSection>
-            <GameSection Title="@Vm.Text("Wardrobe_HairStyle_Heading")">
-                <GameRow>
-                    @foreach (PartChoice choice in Vm.HairStyles)
-                    {
-                        int id = choice.Id;
-                        <GameButton Variant="tab" Active="choice.IsCurrent" Text="@id.ToString(System.Globalization.CultureInfo.CurrentCulture)" Title="@choice.Label" OnClick="@(() => Vm.SetHairStyle(id))" />
-                    }
-                </GameRow>
-                <p>@Vm.CurrentHairStyleText</p>
-            </GameSection>
-            <GameSection Title="@Vm.Text("Wardrobe_HairDye_Heading")">
-                <GameRow>
-                    @foreach (PartChoice choice in Vm.HairDyes)
-                    {
-                        int id = choice.Id;
-                        <GameSwatch Colour="@choice.Css" Label="@choice.Label" Current="choice.IsCurrent" OnClick="() => Vm.SetHairDye(id)" />
-                    }
-                </GameRow>
-            </GameSection>
-            <GameSection Title="@Vm.WornTitle">
-                @foreach (WornDisplay worn in Vm.Worn)
-                {
-                    int wearSlot = worn.Slot;
-                    <GameRow Class="center">
-                        <ItemSlotButton Slot="@worn.Item" Tip="@worn.SlotLabel" />
-                        <span>@worn.SlotLabel</span>
-                        @if (!worn.Item.IsEmpty)
+            <div class="ward-tabs">
+                <GameButton Variant="tab" Active="@(Vm.Part == WardrobePart.Look)" Text="@Vm.Text("Wardrobe_Tab_Look")" OnClick="@(() => Vm.Part = WardrobePart.Look)" />
+                <GameButton Variant="tab" Active="@(Vm.Part == WardrobePart.Clothes)" Text="@Vm.Text("Wardrobe_Tab_Clothes")" OnClick="@(() => Vm.Part = WardrobePart.Clothes)" />
+            </div>
+            <div class="ward-part @PartClass(WardrobePart.Look)">
+                <GameSection Title="@Vm.Text("Wardrobe_Skin_Heading")">
+                    <GameRow>
+                        @foreach (PartChoice choice in Vm.Skins)
                         {
-                            <GameButton Variant="secondary" Text="@Vm.TakeOffText" OnClick="@(() => Vm.TakeOff(wearSlot))" />
+                            int id = choice.Id;
+                            <GameSwatch Colour="@choice.Css" Label="@choice.Label" Current="choice.IsCurrent" OnClick="() => Vm.SetSkin(id)" />
                         }
                     </GameRow>
-                }
-            </GameSection>
-            <GameSection Title="@Vm.BagTitle">
-                @if (Vm.Wardrobe.Count == 0)
-                {
-                    <p>@Vm.EmptyBagText</p>
-                }
-                else
-                {
-                    @foreach (SlotDisplay clothes in Vm.Wardrobe)
+                </GameSection>
+                <GameSection Title="@Vm.Text("Wardrobe_HairStyle_Heading")">
+                    <GameRow>
+                        @foreach (PartChoice choice in Vm.HairStyles)
+                        {
+                            int id = choice.Id;
+                            <GameButton Variant="tab" Active="choice.IsCurrent" Text="@id.ToString(System.Globalization.CultureInfo.CurrentCulture)" Title="@choice.Label" OnClick="@(() => Vm.SetHairStyle(id))" />
+                        }
+                    </GameRow>
+                    <p>@Vm.CurrentHairStyleText</p>
+                </GameSection>
+                <GameSection Title="@Vm.Text("Wardrobe_HairDye_Heading")">
+                    <GameRow>
+                        @foreach (PartChoice choice in Vm.HairDyes)
+                        {
+                            int id = choice.Id;
+                            <GameSwatch Colour="@choice.Css" Label="@choice.Label" Current="choice.IsCurrent" OnClick="() => Vm.SetHairDye(id)" />
+                        }
+                    </GameRow>
+                </GameSection>
+            </div>
+            <div class="ward-part @PartClass(WardrobePart.Clothes)">
+                <GameNotice Kind="info" Text="@Vm.Text("Wardrobe_InstantNote")" />
+                <GameSection Title="@Vm.WornTitle">
+                    @foreach (WornDisplay worn in Vm.Worn)
                     {
-                        int inventorySlot = clothes.Index;
+                        int wearSlot = worn.Slot;
                         <GameRow Class="center">
-                            <ItemSlotButton Slot="@clothes" />
-                            <GameButton Text="@Vm.WearText" OnClick="@(() => Vm.Wear(inventorySlot))" />
+                            <ItemSlotButton Slot="@worn.Item" Tip="@worn.SlotLabel" />
+                            <span>@worn.SlotLabel</span>
+                            @if (!worn.Item.IsEmpty)
+                            {
+                                <GameButton Variant="secondary" Text="@Vm.TakeOffText" OnClick="@(() => Vm.TakeOff(wearSlot))" />
+                            }
                         </GameRow>
                     }
-                }
-            </GameSection>
+                </GameSection>
+                <GameSection Title="@Vm.BagTitle">
+                    @if (Vm.Wardrobe.Count == 0)
+                    {
+                        <p>@Vm.EmptyBagText</p>
+                    }
+                    else
+                    {
+                        @foreach (SlotDisplay clothes in Vm.Wardrobe)
+                        {
+                            int inventorySlot = clothes.Index;
+                            <GameRow Class="center">
+                                <ItemSlotButton Slot="@clothes" />
+                                <GameButton Text="@Vm.WearText" OnClick="@(() => Vm.Wear(inventorySlot))" />
+                            </GameRow>
+                        }
+                    }
+                </GameSection>
+            </div>
         </div>
     </div>
 </MenuPage>
+
+@code {
+    private string? PartClass(WardrobePart part) => part == Vm.Part ? "active" : null;
+}

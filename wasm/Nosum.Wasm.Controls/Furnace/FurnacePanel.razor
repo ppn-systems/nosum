@@ -4,7 +4,7 @@
 @inherits ObservingComponent<FurnaceViewModel>
 
 @* The furnace page: what it is doing (with a once-a-second countdown), the ores a batch can start with, and the collect button when a bar is ready. *@
-<MenuPage Status="@Vm.Status">
+<MenuPage Status="@Vm.Status" Good="Vm.StatusIsGood">
     <GameStack>
         <GameSection Title="@Vm.Text("Furnace_Title")">
             <p class="furnace-line">@Vm.StateText</p>

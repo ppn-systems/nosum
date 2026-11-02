@@ -4,10 +4,12 @@
 @inherits ObservingComponent<MarketViewModel>
 
 @* The confirm box of a large purchase on the market (docs/adr/ADR-013 amendment A10): a centre confirm in the HUD overlay, with what, how many and the price.
-   Only Yes buys; the server prices and checks the purchase. *@
+   Only Yes buys; the server prices and checks the purchase. It centres on the market window (see MarketBuyOverlay.razor.css), not on the screen. *@
 @if (Vm.PendingPurchase is { } request)
 {
-    <ConfirmDialog Title="@Vm.Text("Market_BuyConfirm_Title")" Message="@request.Question"
-                   ConfirmText="@Vm.Text("Shop_Confirm_Yes")" CancelText="@Vm.Text("Shop_Confirm_No")"
-                   OnConfirm="@(() => Vm.ConfirmPurchase())" OnCancel="@(() => Vm.CancelPurchase())" />
+    <div class="market-confirm">
+        <ConfirmDialog Title="@Vm.Text("Market_BuyConfirm_Title")" Message="@request.Question"
+                       ConfirmText="@Vm.Text("Shop_Confirm_Yes")" CancelText="@Vm.Text("Shop_Confirm_No")"
+                       OnConfirm="@(() => Vm.ConfirmPurchase())" OnCancel="@(() => Vm.CancelPurchase())" />
+    </div>
 }

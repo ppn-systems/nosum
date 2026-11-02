@@ -48,6 +48,9 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
     private readonly InventoryViewModel _inventory;
     private readonly ItemDescriber _describer;
 
+    /// <summary>Gets or sets the part of the wardrobe last opened on a tab; kept for the page session, so a reopened window shows it again.</summary>
+    public WardrobePart Part { get; set; } = WardrobePart.Look;
+
     /// <summary>Initializes the view model.</summary>
     /// <param name="looks">The look channel.</param>
     /// <param name="inventory">The inventory view model (the clothing that can be worn).</param>

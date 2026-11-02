@@ -324,6 +324,22 @@
     }
 }
 
+/* A tall screen: the menu column (8 cells, 205 u with the minimap) reaches the bottom-right corner, so the emote cell moves to the column's left
+   and the two never share a cell (docs/design/ui-standard.md section 2, checklist item 2). A short screen keeps the corner. */
+@media (min-width: 641px) and (min-height: 880px) {
+    /* The column's right edge is 8 u from the screen edge (the top-right block sits one gutter inside the top row); the cell is 16 u and the gap 2 u. */
+    .hud-bottom-right {
+        right: calc(var(--u) * 26);
+    }
+}
+
+/* A phone's hotbar is two rows, about 53 u high: the emote cell stands above it, not over the gauges (ui-standard section 2). */
+@media (max-width: 640px) {
+    .hud-bottom-right {
+        bottom: calc(var(--u) * 56);
+    }
+}
+
 @media (max-width: 640px) {
     .hud-top {
         flex-wrap: wrap;
