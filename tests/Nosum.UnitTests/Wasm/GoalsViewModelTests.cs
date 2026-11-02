@@ -244,9 +244,9 @@ public sealed class GoalsViewModelTests
         return new StringLocalizer<T>(factory);
     }
 
-    private static HashSet<string> Keys(string file, [CallerFilePath] string here = "")
+    private static HashSet<string> Keys(string file)
     {
-        string root = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(here)!, "..", "..", ".."));
+        string root = RepositoryPaths.Root;
         string path = Path.Combine(root, "wasm", "Nosum.Wasm.ViewModels", "Resources", file);
         return XDocument.Load(path).Root!.Elements("data").Select(e => (string)e.Attribute("name")!).ToHashSet();
     }

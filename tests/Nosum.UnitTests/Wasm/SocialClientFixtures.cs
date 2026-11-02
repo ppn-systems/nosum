@@ -33,9 +33,9 @@ internal static class SocialClientFixtures
     public static ItemDescriber Items() => new(new NoIcons(), Localizer<Catalogue>(), Localizer<Language>());
 
     /// <summary>The keys of one resource file of the view-model project.</summary>
-    public static HashSet<string> Keys(string file, [CallerFilePath] string here = "")
+    public static HashSet<string> Keys(string file)
     {
-        string root = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(here)!, "..", "..", ".."));
+        string root = RepositoryPaths.Root;
         string path = Path.Combine(root, "wasm", "Nosum.Wasm.ViewModels", "Resources", file);
         return XDocument.Load(path).Root!.Elements("data").Select(e => (string)e.Attribute("name")!).ToHashSet();
     }

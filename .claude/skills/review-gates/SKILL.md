@@ -21,6 +21,22 @@ description: Use before committing, opening a PR, or declaring a change done —
 
 Builds are warning-free by construction (`TreatWarningsAsErrors`); a warning is a failure.
 
+## What CI runs
+
+`.github/workflows/ci.yml` runs on every pull request and on every push to `master`. It builds
+`engine/Nosum.Engine.slnx`, `server/Nosum.slnx`, `wasm/Nosum.Wasm.slnx` and `tests/Nosum.Tests.slnx` with
+`-warnaserror`, then runs `tests/Nosum.UnitTests`, `node --test` over `tests/browser/**/*.test.mjs`, and
+`tests/Nosum.IntegrationTests` against a PostgreSQL service container. It has no secrets. A red CI is a
+do-not-merge condition, the same as a local failure.
+
+CI does not run the browser boot smoke (`tests/browser/smoke`). That still runs by hand, as `testing-style`
+describes, before a PR that touches `wasm/` or the render backend.
+
+The unit suite holds two guards on repository history: `docs/adr` has no duplicate ADR numbers
+(`AdrNumberingTests`), and the `NosumProtocol.Version` doc comment lists each version once, with the
+constant equal to the highest one (`NosumProtocolVersionDocTests`). When you add a protocol version, add its
+doc line and bump the constant together; when you add an ADR, take the next free number.
+
 ## Commits and PRs
 
 - Commit subject: `<type>(<scope>): <subject>` — type `feat|fix|refactor|test|docs|build|chore`,
