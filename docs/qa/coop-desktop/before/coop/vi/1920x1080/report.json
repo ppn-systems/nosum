@@ -1,0 +1,76 @@
+{
+  "flow": "coop",
+  "locale": "vi",
+  "viewport": "1920x1080",
+  "steps": [
+    {
+      "name": "coop-board-open",
+      "ok": true,
+      "value": {
+        "window": "Hợp tác xã Lập hợp tác xã Lập Lời mời Bạn chưa có lời mời nào."
+      },
+      "file": "01-coop-board-open.png"
+    },
+    {
+      "name": "coop-found",
+      "ok": true,
+      "value": {
+        "window": "Hợp tác xã Thành viên Bạn Người sáng lập Trực tuyến Số liệu tính trên 0 mục nhật ký gần đây. Không có người chơi nào khá"
+      },
+      "file": "02-coop-found.png"
+    },
+    {
+      "name": "coop-members",
+      "ok": true,
+      "value": {
+        "overflow": 1433
+      },
+      "file": "03-coop-members.png"
+    },
+    {
+      "name": "coop-upgrades",
+      "ok": true,
+      "value": {
+        "overflow": 1433,
+        "buy": 2
+      },
+      "file": "04-coop-upgrades.png"
+    },
+    {
+      "name": "coop-objectives",
+      "ok": true,
+      "value": {
+        "overflow": 1433
+      },
+      "file": "05-coop-objectives.png"
+    },
+    {
+      "name": "coop-deposit-seeds",
+      "ok": true,
+      "value": {
+        "window": "Hợp tác xã Thành viên Bạn Người sáng lập Đã góp 6 món Trực tuyến Số liệu tính trên 1 mục nhật ký gần đây. Không có người chơi nào khác để mời. Rời hợp tác xã Kh",
+        "overflow": 1533
+      },
+      "file": "06-coop-deposit-seeds.png"
+    },
+    {
+      "name": "coop-withdraw",
+      "ok": true,
+      "value": {
+        "window": "Hợp tác xã Thành viên Bạn Người sáng lập Đã góp 6 món Trực tuyến Số liệu tính trên 2 mục nhật ký gần đây. Không có người chơi nào khác để mời. Rời hợp tác xã Kh",
+        "overflow": 1519
+      },
+      "file": "07-coop-withdraw.png"
+    },
+    {
+      "name": "coop-log",
+      "ok": true,
+      "value": {
+        "log": "Hợp tác xã Thành viên Bạn Người sáng lập Đã góp 6 món Trực tuyến Số liệu tính trên 2 mục nhật ký gần đây. Không có người chơi nào khác để mời. Rời hợp tác xã Kho chung Kho đang trống. Lấy ra Gửi vào C",
+        "overflow": 1519
+      },
+      "file": "08-coop-log.png"
+    }
+  ],
+  "errors": []
+}

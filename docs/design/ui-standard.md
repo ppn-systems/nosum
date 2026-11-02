@@ -83,6 +83,9 @@ Every panel is a `GamePanel` opened in the center region:
   for the content the panel normally shows (a full bag, a recipe list of one page).
 - Inner layout uses `GameStack`/`GameRow`/`GameSection` with `--nosum-gap` / `--nosum-gap-group`. A detail strip (selected item, recipe
   cost) spans the full width at the bottom of the panel.
+- **A window with several parts** (the co-op) shows one part at a time on a `tab` bar (section 8) at every size, and each part fits the
+  window at 1280×720, 1920×1080 and 390×844 with no inner scroll. The view model keeps the last tab opened for the page session. A part
+  that can grow (a log) pages with the shared `Pager`, not a scroll.
 - Only one panel is open at a time; opening another closes the first. Esc and the close button close it.
 - Item icons always use the shared icon control, whole sprite, centered, scaled down to fit the slot, never cropped.
 - **Exception (ADR-101):** a dense list (the market listings) may use the compact slot, 12 UI pixels with an 8 px picture, `ItemSlotButton Compact="true"`. The picture rule is the same. No other list uses it.

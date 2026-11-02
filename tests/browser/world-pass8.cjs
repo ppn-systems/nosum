@@ -13,7 +13,7 @@ const path = require('path');
 const REPO = path.resolve(__dirname, '../..');
 const BASE = process.env.NOSUM_QA_URL || 'http://localhost:5080/?qa=1';
 const OUT_ROOT = path.resolve(REPO, process.env.NOSUM_QA_OUT || 'docs/qa/world-pass8');
-const VIEWPORTS = { '1280x720': { width: 1280, height: 720 }, '390x844': { width: 390, height: 844 } };
+const VIEWPORTS = { '1280x720': { width: 1280, height: 720 }, '1920x1080': { width: 1920, height: 1080 }, '390x844': { width: 390, height: 844 } };
 const LANG = { vi: { tag: 'vi-VN', code: 1, files: ['Language.resx'] }, en: { tag: 'en-US', code: 2, files: ['Language.en.resx'] } };
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const RES_DIR = path.join(REPO, 'wasm/Nosum.Wasm.ViewModels/Resources');
@@ -712,11 +712,11 @@ async function marketFlow(lk) {
 
 
 // ---- co-op: found a co-op at the board keeper, deposit seeds, withdraw some, and read the warehouse log (Coop_Log_*).
-// On a phone (390 px) the co-op shows one part at a time (its tab bar, CoopPanel.razor); each tab step saves a frame and the scroll
-// overflow of the page body, so a cut row shows as a non-zero overflow in report.json.
+// The co-op shows one part at a time on its tab bar at every size (CoopPanel.razor). Each tab step clicks its tab, saves a frame and
+// records the page body's scroll overflow (scrollHeight - clientHeight, 0 = nothing is cut, no inner scroll: ui-standard section 7).
+// The last part opened is remembered for the page session: the reopen step checks that the Log tab is still the active one.
 async function coopFlow(lk) {
-  const phone = report.viewport.startsWith('390');
-  const tab = async key => { if (phone) { await clickKey(lk, key, { timeout: 6000 }); await wait(700); } };
+  const tab = async key => { await clickKey(lk, key, { timeout: 6000 }); await wait(700); };
   const overflow = () => page.evaluate(() => { const b = document.querySelector('.menu-page-body'); return b ? b.scrollHeight - b.clientHeight : -1; });
   await signInGuest(lk);
   await qa('grant', [100, 6, 0]); await wait(900);
@@ -734,7 +734,7 @@ async function coopFlow(lk) {
   });
   await step('coop-members', async () => {
     await tab('Coop_Tab_Members');
-    return { overflow: await overflow() };
+    return { overflow: await overflow(), clientH: await page.evaluate(() => document.querySelector('.menu-page-body')?.clientHeight ?? -1) };
   });
   await step('coop-upgrades', async () => {
     await tab('Coop_Tab_Upgrades');
@@ -758,12 +758,40 @@ async function coopFlow(lk) {
     await clickKey(lk, 'Coop_Withdraw', { timeout: 6000 }); await wait(1500);
     return { window: (await windowText()).slice(0, 160), overflow: await overflow() };
   });
+  // The warehouse log keeps the latest 20 lines (CoopRules.RecentLogLines) and shows ten per page: ten deposit and withdraw pairs fill both pages.
+  await step('coop-log-full', async () => {
+    await tab('Coop_Tab_Warehouse');
+    const seeds = () => page.locator('section.game-panel button').filter({ hasText: /^6$/ }).first();
+    for (let i = 0; i < 10; i++) {
+      await seeds().click({ timeout: 6000 }); await wait(300);
+      await clickKey(lk, 'Coop_Deposit', { timeout: 6000 }); await wait(900);
+      await seeds().click({ timeout: 6000 }); await wait(300);
+      await clickKey(lk, 'Coop_Withdraw', { timeout: 6000 }); await wait(900);
+    }
+    await tab('Coop_Tab_Log');
+    // Page one holds ten lines and the pager shows; the next page holds the other ten. Each page is measured for an inner scroll.
+    const first = { lines: await page.locator('.coop-log').count(), overflow: await overflow() };
+    await clickKey(lk, 'Pager_Next', { timeout: 6000 }); await wait(700);
+    const second = { lines: await page.locator('.coop-log').count(), position: await page.locator('.pager-position').innerText().catch(() => ''), overflow: await overflow() };
+    if (first.lines !== 10 || second.lines !== 10) throw new Error(`log pages hold ${first.lines} and ${second.lines} lines, expected 10 and 10`);
+    return { first, second };
+  });
   await step('coop-log', async () => {
     await tab('Coop_Tab_Log');
     const log = page.getByRole('heading', { name: nameRe(lk, 'Coop_Log_Heading') }).first();
     const shown = await log.isVisible().catch(() => false);
     if (!shown) throw new Error('no warehouse log heading');
     return { log: (await windowText()).slice(0, 200), overflow: await overflow() };
+  });
+  await closeWindow(lk);
+  await step('coop-reopen-remembers', async () => {
+    await pressKey('KeyE'); await wait(1200);
+    await clickKey(lk, 'Npc_Action_Coop', { timeout: 6000 }).catch(() => {});
+    await wait(1000);
+    const active = await page.locator('.coop-tabs .game-button.active').first().innerText().catch(() => '');
+    const want = fmt(lk, 'Coop_Tab_Log');
+    if (active.trim() !== want) throw new Error(`active tab "${active.trim()}", expected "${want}"`);
+    return { active: active.trim(), overflow: await overflow() };
   });
   await closeWindow(lk);
 }
