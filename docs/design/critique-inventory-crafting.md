@@ -74,9 +74,9 @@ press that opens the context menu, which the slot now uses for a split. That pat
 (`before/en/1280x720/01-bag.png`). Locked recipes say what unlocks them in the tooltip and, once selected, under the title (`Craft_Unlock`). Both are hover-only, so the touch gap in F8
 applies to them too.
 
-**F10. Standard drift in the button kinds.** `ui-standard.md` §8 names `secondary`; the code has `GameButton` variants `primary`, `danger`,
+**F10. Standard drift in the button kinds (closed on master).** `ui-standard.md` §8 names `secondary`; the code has `GameButton` variants `primary`, `danger`,
 `plain`, `tab`, `link`, `chip`, and `plain` is used 27 times as the secondary kind. The standard should be corrected to match the code, or
-the code renamed; this branch keeps `plain` for the new buttons so the row matches.
+the code renamed; this branch keeps `plain` for the new buttons so the row matches. *Round three check:* master now uses `primary`, `secondary`, `danger`, `tab` and `icon` only (`Variant=` in `wasm/`, 77 uses), and `ui-standard.md` section 8 lists the same five. The drift is gone; no change was needed.
 
 ## 4. Touch and small screens (summary)
 
@@ -104,3 +104,9 @@ The wire is unchanged: `MoveSlot` and `Craft` already carry what these need, so 
 - Recipe search or sort, and a "missing ingredients" view (F6, F7).
 - Long-press and touch affordances tested on a device (F8).
 - Correct `ui-standard.md` §8 to the real variant names (F10).
+
+## 7. Round three (ADR-114)
+
+- F10 is closed: the button kinds on master match `ui-standard.md` section 8 (see F10 above). No code change.
+- The rest of the backlog is unchanged this round. F5 (the menu column) is a whole-HUD layout change, and F6 and F7 (recipe search and a missing-ingredients
+  view) are new features; the brief for this round excluded both.
