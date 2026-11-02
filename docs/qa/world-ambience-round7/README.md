@@ -17,9 +17,9 @@ cell rule in `engine/Nosum.Rendering/MinimapLayer.cs` (`ColourOfBlock`), tested 
 |:--|:--|:--|
 | Farm (80 × 65, sampled 2×) | The pond was a single blue dot, and only where its tile sat on the corner | The pond is a clear blue block |
 | Town (130 × 110, sampled 4×) | Walls and buildings came and went with the corner tile | Walls read as clusters of buildings |
-| Beach (104 × 50, sampled 3×) | The water line and the river were partly missing | The water line and the river are whole; rock noise is gone |
+| Beach (104 × 50, sampled 3×) | The river and the shore were there; dark speckle (rock blocks) was spread over the grass | The river and the shore are unchanged; the speckle is gone (no block is half rock) |
 | Forest (120 × 120, sampled 4×) | Scattered trees showed as a dense speckle | **Scattered trees are gone**: no 4 × 4 block is half trees, so the forest reads as open grass |
-| Mine floor 1 (48 × 48, sampled 2×) | Thin wall lines were partly missing | Walls are cleaner; the lower-left block is solid where it had been speckled |
+| Mine floor 1 (48 × 48, sampled 2×) | The floor's walls and open ground | No change inside the minimap box. The grey shapes at the edges of the frame are world tiles, not minimap cells |
 
 ## Limits
 
