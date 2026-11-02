@@ -88,8 +88,6 @@ async function phase(page, name, secs, act) {
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', e => { errors.push(e.message.slice(0, 300)); console.log('pageerror:', e.message.slice(0, 300)); });
-  // Lines the tester build prints for attribution (a temporary probe, FrameProbe) are forwarded as they come.
-  page.on('console', m => { if (m.text().startsWith('[probe]')) console.log(m.text()); });
   await page.goto(base, { waitUntil: 'load' });
   await wait(2500);
   await page.getByRole('button', { name: /khách|guest/i }).first().click();
