@@ -404,6 +404,7 @@ internal static class ClientWiring
         // A phone or touch screen collapses the HUD menu column; the game menu then lists the column panels as tiles (docs/design/ui-standard.md section 6).
         ToolbarViewModel toolbar = services.GetRequiredService<ToolbarViewModel>();
         toolbar.ColumnCollapsed = BrowserDevice.MenuColumnCollapsed();
+        services.GetRequiredService<QuestTrackerViewModel>().StartFolded(toolbar.ColumnCollapsed);
         BrowserDevice.WatchMenuColumn(collapsed => toolbar.ColumnCollapsed = collapsed);
 
         // Closing or reloading the tab asks first while the player is in the game (page-guard.js).

@@ -58,6 +58,20 @@ public sealed class QuestTrackerViewModel : IObservableViewModel, IDisposable
     /// <summary>Raised when the tracker changed. May run on any thread.</summary>
     public event Action? Changed;
 
+    /// <summary>Gets whether the card shows only its title line. Off by default; a phone starts it folded so the card does not cover the view (docs/design/ui-standard.md section 2).</summary>
+    public bool Folded { get; private set; }
+
+    /// <summary>Sets the fold the card starts with. Call once, before the card is first shown.</summary>
+    /// <param name="folded">True to start folded.</param>
+    public void StartFolded(bool folded) => this.Folded = folded;
+
+    /// <summary>Folds the card to its title line, or opens it again.</summary>
+    public void ToggleFolded()
+    {
+        this.Folded = !this.Folded;
+        this.Changed?.Invoke();
+    }
+
     /// <summary>Gets whether there is anything to show.</summary>
     public bool IsVisible { get; private set; }
 
