@@ -73,12 +73,30 @@ public sealed class PlayerNotifierDeadlineTests
         recorder.Disconnects.Should().Be(0, "the caller's own cancellation is not the player's fault");
     }
 
-    // Returns one connection for any player.
+    [Fact]
+    public void IsConnected_PlayerWithAnActiveConnection_ReturnsTrue()
+    {
+        Recorder recorder = new(stall: false);
+        PlayerNotifier notifier = new(new OnePlayer(recorder.Connection), recorder.Send);
+
+        notifier.IsConnected(Guid.NewGuid()).Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsConnected_PlayerWithNoActiveConnection_ReturnsFalse()
+    {
+        Recorder recorder = new(stall: false);
+        PlayerNotifier notifier = new(new OnePlayer(connection: null), recorder.Send);
+
+        notifier.IsConnected(Guid.NewGuid()).Should().BeFalse("an offline player has no connection to push to");
+    }
+
+    // Returns one connection for any player, or none when built without one.
     private sealed class OnePlayer : ISessionRegistry
     {
-        private readonly IConnection _connection;
+        private readonly IConnection? _connection;
 
-        public OnePlayer(IConnection connection) => _connection = connection;
+        public OnePlayer(IConnection? connection) => _connection = connection;
 
         public ValueTask ActivateAsync(Guid playerId, IConnection connection, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
 

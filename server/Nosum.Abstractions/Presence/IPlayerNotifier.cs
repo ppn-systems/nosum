@@ -20,4 +20,12 @@ public interface IPlayerNotifier
     /// <param name="cancellationToken">Cancels the send.</param>
     /// <returns><see langword="true"/> when the player was connected and the packet was sent.</returns>
     ValueTask<bool> TrySendAsync(Guid playerId, IPacket packet, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Whether the player has an active connection now. A push to a player who is not connected cannot be delivered, so a caller may skip
+    /// building the packet (and any read it needs). The default says <see langword="true"/>: a notifier that does not know keeps the old behaviour.
+    /// </summary>
+    /// <param name="playerId">The player.</param>
+    /// <returns><see langword="true"/> when the player has an active connection.</returns>
+    bool IsConnected(Guid playerId) => true;
 }
