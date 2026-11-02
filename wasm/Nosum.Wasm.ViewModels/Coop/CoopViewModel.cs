@@ -74,13 +74,15 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
 {
     private readonly CoopChannel _coop;
 
-    // Map ids of the players the server accepted an invitation for while this page is open (critique-social finding 7). Guarded by its lock:
-    // the event may run on the socket's thread.
-    private readonly HashSet<uint> _invited = [];
+    // Map ids of the players the server accepted an invitation for, and when (critique-social finding 7). The view model lives as long as the
+    // session, so a mark is kept only for the invitation's window (CoopInvitePicks.StillPending). Guarded by its lock: the event may run on the
+    // socket's thread.
+    private readonly Dictionary<uint, DateTimeOffset> _invited = [];
     private readonly NearbyPlayers _nearby;
     private readonly InventoryViewModel _inventory;
     private readonly ItemDescriber _describer;
     private readonly NicknameFormatter _names;
+    private readonly TimeProvider _time;
     private int _depositSlot = -1;
     private int _withdrawItem;
 
@@ -91,7 +93,8 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
     /// <param name="describer">Describes warehouse items.</param>
     /// <param name="names">Names the players by nickname.</param>
     /// <param name="text">UI text.</param>
-    public CoopViewModel(CoopChannel coop, NearbyPlayers nearby, InventoryViewModel inventory, ItemDescriber describer, NicknameFormatter names, IStringLocalizer<Language> text)
+    /// <param name="time">The clock that ends an invitation's window (the system clock when none is given).</param>
+    public CoopViewModel(CoopChannel coop, NearbyPlayers nearby, InventoryViewModel inventory, ItemDescriber describer, NicknameFormatter names, IStringLocalizer<Language> text, TimeProvider? time = null)
         : base(text)
     {
         ArgumentNullException.ThrowIfNull(coop);
@@ -105,6 +108,7 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
         _inventory = inventory;
         _describer = describer;
         _names = names;
+        _time = time ?? TimeProvider.System;
         coop.Changed += this.Raise;
         coop.Completed += this.OnCompleted;
         coop.InviteSent += this.OnInviteSent;
@@ -433,9 +437,10 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
 
     private void OnInviteSent(uint playerId)
     {
+        DateTimeOffset now = _time.GetUtcNow();
         lock (_invited)
         {
-            _ = _invited.Add(playerId);
+            _invited[playerId] = now;
         }
 
         this.Raise();
@@ -443,9 +448,21 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
 
     private bool IsInvited(uint playerId)
     {
+        DateTimeOffset now = _time.GetUtcNow();
         lock (_invited)
         {
-            return _invited.Contains(playerId);
+            if (!_invited.TryGetValue(playerId, out DateTimeOffset sentAt))
+            {
+                return false;
+            }
+
+            if (CoopInvitePicks.StillPending(sentAt, now))
+            {
+                return true;
+            }
+
+            _ = _invited.Remove(playerId);
+            return false;
         }
     }
 

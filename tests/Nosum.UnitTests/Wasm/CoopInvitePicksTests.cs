@@ -1,8 +1,10 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
+using Nosum.Gameplay.Coops;
 using Nosum.Wasm.ViewModels.Coop;
 using Xunit;
 
@@ -39,5 +41,30 @@ public sealed class CoopInvitePicksTests
         IReadOnlyList<(uint Id, string Label)> picks = CoopInvitePicks.Candidates(nearby, ["", "Guest 9999"]);
 
         picks.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public void StillPending_JustSent_IsPending()
+    {
+        DateTimeOffset sent = new(2026, 11, 2, 9, 0, 0, TimeSpan.Zero);
+
+        CoopInvitePicks.StillPending(sent, sent).Should().BeTrue();
+    }
+
+    [Fact]
+    public void StillPending_InsideTheServerWindow_IsPending()
+    {
+        DateTimeOffset sent = new(2026, 11, 2, 9, 0, 0, TimeSpan.Zero);
+
+        CoopInvitePicks.StillPending(sent, sent.AddHours(CoopRules.InviteHours).AddSeconds(-1)).Should().BeTrue();
+    }
+
+    [Fact]
+    public void StillPending_AtTheEndOfTheServerWindow_IsNoLongerPending()
+    {
+        // The server stops counting an invitation when its ExpiresAt passes; the picker offers the player again from the same instant.
+        DateTimeOffset sent = new(2026, 11, 2, 9, 0, 0, TimeSpan.Zero);
+
+        CoopInvitePicks.StillPending(sent, sent.AddHours(CoopRules.InviteHours)).Should().BeFalse();
     }
 }
