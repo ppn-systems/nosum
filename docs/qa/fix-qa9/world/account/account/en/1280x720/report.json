@@ -1,0 +1,33 @@
+{
+  "flow": "account",
+  "locale": "en",
+  "viewport": "1280x720",
+  "steps": [
+    {
+      "name": "profile-open",
+      "ok": true,
+      "value": {
+        "prompt": true,
+        "window": "Profile Profile Current nickname: Guest 9199 Guests keep a generated name. After your first quest you can link a Google "
+      },
+      "file": "01-profile-open.png"
+    },
+    {
+      "name": "link-prompt",
+      "ok": true,
+      "value": {
+        "window": ""
+      },
+      "file": "02-link-prompt.png"
+    },
+    {
+      "name": "sign-out-question",
+      "ok": true,
+      "value": {
+        "question": "Profile Profile Current nickname: Guest 9199 Guests keep a generated name. After your first quest you can link a Google or Microsoft account: your progress is k"
+      },
+      "file": "03-sign-out-question.png"
+    }
+  ],
+  "errors": []
+}
