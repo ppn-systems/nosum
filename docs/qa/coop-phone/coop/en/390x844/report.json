@@ -1,0 +1,76 @@
+{
+  "flow": "coop",
+  "locale": "en",
+  "viewport": "390x844",
+  "steps": [
+    {
+      "name": "coop-board-open",
+      "ok": true,
+      "value": {
+        "window": "Co-op Found a co-op Found Invitations You have no invitations."
+      },
+      "file": "01-coop-board-open.png"
+    },
+    {
+      "name": "coop-found",
+      "ok": true,
+      "value": {
+        "window": "Co-op Members Stock Upgrades Goals Log Members You Founder Online Counts cover the recent log (0 entries). No other play"
+      },
+      "file": "02-coop-found.png"
+    },
+    {
+      "name": "coop-members",
+      "ok": true,
+      "value": {
+        "overflow": 0
+      },
+      "file": "03-coop-members.png"
+    },
+    {
+      "name": "coop-upgrades",
+      "ok": true,
+      "value": {
+        "overflow": 0,
+        "buy": 2
+      },
+      "file": "04-coop-upgrades.png"
+    },
+    {
+      "name": "coop-objectives",
+      "ok": true,
+      "value": {
+        "overflow": 0
+      },
+      "file": "05-coop-objectives.png"
+    },
+    {
+      "name": "coop-deposit-seeds",
+      "ok": true,
+      "value": {
+        "window": "Co-op Members Stock Upgrades Goals Log Shared warehouse 6 Radish seeds You may take: 6 Withdraw Deposit Pick an item in the warehouse to take, or a slot of your",
+        "overflow": 0
+      },
+      "file": "06-coop-deposit-seeds.png"
+    },
+    {
+      "name": "coop-withdraw",
+      "ok": true,
+      "value": {
+        "window": "Co-op Members Stock Upgrades Goals Log Shared warehouse The warehouse is empty. Withdraw Deposit Pick an item in the warehouse to take, or a slot of your invent",
+        "overflow": 0
+      },
+      "file": "07-coop-withdraw.png"
+    },
+    {
+      "name": "coop-log",
+      "ok": true,
+      "value": {
+        "log": "Co-op Members Stock Upgrades Goals Log Warehouse log 7:00 AM - Guest 3674 withdrew 6 Radish seeds 7:00 AM - Guest 3674 deposited 6 Radish seeds",
+        "overflow": 0
+      },
+      "file": "08-coop-log.png"
+    }
+  ],
+  "errors": []
+}

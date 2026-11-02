@@ -31,7 +31,15 @@
         }
         else
         {
-            <GameSection Title="@Vm.Text("Coop_Members_Heading")">
+            <div class="coop-tabs">
+                <GameButton Variant="tab" Active="@(_part == CoopPart.Members)" Text="@Vm.Text("Coop_Tab_Members")" OnClick="@(() => _part = CoopPart.Members)" />
+                <GameButton Variant="tab" Active="@(_part == CoopPart.Warehouse)" Text="@Vm.Text("Coop_Tab_Warehouse")" OnClick="@(() => _part = CoopPart.Warehouse)" />
+                <GameButton Variant="tab" Active="@(_part == CoopPart.Upgrades)" Text="@Vm.Text("Coop_Tab_Upgrades")" OnClick="@(() => _part = CoopPart.Upgrades)" />
+                <GameButton Variant="tab" Active="@(_part == CoopPart.Objectives)" Text="@Vm.Text("Coop_Tab_Objectives")" OnClick="@(() => _part = CoopPart.Objectives)" />
+                <GameButton Variant="tab" Active="@(_part == CoopPart.Log)" Text="@Vm.Text("Coop_Tab_Log")" OnClick="@(() => _part = CoopPart.Log)" />
+            </div>
+            <div class="coop-part @PartClass(CoopPart.Members)">
+                <GameSection Title="@Vm.Text("Coop_Members_Heading")">
                 @foreach (MemberDisplay member in Vm.Members)
                 {
                     Guid memberId = member.MemberId;
@@ -57,7 +65,9 @@
                     <GameButton Variant="danger" Text="@Vm.Text("Coop_Leave")" OnClick="@(() => Vm.Leave())" />
                 </GameRow>
             </GameSection>
-            <GameSection Title="@Vm.Text("Coop_Warehouse_Heading")">
+            </div>
+            <div class="coop-part @PartClass(CoopPart.Warehouse)">
+                <GameSection Title="@Vm.Text("Coop_Warehouse_Heading")">
                 @if (Vm.Stock.Count == 0)
                 {
                     <p class="coop-empty">@Vm.Text("Coop_WarehouseEmpty")</p>
@@ -79,7 +89,9 @@
                 <p class="coop-empty">@Vm.Text("Coop_DepositHint")</p>
                 <ItemGrid Slots="Vm.InventorySlots" Columns="9" OnSlotClick="@(i => Vm.PickDeposit(i))" />
             </GameSection>
-            <GameSection Title="@Vm.Text("Coop_Upgrades_Heading")">
+            </div>
+            <div class="coop-part @PartClass(CoopPart.Upgrades)">
+                <GameSection Title="@Vm.Text("Coop_Upgrades_Heading")">
                 @foreach (UpgradeDisplay upgrade in Vm.Upgrades)
                 {
                     UpgradeDisplay u = upgrade;
@@ -110,7 +122,9 @@
                     <p class="coop-empty">@Vm.Text("Coop_Upgrade_FounderOnly")</p>
                 }
             </GameSection>
-            <GameSection Title="@Vm.Text("Coop_Objectives_Heading")">
+            </div>
+            <div class="coop-part @PartClass(CoopPart.Objectives)">
+                <GameSection Title="@Vm.Text("Coop_Objectives_Heading")">
                 @foreach (ObjectiveDisplay objective in Vm.Objectives)
                 {
                     <div class="objective-row">
@@ -124,17 +138,27 @@
                     </div>
                 }
             </GameSection>
-            <GameSection Title="@Vm.Text("Coop_Log_Heading")">
+            </div>
+            <div class="coop-part @PartClass(CoopPart.Log)">
+                <GameSection Title="@Vm.Text("Coop_Log_Heading")">
                 @foreach (string line in Vm.Log)
                 {
                     <p class="coop-log">@line</p>
                 }
             </GameSection>
+            </div>
         }
     </GameStack>
 </MenuPage>
 
 @code {
+
+    /// <summary>The part of the co-op shown on a phone (ui-standard section 6); a desktop shows every part.</summary>
+    private enum CoopPart { Members, Warehouse, Upgrades, Objectives, Log }
+
+    private CoopPart _part = CoopPart.Members;
+
+    private string? PartClass(CoopPart part) => part == _part ? "active" : null;
 
     protected override void OnInitialized() => Vm.Open();
 }

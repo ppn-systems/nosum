@@ -292,6 +292,11 @@
   <data name="Coop_Deposit" xml:space="preserve"><value>Gửi vào</value></data>
   <data name="Coop_DepositHint" xml:space="preserve"><value>Chọn một món trong kho để lấy, hoặc một ô trong túi đồ để gửi.</value></data>
   <data name="Coop_Log_Heading" xml:space="preserve"><value>Nhật ký kho</value></data>
+  <data name="Coop_Tab_Members" xml:space="preserve"><value>Thành viên</value></data>
+  <data name="Coop_Tab_Warehouse" xml:space="preserve"><value>Kho</value></data>
+  <data name="Coop_Tab_Upgrades" xml:space="preserve"><value>Nâng cấp</value></data>
+  <data name="Coop_Tab_Objectives" xml:space="preserve"><value>Mục tiêu</value></data>
+  <data name="Coop_Tab_Log" xml:space="preserve"><value>Nhật ký</value></data>
   <data name="Coop_Contrib_Row" xml:space="preserve"><value>Đã góp {0} món</value></data>
   <data name="Coop_Contrib_Window" xml:space="preserve"><value>Số liệu tính trên {0} mục nhật ký gần đây.</value></data>
   <data name="Coop_Log_Deposit" xml:space="preserve"><value>{0} - {1} đã gửi {2} {3}</value></data>

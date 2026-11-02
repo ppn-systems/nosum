@@ -36,6 +36,8 @@ Captures: `coop/vi/390x844/` and `coop/en/390x844/` (five steps each, pass). `Me
 it. **Not fully met:** the row is still cut by the window edge and the content does not fit; the cue says it scrolls, but a fit would
 need the upgrade section to change, which is a design call (ui-standard §6 allows the cue).
 
+**Update:** resolved in `claude/coop-phone`: on a phone the co-op shows one part at a time behind a tab bar, so no row is cut. See `docs/qa/coop-phone/README.md`.
+
 ## 3. Two-player social flow
 
 Captures: `social/1280x720/` (vi and en, all steps pass), `social/390x844/` (en, all steps pass; the vi files there are from a run
