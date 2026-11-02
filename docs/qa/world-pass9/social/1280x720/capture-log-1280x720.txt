@@ -1,0 +1,16 @@
+ok   befriend QaFriend8464
+ok   vi-1280x720-friends-online (listed)
+ok   vi-1280x720-chat
+ok   vi-1280x720-trade
+ok   vi-1280x720-visit-farm
+FAIL vi-1280x720-coop-deposit: locator.waitFor: Timeout 20000ms exceeded. | Call log: | [2m  - waiting for getByRole('button', { name: /^Gửi vào$/ }).first() to be visible[22m | 
+FAIL vi-1280x720-coop-invite: locator.click: Timeout 4000ms exceeded. | Call log: | [2m  - waiting for locator('button.slot:not(.empty)').nth(4)[22m | [2m    - locator resolved to <button type="button" b-25ee732s98="" class="slot    " aria-label="Hạt súp lơ" data-tip="Hạt súp lơ↵Gieo trên đất đã xới để trồng súp lơ. Cần tưới nhiều lần.↵Số lượng: 8">…</button>[22m
+ok   vi-1280x720 play
+ok   befriend QaFriend7169
+ok   en-1280x720-friends-online (listed)
+ok   en-1280x720-chat
+ok   en-1280x720-trade
+ok   en-1280x720-visit-farm
+FAIL en-1280x720-coop-deposit: locator.waitFor: Timeout 20000ms exceeded. | Call log: | [2m  - waiting for getByRole('button', { name: /^Deposit$/ }).first() to be visible[22m | 
+FAIL en-1280x720-coop-invite: locator.click: Timeout 4000ms exceeded. | Call log: | [2m  - waiting for locator('button.slot:not(.empty)').nth(4)[22m | [2m    - locator resolved to <button type="button" b-25ee732s98="" class="slot    " aria-label="Cauliflower seeds" data-tip="Cauliflower seeds↵Plant on tilled soil to grow cauliflower. Needs watering more than once.↵Quantity: 8">…</button>[22m
+ok   en-1280x720 play

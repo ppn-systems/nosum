@@ -123,9 +123,9 @@ async function openBoard(page, t, tile = [42, 59]) {
   throw new Error('the co-op board did not open');
 }
 
-// On a phone the co-op shows one part at a time; the warehouse (where seeds are deposited) is its Stock tab.
-async function membersTab(page, t, phone) { if (phone) await seen(page.getByRole('button', { name: t.membersTab })).then(b => b.dispatchEvent('click', null, { timeout: 6000 })); }
-async function stockTab(page, t, phone) { if (phone) await seen(page.getByRole('button', { name: t.stockTab })).then(b => b.dispatchEvent('click', null, { timeout: 6000 })); }
+// The co-op shows one part at a time at every size (world pass 9, #346): the warehouse (where seeds are deposited) is its Stock tab.
+async function membersTab(page, t) { await seen(page.getByRole('button', { name: t.membersTab })).then(b => b.dispatchEvent('click', null, { timeout: 6000 })); }
+async function stockTab(page, t) { await seen(page.getByRole('button', { name: t.stockTab })).then(b => b.dispatchEvent('click', null, { timeout: 6000 })); }
 
 // Invites a nearby player: the picker lists the players in reach by name, so the invite waits for the name to appear, and the
 // invitation waits for the other player's Accept. Each stage is retried (teleporting the guest back into reach) rather than
@@ -218,7 +218,7 @@ async function play(browser, code, size) {
     await seen(a.getByText(t.coop, { exact: true })).then(c => c.click({ timeout: 6000 }));
     await seen(a.locator('input').first()).then(i => i.fill('Test Co-op'));
     await a.getByRole('button', { name: t.found }).first().click({ timeout: 6000 });
-    await stockTab(a, t, phone);
+    await stockTab(a, t);
     await seen(a.getByRole('button', { name: t.deposit }));
     await pickSeeds(a);
     await a.getByRole('button', { name: t.deposit }).first().click({ timeout: 6000 });
@@ -226,13 +226,13 @@ async function play(browser, code, size) {
   });
   await step(p + 'coop-invite', async () => {
     await b.evaluate(() => window.nosumQa.teleport('town', 44, 60));
-    await membersTab(a, t, phone); // the invite picker is on the co-op's Members part
+    await membersTab(a, t); // the invite picker is on the co-op's Members part
     await invitePlayer(a, b, nickname, t, [44, 60]);
     await closeAll(a);
     await b.evaluate(() => window.nosumQa.teleport('town', 42, 59));
     await openBoard(b, t, [42, 59]);
     await seen(b.getByText(t.coop, { exact: true })).then(c => c.click({ timeout: 6000 }));
-    await stockTab(b, t, phone);
+    await stockTab(b, t);
     await pickSeeds(b);
     await b.getByRole('button', { name: t.deposit }).first().click({ timeout: 6000 });
     await b.screenshot({ path: path.join(OUT, p + 'coop-deposit-receiver.png') });
