@@ -1,6 +1,7 @@
 // Copyright (c) 2026 PPN Systems. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using Nosum.Gameplay.Calendar;
 using Nosum.Gameplay.Farm;
 using Nosum.Gameplay.Items;
@@ -164,8 +165,11 @@ public static class ShopRules
 
         shopId = 0;
         double best = double.MaxValue;
-        foreach (ShopPoint point in map.Shops)
+        // Indexed, not foreach: this runs every client frame in a town, and a foreach over the IReadOnlyList allocates its enumerator each call.
+        IReadOnlyList<ShopPoint> shops = map.Shops;
+        for (int i = 0; i < shops.Count; i++)
         {
+            ShopPoint point = shops[i];
             if (!InReach(point, feetX, feetY, tileSize))
             {
                 continue;
