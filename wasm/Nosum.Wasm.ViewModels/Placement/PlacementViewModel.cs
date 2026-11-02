@@ -43,6 +43,7 @@ public sealed class PlacementViewModel : IObservableViewModel
     private readonly IStringLocalizer<Language> _text;
     private int _requests;
     private bool _active;
+    private bool _windowed = true;
     private int _carryingItemId;
     private bool _ghostShown;
     private PlaceStatus _ghostStatus = PlaceStatus.Ok;
@@ -64,8 +65,14 @@ public sealed class PlacementViewModel : IObservableViewModel
     /// <inheritdoc/>
     public event Action? Changed;
 
-    /// <summary>Gets whether the panel is shown (the player is in a place where furniture can be placed).</summary>
+    /// <summary>Gets whether the placement UI is shown (the player is in a place where pieces can be placed): the key strip, and the window when <see cref="ShowsWindow"/>.</summary>
     public bool IsVisible => _active;
+
+    /// <summary>
+    /// Gets whether the arrange window (the furniture catalogue) is drawn. It is not while a farm building is held: a building has no catalogue, so its
+    /// key strip docks in the bottom centre instead (docs/adr/ADR-118). <see cref="IsVisible"/> stays true then, so the strip still shows.
+    /// </summary>
+    public bool ShowsWindow => _active && _windowed;
 
     /// <summary>Gets the localized panel title.</summary>
     public string Title => _text["Placement_Title"];
@@ -173,6 +180,17 @@ public sealed class PlacementViewModel : IObservableViewModel
 
     /// <summary>Lets the arrange panel show again: the player picked a piece or held another item.</summary>
     public void ClearDismissed() => this.Dismissed = false;
+
+    /// <summary>Shows or hides the arrange window while the placement UI stays up; the game loop calls it each frame with what is held.</summary>
+    /// <param name="windowed">Whether the catalogue window is drawn (false for a farm building in hand).</param>
+    public void SetWindowed(bool windowed)
+    {
+        if (_windowed != windowed)
+        {
+            _windowed = windowed;
+            this.Changed?.Invoke();
+        }
+    }
 
     /// <summary>Shows or hides the panel; the game loop calls it when the map changes.</summary>
     /// <param name="active">Whether the player is in a place where furniture can be placed.</param>

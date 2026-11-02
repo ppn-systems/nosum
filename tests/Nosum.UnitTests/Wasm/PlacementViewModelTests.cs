@@ -73,6 +73,40 @@ public sealed class PlacementViewModelTests
         }
     }
     [Fact]
+    public void ShowsWindow_IsOffWhileNotWindowed_AndTheStripStaysVisible()
+    {
+        PlacementViewModel vm = new(Localizer<Catalogue>(), Localizer<Language>());
+        int changed = 0;
+        vm.Changed += () => changed++;
+
+        vm.SetActive(true);
+        vm.ShowsWindow.Should().BeTrue();
+        vm.SetWindowed(false);
+
+        vm.IsVisible.Should().BeTrue();
+        vm.ShowsWindow.Should().BeFalse();
+        changed.Should().Be(2);
+
+        vm.SetWindowed(false);
+        changed.Should().Be(2);
+
+        vm.SetWindowed(true);
+        vm.ShowsWindow.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ShowsWindow_IsOffWhenThePanelIsNotActive()
+    {
+        PlacementViewModel vm = new(Localizer<Catalogue>(), Localizer<Language>());
+
+        vm.SetWindowed(true);
+        vm.ShowsWindow.Should().BeFalse();
+
+        vm.SetActive(true);
+        vm.ShowsWindow.Should().BeTrue();
+    }
+
+    [Fact]
     public void PlaceRequest_IsCollectedLikeTheOtherRequests()
     {
         PlacementViewModel vm = new(Localizer<Catalogue>(), Localizer<Language>());

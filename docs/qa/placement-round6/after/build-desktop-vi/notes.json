@@ -1,0 +1,9 @@
+{
+  "viewport": "desktop",
+  "lang": "vi",
+  "ghost": null,
+  "ghostNotice": null,
+  "confirm": "Công trình xây xong không dời hay cất được. Nhấn E lần nữa để xây ở đây.",
+  "afterBuild": null,
+  "stowNothing": null
+}

@@ -84,8 +84,8 @@ public sealed class FurnitureCatalogViewModel : IObservableViewModel, IDisposabl
     /// <inheritdoc/>
     public event Action? Changed;
 
-    /// <summary>Gets whether the panel is shown: the player is in a place where furniture can be placed.</summary>
-    public bool IsVisible => _placement.IsVisible;
+    /// <summary>Gets whether the window is shown: the player is in a place where furniture can be placed, and no farm building is held (docs/adr/ADR-118).</summary>
+    public bool IsVisible => _placement.ShowsWindow;
 
     /// <summary>Gets the localized panel title.</summary>
     public string Title => _text["Furniture_Title"];

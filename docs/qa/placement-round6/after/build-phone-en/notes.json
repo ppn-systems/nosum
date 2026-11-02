@@ -1,0 +1,9 @@
+{
+  "viewport": "phone",
+  "lang": "en",
+  "ghost": null,
+  "ghostNotice": null,
+  "confirm": "A finished building cannot be moved or stowed. Press E again to build here.",
+  "afterBuild": null,
+  "stowNothing": null
+}
