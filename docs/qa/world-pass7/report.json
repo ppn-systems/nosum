@@ -1,0 +1,250 @@
+[
+  {
+    "locale": "en",
+    "viewport": "390x844",
+    "steps": [
+      {
+        "name": "farm",
+        "file": "01-farm.png",
+        "note": "hud on the farm"
+      },
+      {
+        "name": "menu",
+        "tiles": [
+          "Inventory",
+          "Crafting",
+          "Trade",
+          "Visitors",
+          "Friends",
+          "Skills",
+          "Pet",
+          "Profile",
+          "World map",
+          "Journal"
+        ],
+        "file": "02-menu.png"
+      },
+      {
+        "name": "Inventory",
+        "file": "03-Inventory.png",
+        "audit": {
+          "window": true,
+          "title": "Inventory",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "Crafting",
+        "file": "04-Crafting.png",
+        "audit": {
+          "window": true,
+          "title": "Crafting",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "Trade",
+        "file": "05-Trade.png",
+        "audit": {
+          "window": true,
+          "title": "Trade",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "Visitors",
+        "file": "06-Visitors.png",
+        "audit": {
+          "window": true,
+          "title": "Visitors",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "Friends",
+        "file": "07-Friends.png",
+        "audit": {
+          "window": true,
+          "title": "Friends",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "Skills",
+        "file": "08-Skills.png",
+        "audit": {
+          "window": true,
+          "title": "Skills",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "Pet",
+        "file": "09-Pet.png",
+        "audit": {
+          "window": true,
+          "title": "Pet",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "Profile",
+        "file": "10-Profile.png",
+        "audit": {
+          "window": true,
+          "title": "Profile",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "World map",
+        "file": "11-World-map.png",
+        "audit": {
+          "window": true,
+          "title": "World map",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "Journal",
+        "file": "12-Journal.png",
+        "audit": {
+          "window": true,
+          "title": "Journal",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "col-Mail",
+        "file": "13-col-Mail.png",
+        "audit": {
+          "window": true,
+          "title": "Mail",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "col-Settings",
+        "file": "14-col-Settings.png",
+        "audit": {
+          "window": true,
+          "title": "Settings",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "col-Minimap: click to open the world map",
+        "file": "15-col-Minimap-click-to-open-the-world-map.png",
+        "audit": {
+          "window": true,
+          "title": "World map",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "col-Inventory [I]",
+        "file": "16-col-Inventory-I-.png",
+        "audit": {
+          "window": true,
+          "title": "Inventory",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "col-Crafting",
+        "file": "17-col-Crafting.png",
+        "audit": {
+          "window": true,
+          "title": "Crafting",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "col-Trade [T]",
+        "file": "18-col-Trade-T-.png",
+        "audit": {
+          "window": true,
+          "title": "Trade",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "col-Friends",
+        "file": "19-col-Friends.png",
+        "audit": {
+          "window": true,
+          "title": "Friends",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "col-Skills",
+        "file": "20-col-Skills.png",
+        "audit": {
+          "window": true,
+          "title": "Skills",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "col-World map [Tab]",
+        "file": "21-col-World-map-Tab-.png",
+        "audit": {
+          "window": true,
+          "title": "World map",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "col-Journal [J]",
+        "file": "22-col-Journal-J-.png",
+        "audit": {
+          "window": true,
+          "title": "Journal",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "col-Menu",
+        "file": "23-col-Menu.png",
+        "audit": {
+          "window": true,
+          "title": "Menu",
+          "off": false,
+          "issues": []
+        }
+      },
+      {
+        "name": "key-g",
+        "file": "24-key-g.png",
+        "audit": {
+          "window": true,
+          "title": "Co-op",
+          "off": false,
+          "issues": []
+        }
+      }
+    ],
+    "errors": []
+  }
+]

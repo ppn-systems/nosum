@@ -1,0 +1,46 @@
+[
+  {
+    "name": "season(2) to Fall",
+    "before": "Spring",
+    "samples": [
+      "0ms:Spring",
+      "300ms:Fall",
+      "1000ms:Fall",
+      "2000ms:Fall",
+      "4000ms:Fall"
+    ]
+  },
+  {
+    "name": "springReset from Fall",
+    "before": "Fall",
+    "samples": [
+      "0ms:Spring",
+      "300ms:Spring",
+      "1000ms:Spring",
+      "2000ms:Spring",
+      "4000ms:Spring"
+    ]
+  },
+  {
+    "name": "season(1) to Summer",
+    "before": "Spring",
+    "samples": [
+      "0ms:Spring",
+      "300ms:Summer",
+      "1000ms:Summer",
+      "2000ms:Summer",
+      "4000ms:Summer"
+    ]
+  },
+  {
+    "name": "springReset from Summer",
+    "before": "Summer",
+    "samples": [
+      "0ms:Summer",
+      "300ms:Spring",
+      "1000ms:Spring",
+      "2000ms:Spring",
+      "4000ms:Spring"
+    ]
+  }
+]

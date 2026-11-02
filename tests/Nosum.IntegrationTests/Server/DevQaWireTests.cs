@@ -74,6 +74,18 @@ public sealed class DevQaWireTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task DevSeason_ZeroPasses_IsAnsweredAsTheNextSpring()
+    {
+        // Zero is the springReset call: the wire range must not refuse it, or the server never answers (world pass 7).
+        FakeTimeProvider clock = new(s_start);
+        await using NodeWireTests.TestHost host = await NodeWireTests.TestHost.StartAsync(_database, clock);
+        await using NodeWireTests.ToolClient player = await host.ConnectAsync();
+        _ = await player.JoinAsync(host.Timeout);
+
+        (await player.SeasonAsync(0, host.Timeout)).Should().BeTrue("zero passes to the next Spring");
+    }
+
+    [Fact]
     public async Task DevBefriend_InDevelopment_MakesTheSenderRegisteredAndFriendsWithANewRegisteredPlayer()
     {
         FakeTimeProvider clock = new(s_start);

@@ -82,3 +82,12 @@ The rules that stay fixed: the server decides every outcome (docs/adr/ADR-003, `
 - **Beach coordinates.** The Beach's sand row above the sea is `y = 43` (`art/own/Maps/Beach.tmx`: the sea starts at `y = 44`). The world pass used
   `(39, 2)`, which is the Town road. A rod casts only by a click on water (ADR-078 D2); the action key does nothing with a rod, so a QA cast is a mouse
   click on the sea.
+
+### 2026-11-02 - zero season passes reach the server again (world pass 7)
+
+- **D10 — `DevSeason` accepts zero.** The packet's wire range was 1 to 4, so the server refused `Seasons = 0` before the handler ran. The
+  `springReset()` call of D3 (the "next Spring" request every QA run starts with) was therefore dropped with no reply and did nothing: from Summer,
+  Fall or Winter the season label stayed put, and a probe read the old season after the reset (the pass-5 "Fall after a Spring reset" report).
+  The range is now 0 to 4 (`DevSeason.Seasons`). The layout is unchanged: only the validation changed, so the wire is the same and no opcode or
+  protocol version moved. `DevSeasonPacketTests` pins the range, and `DevSeason_ZeroPasses_IsAnsweredAsTheNextSpring` checks the server answers.
+  Evidence: `docs/qa/world-pass7/season-label/`.

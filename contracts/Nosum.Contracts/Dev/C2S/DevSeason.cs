@@ -16,7 +16,7 @@ public sealed partial class DevSeason : PacketBase<DevSeason>, IPacketStaticOpco
     /// <inheritdoc/>
     public static ushort StaticOpCode => DevOpCode.DevSeason;
 
-    /// <summary>How many season starts to pass, 1 to 4.</summary>
-    [WireRange(1, 4)]
+    /// <summary>How many season starts to pass, 1 to 4; zero passes to the next Spring (ADR-079 D3). The server refuses any other value.</summary>
+    [WireRange(0, 4)]
     [SerializeOrder(0)] public int Seasons { get; set; } = 1;
 }
