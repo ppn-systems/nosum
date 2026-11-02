@@ -116,8 +116,9 @@ public static class NpcGreeting
         ArgumentNullException.ThrowIfNull(exists);
         ArgumentOutOfRangeException.ThrowIfNegative(slot);
 
-        // The greeting names the farmer's quest when this merchant is where the quest sends them (docs/adr/ADR-093 D3); the Talk lines go on as before.
-        if (slot == 0 && context.ActiveQuestKey is { } questKey && QuestWaypoints.PlaceOf(questKey) == npc.Id)
+        // When this merchant is where the active quest sends the farmer, the quest line is said at the greeting and at every second step after it
+        // (slots 0, 2, 4 ...), so the Talk lines between them stay as they were (docs/adr/ADR-093 D3, amended by docs/adr/ADR-113 D1).
+        if (slot % 2 == 0 && context.ActiveQuestKey is { } questKey && QuestWaypoints.PlaceOf(questKey) == npc.Id)
         {
             string questLine = npc.TextKey("Quest_" + questKey);
             if (exists(questLine))
