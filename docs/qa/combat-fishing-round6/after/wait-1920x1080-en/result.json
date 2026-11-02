@@ -1,0 +1,8 @@
+{
+  "mode": "wait",
+  "size": "1920x1080",
+  "locale": "en-US",
+  "waitLine": "Waiting for a bite. It usually takes a few seconds...",
+  "bite": true,
+  "errors": []
+}

@@ -137,3 +137,14 @@ band 3 healing is too tight.
   and the tooltip and accessible name carry the full `HP 20 / 100`. MP is unchanged. No wire change.
 - A first version put the full label above the whole vitals column. On a 390 px screen that tag ran off the right edge and covered the heart button, so
   the tag now sits over its own tube, where there is room for it.
+
+### 2026-11-02 - the revive is a quarter of HP, and the notice says so (combat critique round 6)
+
+- D2 says the knock-out revives the player at `50%` HP. The code has always revived at 25 % of maximum HP, minimum 1
+  (`CombatRules.ReviveHp`), and `docs/design/combat-balance.md` (the healing paragraph) says 25 %.
+  The `50%` in D2 was stale. The wire carries the revived HP in the vitals push after the travel, so no packet changes.
+- The knock-out notice names the quarter: `Bạn đã kiệt sức và được đưa về Nhà nông trại, chỉ còn một phần tư máu.` (`Combat_KnockedOut`). The
+  vitals push that carries zero HP is the only source of the notice. A knock-out caused by the farmer's own attack also sent the attack reply's
+  `KnockedOut` flag. From the code, that showed the same notice a second time as a `×2` toast (not reproduced in the browser); the reply no longer raises it.
+- The fishing wait line (ADR-078) now says the wait is normal: `Đang chờ cá cắn câu, thường chỉ mất vài giây...`. No new key; `Fishing_Waiting` changed text only.
+- No wire change, so `NosumProtocol.Version` stays at 34. Frames: `docs/qa/combat-fishing-round6/`.
