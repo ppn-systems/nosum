@@ -69,3 +69,26 @@
 .objective-trophy {
     color: var(--nosum-ink-soft);
 }
+
+/* A part of the co-op is a wrapper that takes no box of its own, so a desktop lays the parts out as before. On a phone
+   (640 px and under, ui-standard section 6) the tab bar shows and only the chosen part is shown: each part fits the window, so no row is cut. */
+.coop-part {
+    display: contents;
+}
+
+.coop-tabs {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .coop-tabs {
+        display: flex;
+        gap: calc(var(--u) * 2);
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .coop-part:not(.active) {
+        display: none;
+    }
+}

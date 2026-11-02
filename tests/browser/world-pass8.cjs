@@ -711,8 +711,13 @@ async function marketFlow(lk) {
 }
 
 
-// ---- co-op: found a co-op at the board keeper, deposit seeds, withdraw some, and read the warehouse log (Coop_Log_*)
+// ---- co-op: found a co-op at the board keeper, deposit seeds, withdraw some, and read the warehouse log (Coop_Log_*).
+// On a phone (390 px) the co-op shows one part at a time (its tab bar, CoopPanel.razor); each tab step saves a frame and the scroll
+// overflow of the page body, so a cut row shows as a non-zero overflow in report.json.
 async function coopFlow(lk) {
+  const phone = report.viewport.startsWith('390');
+  const tab = async key => { if (phone) { await clickKey(lk, key, { timeout: 6000 }); await wait(700); } };
+  const overflow = () => page.evaluate(() => { const b = document.querySelector('.menu-page-body'); return b ? b.scrollHeight - b.clientHeight : -1; });
   await signInGuest(lk);
   await qa('grant', [100, 6, 0]); await wait(900);
   await goto('town', 42, 59, 2500);
@@ -727,24 +732,38 @@ async function coopFlow(lk) {
     await clickKey(lk, 'Coop_Create', { timeout: 6000 }); await wait(1500);
     return { window: (await windowText()).slice(0, 120) };
   });
+  await step('coop-members', async () => {
+    await tab('Coop_Tab_Members');
+    return { overflow: await overflow() };
+  });
+  await step('coop-upgrades', async () => {
+    await tab('Coop_Tab_Upgrades');
+    return { overflow: await overflow(), buy: await page.getByRole('button', { name: nameRe(lk, 'Coop_Upgrade_Buy') }).count() };
+  });
+  await step('coop-objectives', async () => {
+    await tab('Coop_Tab_Objectives');
+    return { overflow: await overflow() };
+  });
   await step('coop-deposit-seeds', async () => {
     // Seeds in the bag: the slot that shows the seed count (6, granted above); deposit one stack.
+    await tab('Coop_Tab_Warehouse');
     const slot = page.locator('section.game-panel button').filter({ hasText: /^6$/ }).first();
     await slot.click({ timeout: 6000 }); await wait(500);
     await clickKey(lk, 'Coop_Deposit', { timeout: 6000 }); await wait(1500);
-    return { window: (await windowText()).slice(0, 160) };
+    return { window: (await windowText()).slice(0, 160), overflow: await overflow() };
   });
   await step('coop-withdraw', async () => {
     const item = page.locator('section.game-panel button').filter({ hasText: /^6$/ }).first();
     await item.click({ timeout: 6000 }); await wait(500);
     await clickKey(lk, 'Coop_Withdraw', { timeout: 6000 }); await wait(1500);
-    return { window: (await windowText()).slice(0, 160) };
+    return { window: (await windowText()).slice(0, 160), overflow: await overflow() };
   });
   await step('coop-log', async () => {
-    const log = page.getByText(nameRe(lk, 'Coop_Log_Heading')).first();
+    await tab('Coop_Tab_Log');
+    const log = page.getByRole('heading', { name: nameRe(lk, 'Coop_Log_Heading') }).first();
     const shown = await log.isVisible().catch(() => false);
     if (!shown) throw new Error('no warehouse log heading');
-    return { log: (await windowText()).slice(0, 200) };
+    return { log: (await windowText()).slice(0, 200), overflow: await overflow() };
   });
   await closeWindow(lk);
 }

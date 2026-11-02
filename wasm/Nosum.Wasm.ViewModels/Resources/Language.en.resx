@@ -292,6 +292,11 @@
   <data name="Coop_Deposit" xml:space="preserve"><value>Deposit</value></data>
   <data name="Coop_DepositHint" xml:space="preserve"><value>Pick an item in the warehouse to take, or a slot of your inventory to deposit.</value></data>
   <data name="Coop_Log_Heading" xml:space="preserve"><value>Warehouse log</value></data>
+  <data name="Coop_Tab_Members" xml:space="preserve"><value>Members</value></data>
+  <data name="Coop_Tab_Warehouse" xml:space="preserve"><value>Stock</value></data>
+  <data name="Coop_Tab_Upgrades" xml:space="preserve"><value>Upgrades</value></data>
+  <data name="Coop_Tab_Objectives" xml:space="preserve"><value>Goals</value></data>
+  <data name="Coop_Tab_Log" xml:space="preserve"><value>Log</value></data>
   <data name="Coop_Contrib_Row" xml:space="preserve"><value>{0} deposited</value></data>
   <data name="Coop_Contrib_Window" xml:space="preserve"><value>Counts cover the recent log ({0} entries).</value></data>
   <data name="Coop_Log_Deposit" xml:space="preserve"><value>{0} - {1} deposited {2} {3}</value></data>

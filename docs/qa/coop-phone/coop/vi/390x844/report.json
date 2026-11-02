@@ -1,0 +1,76 @@
+{
+  "flow": "coop",
+  "locale": "vi",
+  "viewport": "390x844",
+  "steps": [
+    {
+      "name": "coop-board-open",
+      "ok": true,
+      "value": {
+        "window": "Hợp tác xã Lập hợp tác xã Lập Lời mời Bạn chưa có lời mời nào."
+      },
+      "file": "01-coop-board-open.png"
+    },
+    {
+      "name": "coop-found",
+      "ok": true,
+      "value": {
+        "window": "Hợp tác xã Thành viên Kho Nâng cấp Mục tiêu Nhật ký Thành viên Bạn Người sáng lập Trực tuyến Số liệu tính trên 0 mục nhậ"
+      },
+      "file": "02-coop-found.png"
+    },
+    {
+      "name": "coop-members",
+      "ok": true,
+      "value": {
+        "overflow": 0
+      },
+      "file": "03-coop-members.png"
+    },
+    {
+      "name": "coop-upgrades",
+      "ok": true,
+      "value": {
+        "overflow": 0,
+        "buy": 2
+      },
+      "file": "04-coop-upgrades.png"
+    },
+    {
+      "name": "coop-objectives",
+      "ok": true,
+      "value": {
+        "overflow": 0
+      },
+      "file": "05-coop-objectives.png"
+    },
+    {
+      "name": "coop-deposit-seeds",
+      "ok": true,
+      "value": {
+        "window": "Hợp tác xã Thành viên Kho Nâng cấp Mục tiêu Nhật ký Kho chung 6 Hạt củ cải đỏ Bạn lấy được: 6 Lấy ra Gửi vào Chọn một món trong kho để lấy, hoặc một ô trong túi",
+        "overflow": 0
+      },
+      "file": "06-coop-deposit-seeds.png"
+    },
+    {
+      "name": "coop-withdraw",
+      "ok": true,
+      "value": {
+        "window": "Hợp tác xã Thành viên Kho Nâng cấp Mục tiêu Nhật ký Kho chung Kho đang trống. Lấy ra Gửi vào Chọn một món trong kho để lấy, hoặc một ô trong túi đồ để gửi. 40 1",
+        "overflow": 0
+      },
+      "file": "07-coop-withdraw.png"
+    },
+    {
+      "name": "coop-log",
+      "ok": true,
+      "value": {
+        "log": "Hợp tác xã Thành viên Kho Nâng cấp Mục tiêu Nhật ký Nhật ký kho 06:59 - Khách 2242 đã lấy 6 Hạt củ cải đỏ 06:59 - Khách 2242 đã gửi 6 Hạt củ cải đỏ",
+        "overflow": 0
+      },
+      "file": "08-coop-log.png"
+    }
+  ],
+  "errors": []
+}
