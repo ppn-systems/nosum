@@ -73,8 +73,8 @@ public sealed class MailChannel : IDisposable
     /// <summary>Raised when the server pushed an unread count (a mail arrived, was read or deleted). May run on any thread.</summary>
     public event Action? UnreadChanged;
 
-    /// <summary>Raised with the server's answer to a request. May run on any thread.</summary>
-    public event Action<MailAction, MailStatus>? Completed;
+    /// <summary>Raised with the server's answer to a request, and the mail it was about. May run on any thread.</summary>
+    public event Action<MailAction, MailStatus, Guid>? Completed;
 
     /// <summary>Gets the number of unread mails.</summary>
     public int Unread => Volatile.Read(ref _unread);
@@ -144,7 +144,7 @@ public sealed class MailChannel : IDisposable
             using PacketScope<TRequest> request = PacketFactory<TRequest>.Acquire();
             fill(request.Value);
             MailResult reply = await _socket.RequestAsync<MailResult>(request.Value).ConfigureAwait(false);
-            this.Completed?.Invoke(action, reply.Status);
+            this.Completed?.Invoke(action, reply.Status, mailId);
 
             // A read only flips a flag (the server pushes the new unread count); the others change what the box holds,
             // and a refusal means the list is stale: read it again.

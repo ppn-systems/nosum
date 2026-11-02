@@ -369,6 +369,86 @@ public sealed class MailTests
     }
 
     [Fact]
+    public void Collect_Accepted_NamesTheItemsAndCoinsItBrought()
+    {
+        using SocialClientFixtures.CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => Box(1));
+        socket.ReplyWith(_ => new MailResult { Status = MailStatus.Ok });
+        using MailChannel channel = new(socket);
+        channel.Load();
+        using MailViewModel vm = Create(socket, channel);
+
+        vm.Collect(s_sold);
+
+        vm.Status.Should().Be("Collected 2 items and 95 coins.");
+        vm.StatusIsGood.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Collect_OnlyOneItem_UsesTheSingular()
+    {
+        using SocialClientFixtures.CultureScope scope = new("en");
+        Guid single = Guid.Parse("aaaaaaaa-0000-0000-0000-000000000007");
+        FakeGameSocket socket = new();
+        MailList box = new() { Unread = 0 };
+        MailRow row = Row(single, "market.sold", 20 * Day, false, 0, ItemCatalog.Parsnip.ToString(System.Globalization.CultureInfo.InvariantCulture), "1", "0");
+        row.Items.Add(new MailItemRow { ItemId = ItemCatalog.Parsnip, Quantity = 1 });
+        box.Mails.Add(row);
+        socket.ReplyWith(_ => box);
+        socket.ReplyWith(_ => new MailResult { Status = MailStatus.Ok });
+        using MailChannel channel = new(socket);
+        channel.Load();
+        using MailViewModel vm = Create(socket, channel);
+
+        vm.Collect(single);
+
+        vm.Status.Should().Be("Collected 1 item.");
+    }
+
+    [Fact]
+    public void CollectAll_TotalsTheRunInOneLine()
+    {
+        using SocialClientFixtures.CultureScope scope = new("en");
+        Guid second = Guid.Parse("aaaaaaaa-0000-0000-0000-000000000008");
+        FakeGameSocket socket = new();
+        MailList box = Box(0);
+        box.Mails.Add(Row(second, "market.sold", 20 * Day, false, 40, ItemCatalog.Parsnip.ToString(System.Globalization.CultureInfo.InvariantCulture), "1", "40"));
+        socket.ReplyWith(_ => box);
+        socket.ReplyWith(_ => new MailResult { Status = MailStatus.Ok });
+        using MailChannel channel = new(socket);
+        channel.Load();
+        using MailViewModel vm = Create(socket, channel);
+
+        vm.CollectAll();
+
+        // 95 + 40 coins, and the two parsnips of the first mail (the second brings no items).
+        vm.Status.Should().Be("Collected 2 items and 135 coins.");
+        vm.StatusIsGood.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CollectAll_StoppedByARefusal_SaysWhatCameThroughThenWhy()
+    {
+        using SocialClientFixtures.CultureScope scope = new("en");
+        Guid second = Guid.Parse("aaaaaaaa-0000-0000-0000-000000000009");
+        FakeGameSocket socket = new();
+        MailList box = Box(0);
+        box.Mails.Add(Row(second, "market.sold", 20 * Day, false, 40, ItemCatalog.Parsnip.ToString(System.Globalization.CultureInfo.InvariantCulture), "1", "40"));
+        socket.ReplyWith(_ => box);
+        int sent = 0;
+        socket.ReplyWith(_ => ++sent == 1 ? new MailResult { Status = MailStatus.Ok } : new MailResult { Status = MailStatus.NoSpace });
+        using MailChannel channel = new(socket);
+        channel.Load();
+        using MailViewModel vm = Create(socket, channel);
+
+        vm.CollectAll();
+
+        vm.Status.Should().Be("Collected 2 items and 95 coins. " + vm.StatusText(MailStatus.NoSpace));
+        vm.StatusIsGood.Should().BeFalse();
+    }
+
+    [Fact]
     public void CollectableCount_NoGifts_IsZeroSoTheButtonIsHidden()
     {
         FakeGameSocket socket = new();

@@ -42,6 +42,15 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
     private readonly Func<long> _nowMs;
     private readonly HashSet<Guid> _collecting = [];
     private readonly Queue<Guid> _collectQueue = new();
+
+    /// <summary>What one collect brings: the coins, and the items counted by quantity.</summary>
+    private readonly record struct MailTake(long Coins, int Items);
+
+    // What each collect in flight will bring, keyed by its mail, and the total of the run so far (see OnCompleted).
+    private readonly Dictionary<Guid, MailTake> _taking = [];
+    private long _batchCoins;
+    private int _batchItems;
+    private int _batchMails;
     private bool _open;
     private bool _newestSelected;
 
@@ -134,16 +143,21 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
         }
 
         long now = _nowMs();
+        MailInfo? found = null;
         foreach (MailInfo mail in _mail.Mails)
         {
-            if (mail.Id == mailId && (mail.Collected || mail.ExpiresAtMs <= now))
+            if (mail.Id == mailId)
             {
-                return;
+                if (mail.Collected || mail.ExpiresAtMs <= now)
+                {
+                    return;
+                }
+
+                found = mail;
             }
         }
 
-        _ = _collecting.Add(mailId);
-        _mail.Collect(mailId);
+        this.SendCollect(mailId, found);
         this.Raise();
     }
 
@@ -186,7 +200,7 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
             }
         }
 
-        this.CollectNextQueued();
+        _ = this.CollectNextQueued();
     }
 
     /// <summary>Gets the mail whose delete waits for the player's yes (the confirm box); null when none.</summary>
@@ -300,25 +314,99 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
         }
     }
 
-    private void OnCompleted(MailAction action, MailStatus status)
+    // A gift that came through adds to the run's total; the line names the total once the run ends (or stops), not after each gift.
+    private void OnCompleted(MailAction action, MailStatus status, Guid mailId)
     {
-        _collecting.Clear();
+        if (action == MailAction.Collect)
+        {
+            _ = _collecting.Remove(mailId);
+            if (_taking.Remove(mailId, out MailTake take) && status == MailStatus.Ok)
+            {
+                _batchCoins += take.Coins;
+                _batchItems += take.Items;
+                _batchMails++;
+            }
+        }
+        else
+        {
+            _collecting.Clear();
+        }
+
         if (status != MailStatus.Ok)
         {
             _collectQueue.Clear();
-            this.SetStatus(this.StatusText(status));
+            this.EndRun(this.StatusText(status), good: false);
             return;
         }
 
-        this.SetStatus(action == MailAction.Collect ? this.Text("Mail_Collected") : string.Empty, good: true);
-        if (action == MailAction.Collect)
+        if (action != MailAction.Collect)
         {
-            this.CollectNextQueued();
+            this.SetStatus(string.Empty, good: true);
+            return;
+        }
+
+        // The run sends the next gift when this one is accepted; the last gift of the run ends it.
+        if (!this.CollectNextQueued())
+        {
+            this.EndRun(null, good: true);
         }
     }
 
-    // Sends the next queued gift that is still collectable; an empty queue ends the run.
-    private void CollectNextQueued()
+    // Puts the run's total on the line, then the refusal that stopped it if there was one, and starts the next total from zero.
+    private void EndRun(string? refusal, bool good)
+    {
+        string? total = this.CollectedTotal();
+        string line = total is null
+            ? refusal ?? this.Text("Mail_Collected")
+            : refusal is null ? total : total + " " + refusal;
+        _batchCoins = 0;
+        _batchItems = 0;
+        _batchMails = 0;
+        this.SetStatus(line, good);
+    }
+
+    // What the run's gifts brought, as one line; null when none brought coins or items.
+    private string? CollectedTotal()
+    {
+        if (_batchCoins > 0 && _batchItems > 0)
+        {
+            return this.Text("Mail_CollectedBoth", this.ItemCountText(_batchItems), Number(_batchCoins));
+        }
+
+        if (_batchCoins > 0)
+        {
+            return this.Text("Mail_CollectedCoins", Number(_batchCoins));
+        }
+
+        return _batchItems > 0 ? this.Text("Mail_CollectedItems", this.ItemCountText(_batchItems)) : null;
+    }
+
+    // "1 item" or "3 items": the singular is its own text, so an English line never reads "1 items".
+    private string ItemCountText(int count)
+        => count == 1 ? this.Text("Mail_Items_One") : this.Text("Mail_Items", count.ToString(CultureInfo.InvariantCulture));
+
+    // Records what a collect will bring and sends it. The mail is looked up by the caller, so a mail the page no longer lists brings nothing to the total.
+    private void SendCollect(Guid mailId, MailInfo? mail)
+    {
+        _ = _collecting.Add(mailId);
+        _taking[mailId] = mail is null ? default : new MailTake(mail.Coins, ItemCount(mail));
+        _mail.Collect(mailId);
+    }
+
+    // The items of a mail, counted by quantity (a stack of 3 is 3 items).
+    private static int ItemCount(MailInfo mail)
+    {
+        int count = 0;
+        foreach (MailItemInfo item in mail.Items)
+        {
+            count += item.Quantity;
+        }
+
+        return count;
+    }
+
+    // Sends the next queued gift that is still collectable; false when the queue has nothing left to send.
+    private bool CollectNextQueued()
     {
         while (_collectQueue.Count > 0)
         {
@@ -327,11 +415,27 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
             {
                 if (mail.Id == next && mail.CanCollect)
                 {
-                    this.Collect(next);
-                    return;
+                    this.SendCollect(next, FindMail(next));
+                    this.Raise();
+                    return true;
                 }
             }
         }
+
+        return false;
+    }
+
+    private MailInfo? FindMail(Guid mailId)
+    {
+        foreach (MailInfo mail in _mail.Mails)
+        {
+            if (mail.Id == mailId)
+            {
+                return mail;
+            }
+        }
+
+        return null;
     }
 
     private MailDisplay Render(MailInfo mail, long now)

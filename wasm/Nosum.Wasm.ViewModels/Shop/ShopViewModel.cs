@@ -579,10 +579,15 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
         return 0;
     }
 
-    private void OnCompleted(ShopStatus status, long spent)
+    // The answer names what was bought and what it cost: the coins are the server's (Spent), the item and quantity are the ones asked for.
+    private void OnCompleted(ShopPurchaseInfo purchase)
     {
-        _ = spent;
-        _haptics.Pulse(status == ShopStatus.Ok ? HapticKind.Success : HapticKind.Refusal);
-        this.SetStatus(status == ShopStatus.Ok ? this.Text("Shop_Done") : this.Text("Shop_Status_" + status), status == ShopStatus.Ok);
+        bool ok = purchase.Status == ShopStatus.Ok;
+        _haptics.Pulse(ok ? HapticKind.Success : HapticKind.Refusal);
+        this.SetStatus(
+            ok
+                ? this.Text("Shop_Bought", purchase.Quantity.ToString(CultureInfo.InvariantCulture), _describer.Describe(0, purchase.ItemId, 1).Name, Number(purchase.Spent))
+                : this.Text("Shop_Status_" + purchase.Status),
+            ok);
     }
 }

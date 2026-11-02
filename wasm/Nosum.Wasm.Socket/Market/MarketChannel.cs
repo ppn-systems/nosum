@@ -93,8 +93,11 @@ public sealed class MarketChannel
     /// <summary>Raised when the player's own listings changed. May run on any thread.</summary>
     public event Action? MineChanged;
 
-    /// <summary>Raised with the server's answer to a create, buy, cancel or ship; the number is the coins paid by a shipment. May run on any thread.</summary>
-    public event Action<MarketAction, MarketStatus, long>? Completed;
+    /// <summary>
+    /// Raised with the server's answer to a create, buy, cancel or ship. The number is the coins paid by a shipment; the id is the listing a buy or a cancel
+    /// asked for (<see cref="Guid.Empty"/> for a create or a shipment). May run on any thread.
+    /// </summary>
+    public event Action<MarketAction, MarketStatus, long, Guid>? Completed;
 
     /// <summary>Raised when the price history changed. May run on any thread.</summary>
     public event Action? HistoryChanged;
@@ -236,7 +239,7 @@ public sealed class MarketChannel
             request.Value.Quantity = quantity;
             request.Value.Price = price;
             MarketResult reply = await _socket.RequestAsync<MarketResult>(request.Value).ConfigureAwait(false);
-            this.Completed?.Invoke(MarketAction.Create, reply.Status, 0);
+            this.Completed?.Invoke(MarketAction.Create, reply.Status, 0, Guid.Empty);
         }
         catch (Exception)
         {
@@ -263,7 +266,7 @@ public sealed class MarketChannel
                 reply = await _socket.RequestAsync<MarketResult>(request.Value).ConfigureAwait(false);
             }
 
-            this.Completed?.Invoke(action, reply.Status, 0);
+            this.Completed?.Invoke(action, reply.Status, 0, listingId);
         }
         catch (Exception)
         {
@@ -281,7 +284,7 @@ public sealed class MarketChannel
             request.Value.ItemId = itemId;
             request.Value.Quantity = quantity;
             ShipResult reply = await _socket.RequestAsync<ShipResult>(request.Value).ConfigureAwait(false);
-            this.Completed?.Invoke(MarketAction.Ship, reply.Status, reply.Earned);
+            this.Completed?.Invoke(MarketAction.Ship, reply.Status, reply.Earned, Guid.Empty);
         }
         catch (Exception)
         {

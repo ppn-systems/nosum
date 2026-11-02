@@ -222,6 +222,40 @@ public sealed class ShopViewModelTests
         haptics.Pulses.Should().Equal([HapticKind.Success, HapticKind.Refusal]);
     }
 
+    [Fact]
+    public void Completion_NamesTheQuantityAndTheCoinsTheServerTook()
+    {
+        using CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+
+        // The server's figure is shown, not the price times the quantity: the coins are the server's answer.
+        socket.ReplyWith<ShopResult>(_ => new ShopResult { Status = ShopStatus.Ok, Spent = 480 });
+        ShopViewModel vm = Vm(socket, new RecordingHaptics());
+        vm.Open(ShopCatalog.FurnitureShop);
+        vm.QuantityText = "5";
+
+        vm.Buy(ItemCatalog.OakChair);
+        vm.Confirm();
+
+        vm.Status.Should().StartWith("Bought ").And.Contain(" x5 for 480 coins. It is in your inventory.");
+        vm.StatusIsGood.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Completion_Refused_ShowsTheRefusalNotAPurchase()
+    {
+        using CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+        socket.ReplyWith<ShopResult>(_ => new ShopResult { Status = ShopStatus.NotEnoughCoins, Spent = 0 });
+        ShopViewModel vm = Vm(socket, new RecordingHaptics());
+        vm.Open(ShopCatalog.FurnitureShop);
+
+        vm.Buy(ItemCatalog.OakChair);
+
+        vm.Status.Should().Be("You do not have enough coins.");
+        vm.StatusIsGood.Should().BeFalse();
+    }
+
     private sealed class RecordingHaptics : IHaptics
     {
         public List<HapticKind> Pulses { get; } = [];
