@@ -1,9 +1,12 @@
-/* The key caps wrap onto a second row rather than running past the panel's edge (docs/design/ui-standard.md section 7, checklist item 6). */
+/* The key caps wrap onto a second row rather than running past the panel's edge (docs/design/ui-standard.md section 7, checklist item 6).
+   The row takes pointer events back: a strip docked in the bottom centre (docs/adr/ADR-118) sits under a region that passes them through, and
+   without this the canvas took the taps meant for Place. */
 .strip-row {
     display: flex;
     flex-wrap: wrap;
     gap: calc(var(--u) * 4);
     align-items: center;
+    pointer-events: auto;
 }
 
 .chip {

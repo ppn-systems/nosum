@@ -145,6 +145,22 @@ public sealed class FurnitureCatalogViewModelTests
     }
 
     [Fact]
+    public void IsVisible_AFarmBuildingInHand_HidesTheWindowWhileTheStripStays()
+    {
+        using WasmTestSupport.CultureScope scope = new("en");
+        FurnitureCatalogViewModel vm = Create(new FakeGameSocket(), Owned(ItemCatalog.OakChair), out _, out PlacementViewModel placement);
+
+        placement.SetActive(true);
+        vm.IsVisible.Should().BeTrue();
+
+        // PlacementActions reports a held farm building as not windowed (docs/adr/ADR-118): the catalogue has nothing to list for it.
+        placement.SetWindowed(false);
+
+        vm.IsVisible.Should().BeFalse();
+        placement.IsVisible.Should().BeTrue();
+    }
+
+    [Fact]
     public void PickUp_RequestsPickUpFromThePlacementViewModel()
     {
         using WasmTestSupport.CultureScope scope = new("en");

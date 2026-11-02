@@ -159,8 +159,13 @@ else
                    menu column stays too); below that the window hides it (GameHud.razor.css), docs/design/ui-standard.md section 2. *@
                 @if (_panel == PanelKind.None)
                 {
-                    @* The first-run hint is a wide line over the bottom centre; while the furniture panel is open it would run into the panel's edge. *@
-                    @if (!Furniture.IsVisible)
+                    @* A farm building in hand has no window (docs/adr/ADR-118): its key strip docks here, above the toast line, and shows its notice. *@
+                    @if (Placement.IsVisible && !Furniture.IsVisible)
+                    {
+                        <PlacementPanel Vm="Placement" />
+                    }
+                    @* The first-run hint is a wide line over the bottom centre; while the strip or the furniture panel is up it would run into them. *@
+                    @if (!Placement.IsVisible)
                     {
                         <OnboardingHint Vm="Onboarding" />
                     }

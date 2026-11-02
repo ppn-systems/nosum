@@ -114,6 +114,12 @@ internal sealed class PlacementActions
         }
 
         _view.SetActive(active && (alwaysShowPanel || this.CarryingId != 0 || PlaceableCatalog.TryGet(heldNow, out _)));
+
+        // A farm building has no catalogue, so it gets no window over the ghost it is aimed with (docs/adr/ADR-118): its key strip docks in the
+        // bottom centre instead. A room and a carried piece keep the window (the owner's centred arrange window, docs/adr/ADR-116 D4).
+        bool heldBuilding = PlaceableCatalog.TryGet(heldNow, out PlaceableDefinition? heldDefinition) && heldDefinition.Kind == PlaceableKind.Building;
+        _view.SetWindowed(alwaysShowPanel || this.CarryingId != 0 || !heldBuilding);
+
         if (!active || _view.Dismissed)
         {
             this.CarryingId = 0;
