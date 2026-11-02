@@ -66,7 +66,7 @@ Buying a chicken in a coop says "Bought, and on its way to the barn." (`Building
 
 ### 6. The carpenter's animal section is hard to read (medium)
 
-**Status: fixed in round four (docs/adr/ADR-107).** The animals have their own Animals tab; each building is one group, its name once and its species as buy buttons that wrap. The coop and the barn are named for what they house ("Chuồng gia cầm" and "Chuồng gia súc"; "Poultry coop" and "Barn"), so the duck no longer reads "Chuồng gà". At 1280 x 720 nothing scrolls or is cut (`docs/qa/animals-round4/`). The findings below are as they were in round one.
+**Status: fixed in round four (docs/adr/ADR-107).** The animals have their own Animals tab; each building is one group, its name once and its species as buy buttons that wrap. The coop and the barn are named for what they house ("Chuồng gia cầm" and "Chuồng gia súc"; "Poultry coop" and "Barn"), so the duck no longer reads "Chuồng gà". At 1280 x 720 nothing scrolls or is cut (`docs/qa/animals-round4/`). Round five moved the name field under the species (finding 10 below); the findings below are as they were in round one.
 
 - The "Animal name" field sits above the species rows, so the player types a name before choosing a species. The hint "3 to 16
   letters or digits" is below the field, and the field keeps a red underline after a successful purchase (`02`).
@@ -104,15 +104,56 @@ does, how often, what it costs the player) and needs an ADR. Options for that de
 2. The pet reacts in the world when petted (a heart over it) and shows the energy it gave. Client only.
 3. A helper: the dog brings back one ration of hay from the carpenter's chest once a day. A new system; out of scope here.
 
+## Round five: fresh findings
+
+Round five was played on `master` at `9a79c42`, the same loop as round one, in English and Vietnamese at 1280 x 720, 1920 x 1080 and
+390 x 844. The frames are in [`docs/qa/animals-round5/`](../qa/animals-round5/). The coop frames come from `tests/browser/animals-barn-capture.cjs`
+(`BUILDINGS=coop`), the pet frames from `tests/browser/animals-pets-capture.cjs`. Each finding was checked against the code, and where it is
+visual against a frame. Two findings are fixed here. Two stay open, and two of the brief's decisions stay with the owner.
+
+### 9. Petting says "Done." and not the energy it gave (medium, fixed)
+
+`PetService.PetAsync` restores `PetRules.PettingEnergy` (5) on the first petting of a game day, but the panel answered every success with
+the same line, "Done." (`Pet_Status_Ok`). The energy bar moved, and nothing named the gain.
+
+**Now:** "Petted. Energy +5." (Vietnamese: "Đã vuốt ve. Sức lực +5."; `Pet_Status_Petted`). The number is `PetRules.PettingEnergy`, so the
+line cannot drift from the server. Rehoming and adoption keep their own answers. Frame: `after/1280x720-en/pets/pet-day-1.png`.
+
+### 10. The name is typed before the tap, and its refusal is far from the field (low, open)
+
+Finding 6's order is fixed: the field now sits under the species buttons. The buy click still sends whatever is in the field, so a
+player who taps a species first gets the refusal before any name is typed. `CarpenterViewModel.BuyAnimal` puts that refusal
+(`Building_Status_BadName`) in the status line above the Animals section, not on the field, and the field has no error state.
+*Seen in the code, not in a frame.* A field error needs the `GameInput` error contract in `ui-standard.md`; that is a follow-up,
+not a change made here.
+
+### 11. Settling the night's feeding is right (checked, not a finding)
+
+`AnimalRules.Settle` (ADR-028 D3) was read against its rule: a bench that runs out before today feeds nobody today, a bench that lasts
+feeds every animal, and several nights away eat one ration each. The seven `Settle_*` tests in `AnimalRulesTests` cover those cases.
+No change.
+
+### Still open after round five
+
+- **Finding 2, the count.** The trough shows an icon for an empty bench and one for a stocked bench, not the ration count. Not attempted this round.
+- **Finding 8, the pet's mood.** Still no effect. The proposal with numbers is in ADR-092 (round-four amendment) and waits for the owner.
+- **The herd cap.** A building holds four animals (`(0/4)` on the Animals tab). Whether that cap rises is an owner decision and is not changed here.
+
+Wire: no change (protocol unchanged). ADR: none needed, because no rule changed; the petting still gives the same energy, and only its text
+and the layout moved.
+
 ## Priorities
 
 | # | Finding | Impact | Cost | Done here |
 | :-- | :-- | :-- | :-- | :-- |
-| 1 | One press feeds 4 hay | High | Client, one line | yes |
-| 2 | Bench state invisible | High | Client, engine icons | yes (count left) |
-| 5 | Barn notice for a coop | Medium | i18n string | yes |
-| 3 | Produce waits for a touch, no cue | Medium | Server | no |
-| 4 | Action key has no preview | Medium | Client + ADR amendment | no |
-| 6 | Carpenter animal section layout | Medium | Client layout | no |
-| 8 | Pet has no in-world presence or effect | High | Client + rule ADR | no |
-| 7 | Chicken payback | Balance | Economy | no |
+| 1 | One press feeds 4 hay | High | Client, one line | yes (round one) |
+| 2 | Bench state invisible | High | Client, engine icons | yes for the icon; count open |
+| 5 | Barn notice for a coop | Medium | i18n string | yes (round one) |
+| 9 | Petting does not name its energy | Medium | i18n string, one line | yes (round five) |
+| 6 | Carpenter animal section layout | Medium | Client layout | yes (round four; name under the species in round five) |
+| 3 | Produce waits for a touch, no cue | Medium | Server | yes (round two) |
+| 4 | Action key has no preview | Medium | Client + ADR amendment | yes (round two) |
+| 10 | Name refusal far from the field | Low | Client, field error state | no |
+| 8 | Pet has no in-world presence or effect | High | Client + rule ADR | mood open (owner) |
+| 7 | Chicken payback | Balance | Economy | yes (round four) |
+| - | Herd cap | Balance | Owner decision | no |

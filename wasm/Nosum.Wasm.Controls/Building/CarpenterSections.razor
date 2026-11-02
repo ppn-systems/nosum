@@ -47,9 +47,6 @@
             }
             else
             {
-                <GameField Label="@Vm.Text("Carpenter_Name")" Hint="@Vm.Text("Carpenter_NameHint")">
-                    <GameInput Value="@Vm.AnimalName" ValueChanged="@(v => Vm.AnimalName = v)" Label="@Vm.Text("Carpenter_Name")" MaxLength="16" />
-                </GameField>
                 @* One group per building: its name and fullness once, then the species it houses as buy buttons that wrap (docs/adr/ADR-107 D2). *@
                 @foreach (IGrouping<Guid, AnimalOffer> home in offers.GroupBy(o => o.BuildingId))
                 {
@@ -64,6 +61,10 @@
                         </div>
                     </div>
                 }
+                @* The name sits under the species it names (docs/design/critique-animals-pets.md, finding 6). The buy buttons send the name in this field as it is when they are tapped. *@
+                <GameField Label="@Vm.Text("Carpenter_Name")" Hint="@Vm.Text("Carpenter_NameHint")">
+                    <GameInput Value="@Vm.AnimalName" ValueChanged="@(v => Vm.AnimalName = v)" Label="@Vm.Text("Carpenter_Name")" MaxLength="16" />
+                </GameField>
             }
         </GameSection>
     }

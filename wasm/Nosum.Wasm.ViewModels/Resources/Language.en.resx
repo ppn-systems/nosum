@@ -1201,6 +1201,7 @@
   <data name="Pet_Pet" xml:space="preserve"><value>Pet</value></data>
   <data name="Pet_PettedToday" xml:space="preserve"><value>Petted today. Back tomorrow.</value></data>
   <data name="Pet_Status_Ok" xml:space="preserve"><value>Done.</value></data>
+  <data name="Pet_Status_Petted" xml:space="preserve"><value>Petted. Energy +{0}.</value></data>
   <data name="Pet_Status_NoPet" xml:space="preserve"><value>You have no pet yet.</value></data>
   <data name="Pet_Status_AlreadyHasPet" xml:space="preserve"><value>You already have a pet.</value></data>
   <data name="Pet_Status_InvalidKind" xml:space="preserve"><value>Choose a cat or a dog.</value></data>

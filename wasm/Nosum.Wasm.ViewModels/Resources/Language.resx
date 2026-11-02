@@ -1201,6 +1201,7 @@
   <data name="Pet_Pet" xml:space="preserve"><value>Vuốt ve</value></data>
   <data name="Pet_PettedToday" xml:space="preserve"><value>Hôm nay đã vuốt ve bạn ấy rồi. Ngày mai gặp lại nhé.</value></data>
   <data name="Pet_Status_Ok" xml:space="preserve"><value>Xong.</value></data>
+  <data name="Pet_Status_Petted" xml:space="preserve"><value>Đã vuốt ve. Sức lực +{0}.</value></data>
   <data name="Pet_Status_NoPet" xml:space="preserve"><value>Bạn chưa có thú cưng.</value></data>
   <data name="Pet_Status_AlreadyHasPet" xml:space="preserve"><value>Bạn đã có một thú cưng rồi.</value></data>
   <data name="Pet_Status_InvalidKind" xml:space="preserve"><value>Hãy chọn mèo hoặc chó.</value></data>
