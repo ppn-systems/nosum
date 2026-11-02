@@ -229,3 +229,47 @@ No wire change: protocol 34 stays. Tests: `FarmWireTests` (the seed refusal now 
 3. Owner decision: teach the drag in the first-run hint (round four 5, second half).
 4. Owner decision: should a can tap harvest a ripe crop, or only the action key and the scythe (round three 6).
 5. Owner decision: phones, the device gate and the 390x844 layout (round one 8, round four 4).
+
+## Round six addendum (ADR-121)
+
+Replayed on `claude/farming-round6` (from master `c0c4f584`), 1280x720, 1920x1080 and 390x844 (a width-override test copy, the product still gates phones at
+1024 px), vi and en. Captures: `docs/qa/farming-round6/` (README there). Script: `tests/browser/farm-round6-capture.cjs`. Narrow round again, on the seasons
+feedback the critique had not yet covered.
+
+**Played:** advance one season (the QA hook), till a tile, then a parsnip seed tap on it in Summer (parsnip grows in Spring, Fall and Winter).
+
+### Findings and what changed
+
+1. **An out-of-season seed said the crop does not grow now, not when it does.** The line was "That crop does not grow in this season." The client already holds
+   the crop's seasons (the shop greys a row by them and says "Plants in …"). Fixed: "That crop only grows in Spring, Fall, Winter." (vi "Cây này chỉ trồng được
+   vào Xuân, Thu, Đông."), from `FarmSeasonNotice` and the seed in the selected slot (ADR-121 D1, D2). Captures: `after/*-out-of-season-seed-*`, all three sizes,
+   vi and en. No before set was taken: the old line is `Farm_Status_OutOfSeason`, still in the resources as the fallback when the item in hand is not a seed.
+2. **Checked, no change needed:** the seed and hoe use on a tilled tile in season still plants (round five and four captures unchanged); the till line
+   "Soil tilled." / "Đã xới đất." shows on each run.
+
+### Found in the code, not played, not changed
+
+- **A seed tapped on a ripe crop says "A crop already grows here."** `FarmRules.Plant` answers `HasCrop` for a mature crop too, and `IsGrowthWait` only
+  turns a growing crop into `NotMature`. The player wants the harvest and is told the tile is taken, while the E key on the same tile harvests. The fix needs
+  either a new status code (a protocol bump) or a rule decision that a seed tap harvests a ripe crop. ADR-111's "revisit when" names it. Owner decision.
+- **Bare tilled soil reverts with no word.** After `FarmRules.DryDaysToRevert` (3) dry game days the tile goes back to untilled, and the server pushes the change
+  without a line. A season change (28 days) does it, as the script found: a till made before the season change was gone when the seed was tapped. Whether the
+  revert should be announced, or made slower, is a design call. Owner decision.
+
+### Changed in this round (ADR-121)
+
+| Finding | Change | Where |
+|:--|:--|:--|
+| 1 out-of-season names no season | `Farm_Status_OutOfSeasonIn` in vi and en; `FarmSeasonNotice.SeasonsOf` names the seasons of the held seed's crop | `wasm/Nosum.Wasm.ViewModels/Feedback/FarmSeasonNotice.cs`, `GameMessagesViewModel.cs`, `Language*.resx` |
+
+No wire change: protocol 34 stays. Tests: `FarmSeasonNoticeTests` (order, one season, not a seed); the message line is checked in the browser.
+
+### Backlog after round six, ranked by how much play it would change
+
+1. Owner decision: a seed tap on a ripe crop (above). Needs a status code or a harvest rule.
+2. Owner decision: the tilled soil that reverts with no word (above).
+3. Owner decision: the message line holds the hover stage, a hint and two toasts at once (round three 2), and the first-run hint covers the work area (round three 3).
+4. Owner decision: the growth stage readable on the tile, not only on hover (round one 4, round three 4).
+5. Owner decision: teach the drag in the first-run hint (round four 5, second half).
+6. Owner decision: should a can tap harvest a ripe crop, or only the action key and the scythe (round three 6).
+7. Owner decision: phones, the device gate and the 390x844 layout (round one 8, round four 4).

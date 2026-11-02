@@ -580,6 +580,7 @@
   <data name="Today_Crops" xml:space="preserve"><value>Crops in season: {0}</value></data>
   <data name="Today_Crops_None" xml:space="preserve"><value>No crops grow this season</value></data>
   <data name="Farm_Status_OutOfSeason" xml:space="preserve"><value>That crop does not grow in this season.</value></data>
+  <data name="Farm_Status_OutOfSeasonIn" xml:space="preserve"><value>That crop only grows in {0}.</value></data>
   <data name="Farm_Status_Withered" xml:space="preserve"><value>The crop withered from lack of water or the end of its season. Plant a new seed over it.</value></data>
   <data name="Farm_Thirsty_Morning" xml:space="preserve"><value>{0} crops need water</value></data>
   <data name="Farm_Thirsty_Morning_One" xml:space="preserve"><value>1 crop needs water</value></data>
