@@ -119,6 +119,28 @@ public sealed class ProgressTests
     }
 
     [Fact]
+    public void ViewModel_TubeCaptions_NameEachTube_InBothLanguages()
+    {
+        FakeGameSocket socket = new();
+        using ProgressChannel channel = new(socket);
+        using ProgressViewModel vm = new(channel, Localizer<Language>());
+
+        using (CultureScope scope = new("en"))
+        {
+            vm.HpCaption.Should().Be("HP");
+            vm.MpCaption.Should().Be("MP");
+            vm.EnergyCaption.Should().Be("Energy");
+        }
+
+        using (CultureScope scope = new("vi"))
+        {
+            vm.HpCaption.Should().Be("Máu");
+            vm.MpCaption.Should().Be("Phép");
+            vm.EnergyCaption.Should().Be("Sức");
+        }
+    }
+
+    [Fact]
     public void ToolUsesTip_HoeAtLevelZero_IsEnergyDividedByTheServerCost()
     {
         using CultureScope scope = new("en");

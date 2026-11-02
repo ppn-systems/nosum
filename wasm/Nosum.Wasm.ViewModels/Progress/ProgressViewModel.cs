@@ -140,6 +140,9 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     /// <summary>Gets whether HP is critically low.</summary>
     public bool HpLow => this.HpFraction <= 0.25;
 
+    /// <summary>Gets the short name written under the HP tube, so the tubes read without a hover: "HP", or "Máu" in Vietnamese.</summary>
+    public string HpCaption => this.Text("Hp_Caption");
+
     /// <summary>Gets the localized label of the HP bar: <c>HP 100 / 100</c>.</summary>
     public string HpLabel => this.Text("Hp_Label", Number(this.Hp), Number(this.MaxHp));
 
@@ -154,6 +157,9 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
 
     /// <summary>Gets whether MP is low.</summary>
     public bool MpLow => this.MpFraction <= 0.2;
+
+    /// <summary>Gets the short name written under the MP tube: "MP", or "Phép" in Vietnamese.</summary>
+    public string MpCaption => this.Text("Mp_Caption");
 
     /// <summary>Gets the localized label of the MP bar: <c>MP 50 / 50</c>.</summary>
     public string MpLabel => this.Text("Mp_Label", Number(this.Mp), Number(this.MaxMp));
@@ -191,6 +197,9 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
 
     /// <summary>Gets whether the energy bar is pulsing after food restored energy; it stops by itself after <see cref="EnergyPulseDuration"/>.</summary>
     public bool EnergyPulsing { get; private set; }
+
+    /// <summary>Gets the short name written under the energy tube: "Energy", or "Sức" in Vietnamese.</summary>
+    public string EnergyCaption => this.Text("Energy_Caption");
 
     /// <summary>Gets the localized label of the bar, for the tooltip and the screen reader: <c>Energy 268 / 270</c>.</summary>
     public string EnergyLabel => this.Text("Energy_Label", Number(_progress.Energy), Number(_progress.MaxEnergy));

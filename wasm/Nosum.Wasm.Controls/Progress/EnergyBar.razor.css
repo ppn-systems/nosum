@@ -7,6 +7,26 @@
     gap: var(--nosum-gap);
 }
 
+/* Each tube has its name under it, on a parchment tag (the same tag as the low-HP note), so the three colours need no hover to tell apart. */
+.vitals-tube {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--u);
+}
+
+.vitals-caption {
+    padding: 0 calc(var(--u) * 1);
+    background: var(--nosum-parchment-light);
+    border: calc(var(--u) * 1) solid var(--nosum-ink);
+    color: var(--nosum-ink);
+    font-family: var(--nosum-font);
+    font-size: var(--nosum-fs-small);
+    line-height: calc(var(--u) * 5);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
 /* The current HP at low HP, a parchment tag over the top of the HP tube, so it reads on a phone without a hover. */
 .vitals-hp-note {
     position: absolute;
