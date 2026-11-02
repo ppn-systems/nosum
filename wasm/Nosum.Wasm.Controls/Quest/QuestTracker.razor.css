@@ -13,7 +13,9 @@
     text-shadow: none;
 }
 
+/* The scroll keeps its size in the flex row: a shrinking icon covered the first letter of a long title on a phone (QA pass 9, issue 9). */
 .quest-wrap ::deep .quest-head .game-icon.quest-scroll {
+    flex: none;
     width: calc(var(--u) * 8);
     height: calc(var(--u) * 8);
 }

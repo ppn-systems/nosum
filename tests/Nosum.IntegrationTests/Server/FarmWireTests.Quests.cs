@@ -23,6 +23,36 @@ namespace Nosum.IntegrationTests.Server;
 public sealed partial class FarmWireTests
 {
     [Fact]
+    public async Task Watering_ABareTilledTile_CompletesTheWaterQuest()
+    {
+        // The first-day step "Water the soil" asks for a watered tilled tile; it must complete without a seed in the ground.
+        await ResetFarmAsync();
+        FakeTimeProvider clock = new(s_start);
+        ushort port = GetFreePort();
+        HostServices.Register(_database.Options);
+        TestAccounts.UseFakeVerifiers(_database.Options);
+        await using NetworkApplication app = Program.BuildApplication(port, clock);
+        using CancellationTokenSource timeout = new(s_timeout);
+        await app.ActivateAsync(timeout.Token);
+        try
+        {
+            await using FarmClient farmer = await FarmClient.ConnectAsync(port, timeout.Token);
+            JoinMapResult join = await farmer.JoinAsync(timeout.Token);
+            (int x, int y) = TileInReachOf(join);
+
+            (await farmer.UseAsync(0, x, y, timeout.Token)).Status.Should().Be(FarmStatus.Ok);
+            (await farmer.UseAsync(1, x, y, timeout.Token)).Action.Should().Be(FarmAction.Watered);
+
+            QuestRow watered = await farmer.WaitForQuestAsync(q => q.QuestId == QuestCatalog.WaterCrop && q.State == QuestState.Completed, timeout.Token);
+            watered.Progress.Should().Equal(1);
+        }
+        finally
+        {
+            await app.DeactivateAsync(CancellationToken.None);
+        }
+    }
+
+    [Fact]
     public async Task Watering_APlantedSeed_PushesTheWaterQuestAsCompleted()
     {
         await ResetFarmAsync();

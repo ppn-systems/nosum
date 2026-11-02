@@ -97,11 +97,12 @@ public static class QuestCatalog
         new(SendEmote, "send_emote", 10, new QuestObjective(QuestEventKind.EmoteSent, 0, 1)),
     ];
 
-    // Till, water, plant and harvest, ship, buy, chop, craft; then the fishing rod, the pond, the mine, the monsters, the blacksmith,
-    // the coop, the animal, the kitchen, the Town board, decorating, the pet and the emote.
+    // Till, water, then the first trip to Town for seeds (the bus stop east of the farm, then the seed shop; the first-day path), plant and harvest,
+    // ship, chop, craft; then the fishing rod, the pond, the mine, the monsters, the blacksmith, the coop, the animal, the kitchen, the Town board,
+    // decorating, the pet and the emote.
     private static readonly int[] s_chain =
     [
-        TillSoil, WaterCrop, FirstHarvest, ShipProduce, BuySeeds, ChopTree, CraftChest,
+        TillSoil, WaterCrop, BuySeeds, FirstHarvest, ShipProduce, ChopTree, CraftChest,
         CraftRod, CatchFish, MineOre, SlaySlime, UpgradeTool, BuildCoop, BuyAnimal, CookMeal, EatFood, FillRequest, Decorate, AdoptPet, SendEmote,
     ];
 

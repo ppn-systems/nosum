@@ -20,9 +20,9 @@ public sealed class QuestChainTests
         QuestCatalog.Chain.Should().Equal(
             QuestCatalog.TillSoil,
             QuestCatalog.WaterCrop,
+            QuestCatalog.BuySeeds,
             QuestCatalog.FirstHarvest,
             QuestCatalog.ShipProduce,
-            QuestCatalog.BuySeeds,
             QuestCatalog.ChopTree,
             QuestCatalog.CraftChest,
             QuestCatalog.CraftRod,
@@ -99,7 +99,8 @@ public sealed class QuestChainTests
     public void PositionOf_FollowsTheChain_AndSortsUnknownQuestsLast()
     {
         QuestCatalog.PositionOf(QuestCatalog.TillSoil).Should().Be(0);
-        QuestCatalog.PositionOf(QuestCatalog.FirstHarvest).Should().Be(2);
+        QuestCatalog.PositionOf(QuestCatalog.BuySeeds).Should().Be(2);
+        QuestCatalog.PositionOf(QuestCatalog.FirstHarvest).Should().Be(3);
         QuestCatalog.PositionOf(QuestCatalog.CraftChest).Should().Be(6);
         QuestCatalog.PositionOf(QuestCatalog.CraftRod).Should().Be(7);
         QuestCatalog.PositionOf(QuestCatalog.SendEmote).Should().Be(QuestCatalog.Chain.Count - 1);
