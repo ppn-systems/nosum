@@ -1,0 +1,42 @@
+{
+  "flow": "mine",
+  "locale": "en",
+  "viewport": "390x844",
+  "steps": [
+    {
+      "name": "elevator-open",
+      "ok": true,
+      "value": {
+        "floors": ""
+      },
+      "file": "01-elevator-open.png"
+    },
+    {
+      "name": "descend-floors",
+      "ok": false,
+      "error": "keyboard.press: Target page, context or browser has been closed",
+      "buttons": [],
+      "file": null
+    },
+    {
+      "name": "ore-mine",
+      "ok": false,
+      "error": "page.evaluate: Target page, context or browser has been closed",
+      "buttons": [],
+      "file": null
+    },
+    {
+      "name": "fight-monster",
+      "ok": false,
+      "error": "page.evaluate: Target page, context or browser has been closed",
+      "buttons": [],
+      "file": null
+    },
+    {
+      "name": "FLOW-ABORTED",
+      "ok": false,
+      "error": "keyboard.press: Target page, context or browser has been closed"
+    }
+  ],
+  "errors": []
+}
