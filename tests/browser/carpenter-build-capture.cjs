@@ -2,7 +2,7 @@
 // opened with ?qa=1 (wasm/README.md, window.nosumQa). It grants the Coop blueprint (item 610, the carpenter's sale; the counter purchase itself is not
 // played here), teleports to the farm, selects the blueprint in hotbar slot 9 and plays the build: the ghost, the first E (the confirmation on the
 // strip), the second E on the same tile (the build), then Q with nothing in front (the reason line). Frames go to
-// docs/qa/placement-round2/<phase>/build-<viewport>-<lang>/.
+// docs/qa/placement-round6/<phase>/build-<viewport>-<lang>/ (PLACEMENT_QA_ROOT overrides the folder). A phone presses the strip's Place button.
 //
 // Needs the server (DOTNET_ENVIRONMENT=Development dotnet run --project server/Nosum.Host) and the client
 // (dotnet run --project wasm/Nosum.Wasm -p:NosumDevTools=true --urls http://localhost:5080).
@@ -21,7 +21,7 @@ const HOTBAR_SLOT_KEY = '9';
 async function run(browser, phase, vp, lang) {
   const size = VIEWPORTS[vp];
   const phone = vp === 'phone';
-  const dir = path.join(REPO, process.env.PLACEMENT_QA_ROOT || 'docs/qa/placement-round2', phase, `build-${vp}-${lang}`);
+  const dir = path.join(REPO, process.env.PLACEMENT_QA_ROOT || 'docs/qa/placement-round6', phase, `build-${vp}-${lang}`);
   fs.mkdirSync(dir, { recursive: true });
   const context = await browser.newContext({ viewport: size, locale: lang === 'en' ? 'en-US' : 'vi-VN', hasTouch: phone, isMobile: phone, serviceWorkers: 'block' });
   await context.addInitScript((code) => { try { localStorage.setItem('nosum.settings.v1', 'lang=' + code + '\n'); } catch (e) { /* no storage */ } }, lang === 'en' ? 2 : 1);
@@ -57,11 +57,14 @@ async function run(browser, phase, vp, lang) {
   await shot('01-ghost-on-farm');
   notes.ghostNotice = await strip();
 
-  await page.keyboard.press('e');          // the first press only asks
+  // A phone presses the strip's Place button (the touch path); the other sizes press E.
+  const place = () => (phone ? page.locator('.strip-row button').first().click() : page.keyboard.press('e'));
+
+  await place();                           // the first press only asks
   await shot('02-first-press-confirm');
   notes.confirm = await strip();
 
-  await page.keyboard.press('e');          // the second press on the same tile builds
+  await place();                           // the second press on the same tile builds
   await page.waitForTimeout(1200);
   await shot('03-second-press-built');
   notes.afterBuild = await strip();
