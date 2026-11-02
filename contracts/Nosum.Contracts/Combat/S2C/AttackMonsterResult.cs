@@ -45,7 +45,7 @@ public sealed partial class AttackMonsterResult : PacketBase<AttackMonsterResult
     /// <summary>Updated cumulative Combat XP.</summary>
     [SerializeOrder(9)] public int CombatXp { get; set; }
 
-    /// <summary>Whether the player was knocked out and revived at 50% HP.</summary>
+    /// <summary>Whether the player was knocked out and carried back to the Farmhouse at 25% of maximum HP (<c>CombatRules.ReviveHp</c>).</summary>
     [SerializeOrder(10)] public bool KnockedOut { get; set; }
 
     /// <summary>Active combat combo streak count (docs/adr/ADR-060).</summary>

@@ -1,0 +1,13 @@
+{
+  "mode": "knockout",
+  "size": "1920x1080",
+  "locale": "vi-VN",
+  "toastsAtKnockout": [
+    "Bạn đã kiệt sức và được đưa về Nhà nông trại, chỉ còn một phần tư máu."
+  ],
+  "knockoutSeconds": 11,
+  "toastsLater": [
+    "Bạn đã kiệt sức và được đưa về Nhà nông trại, chỉ còn một phần tư máu."
+  ],
+  "errors": []
+}

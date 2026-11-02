@@ -1,0 +1,8 @@
+{
+  "mode": "wait",
+  "size": "1920x1080",
+  "locale": "vi-VN",
+  "waitLine": "Đang chờ cá cắn câu, thường chỉ mất vài giây...",
+  "bite": true,
+  "errors": []
+}

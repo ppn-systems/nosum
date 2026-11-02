@@ -1079,7 +1079,7 @@
   <data name="Combat_Refused_UnknownMonster" xml:space="preserve"><value>That target is no longer here!</value></data>
   <data name="Combat_Refused_UnknownSkill" xml:space="preserve"><value>That skill does not exist!</value></data>
   <data name="Combat_Refused_NotJoined" xml:space="preserve"><value>Join a map before casting a skill!</value></data>
-  <data name="Combat_KnockedOut" xml:space="preserve"><value>You were knocked out and carried back to the Farmhouse with low HP!</value></data>
+  <data name="Combat_KnockedOut" xml:space="preserve"><value>You were knocked out and carried back to the Farmhouse with a quarter of your HP.</value></data>
   <data name="Combat_Skills_Aria" xml:space="preserve"><value>Combat skills</value></data>
   <data name="Combat_Skill_Whirlwind" xml:space="preserve"><value>Whirlwind</value></data>
   <data name="Combat_Skill_Whirlwind_Tip" xml:space="preserve"><value>Whirlwind cleave (15 MP)</value></data>
@@ -1152,7 +1152,7 @@
   <data name="Bestiary_Title_Locked" xml:space="preserve"><value>Unlocks at {0} slain</value></data>
   <data name="Fishing_Title" xml:space="preserve"><value>Fishing</value></data>
   <data name="Fishing_Casting" xml:space="preserve"><value>Casting the line...</value></data>
-  <data name="Fishing_Waiting" xml:space="preserve"><value>Waiting for a bite...</value></data>
+  <data name="Fishing_Waiting" xml:space="preserve"><value>Waiting for a bite. It usually takes a few seconds...</value></data>
   <data name="Fishing_Bite" xml:space="preserve"><value>Something is biting!</value></data>
   <data name="Fishing_Press" xml:space="preserve"><value>Press Space or click to reel in!</value></data>
   <data name="Fishing_PressTouch" xml:space="preserve"><value>Tap to reel in!</value></data>

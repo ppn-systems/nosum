@@ -39,10 +39,11 @@ Touch was not played. Fights and fish vary from run to run.
 5. **The skill keys did not show when they were ready (fixed on master).** The skill buttons carry a cooldown sweep from the server's cooldown
    span (`Hotbar.razor`, `skill-cooldown`), and the buttons are 42 px (combat round 4).
 
-6. **The knock-out message was cut off by the combo chip (addressed).** The combo chip has its own strip above the hotbar, so it no longer sits
-   under the toast line (combat round 4, `Hotbar.razor`). Not re-captured in this pass. **Still open:** the revival HP is only in the tooltip
-   after a knock-out, and the attack reply comment says "revived at 50 % HP" while the toast says "low HP". The HP on screen after a revival is
-   not confirmed.
+6. **The knock-out message was cut off by the combo chip, and the revival was unclear (fixed in round 6).** The combo chip has its own strip
+   above the hotbar, so it no longer sits under the toast line (combat round 4, `Hotbar.razor`). Round 6 checked the revival: the server
+   revives at 25 % of maximum HP (`CombatRules.ReviveHp`), the attack reply comment said 50 % (corrected in `AttackMonsterResult`), and the toast
+   said only "low HP". The toast now says `...chỉ còn một phần tư máu.` / `...with a quarter of your HP.`. The revived HP is on screen: the
+   vitals push after the travel sets the HP tube, and the low-HP tag shows it (`docs/qa/combat-fishing-round6/`, the 1280x720 vi frame reads 25).
 
 7. **The walking hint covers the scene during a cast (open, onboarding).** `Đi lại bằng W A S D hoặc cần điều khiển bên trái.` stays on the
    scene while the line is out (`docs/qa/quest-banner-coins/after/quest-banner-1920x1080-vi.png`). ADR-108 moved first-run hints into the toast
@@ -71,21 +72,32 @@ Touch was not played. Fights and fish vary from run to run.
 - **N2. Quest and farm reports fail silently (open).** `FarmService.ReportAsync` and `QuestService` catch every exception and log nothing, so a
   failed quest write would look like a missing step. The path worked in this pass (the completion and the coins were in the database). Open: a
   log line in those catches, and a test that makes the write fail.
-- **N3. The wait says nothing about how long a bite takes (open, minor).** The banner says `Đang chờ cá cắn câu...` for the whole wait (2 to 6 s,
-  `FishingRules.BiteMinMs`). A player who casts and waits may reel in too early or give up. Open: say the wait is normal, or show the wait's
-  progress.
+- **N3. The wait says nothing about how long a bite takes (fixed in round 6).** The banner said `Đang chờ cá cắn câu...` for the whole wait (2 to
+  6 s, `FishingRules.BiteMinMs` and `BiteSpreadMs`), so a player could reel in too early or give up. The line now says the wait is normal:
+  `Đang chờ cá cắn câu, thường chỉ mất vài giây...` / `Waiting for a bite. It usually takes a few seconds...`. The wait's progress is not
+  drawn (that would be a new element; the line is enough for a 2 to 6 s wait). Frames at 1280x720, 1920x1080 and 390x844 in both languages
+  (`docs/qa/combat-fishing-round6/after/wait-*`).
 
 ## Reward pacing
 
 The tutorial pays a small reward per step (10 to 80 coins, ADR-036). A first catch pays 50 coins with the quest, and a cast costs ten energy
 (ADR-078 amendment). The pacing of a whole session was not played in this pass; it is for the economy critique.
 
-## What this change does
+## Round 6: what changed
 
-- **Fixed:** item 11 and N1 (the banner names the reward and shows for every finished quest). ADR-036 amendment, `QuestTrackerViewModel`,
-  `Language.resx` and `Language.en.resx` (`Quest_BannerReward`), two new `QuestTrackerViewModelTests` cases, and the frames in
-  `docs/qa/quest-banner-coins/`.
-- **Checked and recorded as fixed on master:** items 1 to 5, 9 and 10, with the ADR or the round that fixed each.
-- **Still open:** items 6 (revival HP), 7 (walking hint), 8 (touch not played), N2 (silent report failures) and N3 (wait message).
-- **Wire:** no change, so `NosumProtocol.Version` stays at 34. No `DbBudget` row changes. No new ADR: the change is the tracker's display rule, and
-  the rule it amends is ADR-036's.
+- **Item 6 (fixed).** The knock-out notice is now shown once. A knock-out sends the zero-HP vitals push, which raises `KnockedOut`; the attack
+  reply's `KnockedOut` flag was a second event for the same knock-out and `ClientWiring` notified on both. From the code, that merged into a
+  `×2` toast when the farmer's own attack caused the knock-out. Not reproduced in the browser (the round-6 captures struck nothing); the fix is
+  the removal of the second notice. The copy names the quarter. The contract comment for `AttackMonsterResult.KnockedOut` said 50 %; corrected.
+  ADR-045 (the D2 revive text said 50 %) has a 2026-11-02 amendment.
+- **N3 (fixed).** The wait line says the wait is normal (see N3 above).
+- **Checked, not changed.** A knock-out while standing still beside an ordinary mine monster (no strike from the farmer) came after 11 to 20 s
+  in all six runs. The notice is one line in the toast line above the hotbar at 1280 and 1920; at 390 px both languages wrap to two lines and stay inside the panel, clear of the hotbar and the HP tube.
+  The cast at 390 px works on a tap of the shoreline, clear of the joystick and buttons.
+- **Still open:** item 7 (walking hint on the scene during a cast, onboarding), item 8 (touch skill targeting, not played), N2 (quest and farm
+  reports fail silently; outside combat and fishing, so it belongs to the quest critique).
+- **Wire:** no change. The contract comment changed; `NosumProtocol.Version` stays at 34. No `DbBudget` row changes. No new ADR (the copy and
+  the comment are the rule of ADR-045, amended).
+
+Frames: `docs/qa/combat-fishing-round6/` (`capture.cjs` in that folder; `wait` and `knockout` modes; tester build, Development server,
+`?qa=1`). Unit tests, the integration suite, the browser `node --test` and the wasm and server builds were run for this change.

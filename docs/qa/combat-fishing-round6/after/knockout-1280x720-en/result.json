@@ -1,0 +1,13 @@
+{
+  "mode": "knockout",
+  "size": "1280x720",
+  "locale": "en-US",
+  "toastsAtKnockout": [
+    "You were knocked out and carried back to the Farmhouse with a quarter of your HP."
+  ],
+  "knockoutSeconds": 20,
+  "toastsLater": [
+    "You were knocked out and carried back to the Farmhouse with a quarter of your HP."
+  ],
+  "errors": []
+}
