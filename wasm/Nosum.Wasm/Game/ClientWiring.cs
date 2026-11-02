@@ -198,7 +198,14 @@ internal static class ClientWiring
         services.AddSingleton(sp => new PetViewModel(sp.GetRequiredService<PetChannel>(), sp.GetRequiredService<IStringLocalizer<Language>>()));
         services.AddSingleton<WalletViewModel>();
         services.AddSingleton<CalendarViewModel>();
-        services.AddSingleton<MarketViewModel>();
+        services.AddSingleton(sp => new MarketViewModel(
+            sp.GetRequiredService<MarketChannel>(),
+            sp.GetRequiredService<InventoryViewModel>(),
+            sp.GetRequiredService<ItemDescriber>(),
+            sp.GetRequiredService<IStringLocalizer<Catalogue>>(),
+            sp.GetRequiredService<NicknameFormatter>(),
+            sp.GetRequiredService<IStringLocalizer<Language>>(),
+            sp.GetRequiredService<CalendarChannel>().ServerNowMs));
         services.AddSingleton<WardrobeViewModel>();
         services.AddSingleton<TradeViewModel>();
         services.AddSingleton<CoopViewModel>();

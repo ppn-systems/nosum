@@ -271,6 +271,21 @@ public sealed class MarketSortViewModelTests
     }
 
     [Fact]
+    public void Browsed_OwnListing_CountsTheTimeLeftOnTheServerClock()
+    {
+        // The device clock is far from the server's: a listing 3 hours from expiry on the server must read "3 hours left", not "Expired" or a skewed count.
+        using CultureScope scope = new("en", "en-US");
+        long serverNow = new System.DateTimeOffset(2030, 6, 1, 12, 0, 0, System.TimeSpan.Zero).ToUnixTimeMilliseconds();
+        ListingsPage page = new() { Total = 1 };
+        page.Rows.Add(new ListingRow { ListingId = System.Guid.NewGuid(), ItemId = ItemCatalog.Parsnip, Quantity = 1, Price = 30, IsMine = true, ExpiresAtMs = serverNow + 3 * 60 * 60 * 1000 });
+        (MarketViewModel vm, _) = Create(page, serverNowMs: () => serverNow);
+
+        vm.Open();
+
+        vm.Browsed.Single().ExpiryText.Should().Be("3 hours left");
+    }
+
+    [Fact]
     public void Browsed_OthersListing_HasNoExpiryLine()
     {
         using CultureScope scope = new("en", "en-US");
@@ -283,7 +298,7 @@ public sealed class MarketSortViewModelTests
         vm.Browsed.Single().ExpiryText.Should().BeEmpty();
     }
 
-    private static (MarketViewModel Vm, FakeGameSocket Socket) Create(ListingsPage page, int parsnips = 0, MarketStatus listingResult = MarketStatus.Ok)
+    private static (MarketViewModel Vm, FakeGameSocket Socket) Create(ListingsPage page, int parsnips = 0, MarketStatus listingResult = MarketStatus.Ok, Func<long>? serverNowMs = null)
     {
         FakeGameSocket socket = new();
         socket.ReplyWith(_ => page);
@@ -305,7 +320,7 @@ public sealed class MarketSortViewModelTests
         inventoryChannel.Load();
         ItemDescriber describer = new(new FixedIcons(), Localizer<Catalogue>(), Localizer<Language>());
         NicknameFormatter names = new(Localizer<Language>(), new LookChannel(socket, () => 0));
-        MarketViewModel vm = new(new MarketChannel(socket), inventory, describer, Localizer<Catalogue>(), names, Localizer<Language>());
+        MarketViewModel vm = new(new MarketChannel(socket), inventory, describer, Localizer<Catalogue>(), names, Localizer<Language>(), serverNowMs ?? (() => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
         return (vm, socket);
     }
 
