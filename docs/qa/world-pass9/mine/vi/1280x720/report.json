@@ -1,0 +1,49 @@
+{
+  "flow": "mine",
+  "locale": "vi",
+  "viewport": "1280x720",
+  "steps": [
+    {
+      "name": "elevator-open",
+      "ok": true,
+      "value": {
+        "floors": ""
+      },
+      "file": "01-elevator-open.png"
+    },
+    {
+      "name": "descend-floors",
+      "ok": true,
+      "value": {
+        "map": "mine2",
+        "candidates": 15
+      },
+      "file": "02-descend-floors.png"
+    },
+    {
+      "name": "ore-mine",
+      "ok": true,
+      "value": {
+        "ore": [
+          34,
+          32
+        ],
+        "bag": [
+          0,
+          1
+        ]
+      },
+      "file": "03-ore-mine.png"
+    },
+    {
+      "name": "fight-monster",
+      "ok": true,
+      "value": {
+        "swings": 6,
+        "hits": []
+      },
+      "file": "04-fight-monster.png"
+    }
+  ],
+  "errors": []
+}
