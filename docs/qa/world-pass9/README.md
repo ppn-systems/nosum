@@ -19,11 +19,11 @@ checks (DOM text, counts, the server's reply); a step's `ok` means the check pas
 | market (list, buy, mail) | 8 | 6 of 6 ok | 30 | 2 (buy-confirm dialog cuts the filter row at desktop, 4 frames), 6 (phone seller name cut to "QaF_") |
 | coop (found, members, stock, upgrades, log) | 10 | 6 of 6 ok | 60 | 1 and 3 and 4 (top-right column, minimap and hotbar are not drawn in any co-op frame at 1920; see issue 4) |
 | bin + furnace | 9 | 6 of 6 ok | 48 | 1 (hint card floats mid-map, all six "after the sale" frames), 2 and 3 (emote heart under the column at 1920, over the gauges at 390), 4 (en 1280 furnace "Smelt Copper ore" button falls under its icon) |
-| social (two players) | 16 | 1280x720 and 1920x1080 failed the co-op steps before this pass's harness fix; after it, all steps ok at both sizes, 390x844 ok throughout | 58 (incl. fail frames) + new re-run frames | see issue 20 (harness) |
-| new player, first day (en 1280x720) | 6 steps, stopped at the bus stop | blocked; vi 390x844 not run | 30 | see issue 1 |
+| social (two players) | 16 | 1280x720 and 1920x1080 failed the co-op steps before this pass's harness fix; after it, all steps ok at both sizes, 390x844 ok throughout | 54 passing-run frames (`social-fixed/`, `social/390x844/`); the 8 `fail-*` frames of the first run are evidence, not graded | 6 and 7 (trade and co-op grids and the friends list clipped at desktop), 2 (chat card under the trade panel; menu column over the emote at 1920), 3 (phone menu not visible behind a panel); visit-farm and co-op log captures are stale (issue 9) |
+| new player, first day (en 1280x720) | 6 steps, stopped at the bus stop | blocked; vi 390x844 not run | 30 | 1 (hint card over the world on almost every frame, issue 3), 2 (hint and toast overlap), 6 ("Profile" wraps in the menu) |
 
-Totals: 355 matrix frames + 30 new-player frames graded by eye. The matrix graders read every frame; I spot-checked 9 frames myself
-(listed under "Verification" below).
+Totals: 355 matrix frames + 54 social frames + 30 new-player frames graded by eye (439 in all). The graders read every frame listed by
+Glob; I spot-checked 9 frames myself (listed under "Verification" below).
 
 ## Fixed in this PR
 
@@ -49,7 +49,9 @@ where a hint belongs, so they are ranked rather than changed.
    Proposed fix: decide what gives way on a phone (calendar text size, coin badge width, or moving the gear into the Menu window), then
    re-capture at three sizes.
 3. **A hint card floats mid-map over the world.** After a sale at the bin, the "after" hint sits over the farm at 1280x720, 1920x1080 and
-   390x844, in both languages. Sections 4 and 5 of the standard put hints in a notice region, not over the world. The same applies to the
+   390x844, in both languages. In the new-player day it is on nearly every English frame from the first screen onwards ("Walk with WASD",
+   "Select the hoe...", the bus-stop hints): `new-player/en/1280x720/01-a-in-game.png`, `04-c2-water-after-3s.png`, `01-x-approach-sign-from-right.png`.
+   This is the most-seen defect of the pass. Sections 4 and 5 of the standard put hints in a notice region, not over the world. The same applies to the
    placement confirmation ("Đã đặt xuống." / "Placed.") over the coop wall (`farm/vi/1280x720/02-coop-built.png`), whose source is not known
    from the frame. Evidence: `bin/vi/1280x720/05-bin-after.png`, `bin/en/1280x720/05-bin-after.png`, `bin/vi/390x844/05-bin-after.png`.
 4. **The co-op board at 1920x1080 hides the top-right column, the minimap and the hotbar.** None of the 60 co-op frames shows them, and
@@ -89,12 +91,23 @@ where a hint belongs, so they are ranked rather than changed.
 19. **Open panels hide the quest card, the minimap, the column and the hotbar at every size.** By design or not, it is not stated in the standard.
     Low; observation only.
 20. **Social harness (fixed in this PR, issue 1 in "Fixed").** Listed here because the failing run was the last evidence of stale co-op steps.
+21. **Trade and co-op grids clip a row, and the friends list clips at its bottom (desktop).** The fourth trade row and the friends list are cut
+    with a fade, an inner scroll at 1280x720 and 1920x1080 (points 6 and 7). Evidence: `social-fixed/1280x720/en-1280x720-trade-open.png`,
+    `social-fixed/1920x1080/en-1920x1080-trade-open.png`, `social-fixed/1280x720/en-1280x720-friends-online.png`,
+    `social-fixed/1920x1080/vi-1920x1080-coop-deposit-receiver.png`.
+22. **The chat card runs under the trade panel** (point 2) at 1280x720 (`social-fixed/1280x720/vi-1280x720-trade-invite-receiver.png`), and the
+    menu column's last button covers the emote at 1920 (`social-fixed/1920x1080/vi-1920x1080-chat-received.png`).
+23. **The menu label "Profile" wraps** with "N" alone on the second line (`new-player/en/1280x720/01-z-menu-open.png`, point 6).
+24. **Two social captures are stale, and the harness hid why.** `visit-farm` frames are dark with no farm (`social-fixed/1280x720/en-1280x720-visit-farm.png`,
+    `social/390x844/en-390x844-visit-farm.png`), and `coop-log` frames show the world with no co-op panel
+    (`social-fixed/1280x720/en-1280x720-coop-log.png`, checked by eye). The co-op log step ends with `.catch(() => {})`, so a failed reopen is silent.
+    Fix in the harness: make the reopen a checked step. Not changed here.
 
 ## Verification
 
 - Spot-checked by eye (me, not the agents): `new-player/en/1280x720/01-q-bus-stop-press-empty-hand.png`, `farm/en/390x844/03-carpenter-open.png`,
-  `mine/vi/1280x720/04-fight-monster.png`, `coop/en/1920x1080/01-coop-board-open.png`, `social/1280x720/fail-en-1280x720-coop-deposit-A.png`.
-  Each matched the grader's note.
+  `mine/vi/1280x720/04-fight-monster.png`, `coop/en/1920x1080/01-coop-board-open.png`, `social/1280x720/fail-en-1280x720-coop-deposit-A.png`,
+  `social-fixed/1280x720/en-1280x720-coop-log.png` (the stale world frame, issue 24). Each matched the grader's note.
 - Matrix flows read by subagents, one per flow group, every PNG listed by Glob. Their tables and rankings were checked against my spot-checks
   and against each other: the English 390 overflow was reported independently by three graders and is visible in the frames I opened.
 - The bin flow ran in about four minutes for all six combinations, not the 17 minutes per run pass 8 noted. The furnace collect step still
