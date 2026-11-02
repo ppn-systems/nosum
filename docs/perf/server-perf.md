@@ -9,6 +9,99 @@ on a 4-core machine shared with the bots). The one database change lowers one ho
 code measures. The load-test numbers do not improve, because this branch does not change the snapshot or send path; the run-to-run spread is about as large as
 any difference in the table.
 
+## Round three: the current master, 3 runs each, and what the send deadline and the pool cap cost (branch `claude/perf-round3`)
+
+Base: `origin/master` at `fc98de0` (no logic change in this branch). Same machine and method as below (4 vCPU shared with the bots, PostgreSQL 16 on
+the same host, .NET 10.0.403, Release). Each row is three runs; the tick is the server's own measurement (`nosum_snapshot_tick_seconds` window), the spread is
+max minus min. The bots ramp in 15 s (50), 30 s (200) and 60 s (500), then a 60 s steady phase.
+
+**Headline.** The 50 and 200 runs meet the tick budget (p99 bucket ≤ 10 ms). The 500 run does not (p99 bucket 30 ms, mean 14.4 ms). The send deadline and
+the pool cap are not what limits the tick (see the table). A watchdog that takes the deadline off the per-send path cut allocations by about 13 %, but made
+the tick about 11 % slower in interleaved runs, so it is **not merged**. The per-send cost is inside Nalix, and this repository cannot change it.
+
+**Verdicts are not the same as the tick budget.** The harness passes a run only when 95 % of the bots join and the tick p99 is within budget. At 50 and 200
+clients the tick passes and the run still reads FAIL, because only 86 % (50) and 93 % (200) of the bots joined. See "Join failures" below.
+
+| Clients | Tick mean, 3 runs | Mean ± spread | Tick p99 bucket | Server CPU (of 1 core) | Allocated per tick | GC pause | Bots joined | Verdict |
+|--:|:--|:--|:--|:--|:--|:--|:--|:--|
+| 50 | 1.38, 1.41, 1.19 ms | 1.33 ± 0.22 ms | ≤ 2.5 ms (3/3) | 14, 14, 15 % | 102 ± 3 KiB | 8, 16, 7 ms | 43, 44, 43 of 50 | FAIL (join < 95 %; tick PASS) |
+| 200 | 5.31, 5.77, 5.62 ms | 5.57 ± 0.46 ms | ≤ 10 ms (3/3) | 35, 36, 37 % | 395 ± 8 KiB | 55, 69, 60 ms | 186, 188, 187 of 200 | FAIL (join < 95 %; tick PASS) |
+| 500 | 14.32, 14.17, 14.65 ms | 14.38 ± 0.48 ms | ≤ 30 ms (3/3) | 65, 66, 71 % | 1,092 ± 19 KiB | 314, 316, 295 ms | 482, 483, 482 of 500 | **FAIL (tick)** |
+
+The 500 run's tick means are 14.38 ± 0.48 ms here, and 13.78 ms (13.18 to 14.20) when the same master was re-run after the other experiments, so the
+spread across sessions is about 1 ms. The alloc figure is the server's allocations per snapshot tick (`nosum_gc_allocated_bytes_total` over the window).
+
+### Measurements (each row is a change to one thing against the master runs above)
+
+| Experiment | Clients | Runs | Tick mean | Allocated per tick | Result |
+|:--|--:|--:|:--|:--|:--|
+| **Pool cap 20 (master)** | 200 | 3 | 5.57 ± 0.46 ms | 395 KiB | baseline |
+| Pool cap off (`Maximum Pool Size=100`, Npgsql's default) | 200 | 3 | 6.10 ± 0.64 ms | 394 KiB | no tick difference beyond the spread |
+| **Pool cap 20 (master)** | 500 | 3 | 14.38 ± 0.48 ms | 1,092 KiB | baseline |
+| Pool cap off | 500 | 3 | 14.95 ± 1.09 ms | 1,100 KiB | no tick difference beyond the spread |
+| **Deadline per viewer (master)** | 200 | 3 | 5.57 ± 0.46 ms | 395 KiB | baseline |
+| No deadline (no linked source, no timer) | 200 | 3 | 5.95 ± 0.16 ms | 339 KiB | −14 % allocation, tick not lower |
+| **Deadline per viewer (master)** | 500 | 3 | 14.38 ± 0.48 ms | 1,092 KiB | baseline |
+| No deadline | 500 | 3 | 15.91 ± 1.80 ms | 958 KiB | −12 % allocation; the tick was higher, not interleaved (see below) |
+| **Watchdog** (one task checks the viewer in flight every 25 ms; no per-viewer source or timer) | 50 | 3 | 1.37 ± 0.01 ms | 91 KiB | −11 % |
+| Watchdog | 200 | 3 | 6.28 ± 1.87 ms | 336 KiB | −15 % |
+| Watchdog | 500 | 3 | 16.67 ± 0.30 ms | 949 KiB | −13 % allocation, **tick higher** |
+| **Interleaved A/B at 500**: master, watchdog, master, watchdog, master, watchdog | 500 | 3 + 3 | master 13.96 ms (13.64, 13.57, 14.68); watchdog 15.46 ms (15.38, 16.04, 14.96) | 1,089 / 943 KiB | watchdog **~1.5 ms (11 %) slower** per tick |
+
+What this says:
+
+- **The pool cap does not move the tick.** Its job is to bound the connections (ADR-087 D3), and this round did not count `pg_stat_activity` across runs, so
+  the connection effect is not measured here. The cap stays.
+- **The 250 ms deadline never fired** in any of the 43 load runs of this session (`0 dropped by the server` in every one). Its whole cost is the per-viewer source
+  and timer: about 134 KiB of the 1,092 KiB per tick at 500 clients (12 %) and about 56 KiB of 395 KiB at 200 clients.
+- **The watchdog is not merged.** It removes the per-viewer allocation and keeps the deadline behaviour (a stalled viewer's send is cancelled and the
+  viewer is disconnected; a stalled-send test passes). But the interleaved runs show the tick about 1.5 ms slower, a regression in the number the
+  budget is about. The cause was not found. Suspects, none tested: the watchdog's wake-ups and thread-pool scheduling on a 4-core box shared with the bots; the
+  cancellation token that every send now shares. The change is reverted from this branch.
+- **The no-deadline run was higher as well (15.9 ms), but was not interleaved with master.** It is not evidence either way on its own.
+
+### What the remaining tick is
+
+At 500 clients about 950 KiB is still allocated per tick after the deadline's share is removed: about 1.9 KiB per viewer per tick, against about 260 bytes on the
+wire. The code outside `connection.SendAsync` (the interest update, the spawn and despawn lists, the snapshot rows, the `Shown` table) is reused across ticks, so the
+allocation is inside the send: Nalix frames, serializes and encrypts each packet per connection. This is an attribution by elimination, not a profile (no profiler is
+installed). Earlier timing of the tick (the probe in the section below) put about 63 % of the 500-client tick in the sends, about 20 % in per-viewer
+bookkeeping and 17 % in preparation, so the send is the next cost after the sends themselves, and the send is Nalix's.
+
+Two levers exist, and neither is a small change:
+
+1. **Send to several viewers in parallel** (the lanes candidate in the section below). It gave about 11 % less tick in its runs and did not hold the 20 ms
+   budget reliably. Now that a stalled viewer is bounded by the deadline, the stall that stopped it earlier is less dangerous, but it still needs its own ADR.
+2. **Send one pre-framed, pre-encrypted buffer to viewers that share an interest set.** Viewers in the same chunk see the same snapshot rows. The public Nalix API
+   sends a packet, not bytes, and it serializes and encrypts per call (`IPacket.Serialize()` returns a new array), so this needs a Nalix change or an API that does
+   not exist yet. Not attempted.
+
+### Join failures
+
+About 12 to 14 % of the bots at 50 clients (15 s ramp), 6 to 7 % at 200 (30 s ramp) and 3 to 4 % at 500 (60 s ramp) failed at the WebSocket connect with
+`NetworkException: WebSocket Connection failed: Unable to connect to the remote server`. The failures fall as the ramp gets slower: 50 clients over 60 s joined 48 of 50.
+They are not the connection quota: raising `NOSUM_MAX_CONNECTIONS_PER_IP`, `..._PER_WINDOW`, `..._PER_SUBNET` and `..._SUBNET_CONNECTIONS_PER_WINDOW` to 1000
+left the 50-client run at 43 of 50. The cause was not isolated (a listen backlog or the handshake accept rate in Nalix are the candidates). The bench now prints one
+sample per distinct failure with the frame that threw (`sample` lines in the report), so the next run shows where a bot failed.
+
+### Method for this round
+
+- Load harness: `bench/Nosum.Bench.Load` (unchanged except the failure samples above). Server: `dotnet artifacts/bin/Nosum.Host/release/Nosum.Host.dll` with
+  `DOTNET_ENVIRONMENT=Staging NOSUM_LOAD_TEST=1 NOSUM_OPS_HOST=+`, a copy of the binary per variant so a rebuild cannot change a running series.
+- The database: PostgreSQL 16 on the same host; a `nosum` role and `nosum_dev` database created for the run (the development password of
+  `NosumDatabase.DevelopmentConnectionString`).
+- **Rent and return on a cancelled send: not confirmed against Nalix.** The Nalix packages here are binaries with XML docs; its send internals are not
+  in the repository and no source was available offline. What this repository does: every snapshot packet is rented in `PushInstanceAsync` with a `using`
+  lease (`PacketScope`), so it is returned on every path, including a cancelled or dropped send. Whether Nalix releases its own send buffer on cancellation
+  is open; a test would need a real socket and the Nalix pool statistics, and neither is wired in the test suite.
+- Machine noise: the same master was re-run after the variants and gave the same mean within 0.6 ms, so the drift across the session is smaller than the
+  watchdog difference, which the interleaved pairs confirm.
+
+## Round three: what the pool cap bounds (not measured across runs)
+
+Connection counts across runs were not measured in this round (the server is stopped before the count can be read). The database numbers of ADR-087 D3
+stand as they were measured on `claude/perf-server`.
+
 ## Server robustness (branch `claude/server-robustness`)
 
 Three server risks found during the perf work, each fixed in code and each with a test that fails without the fix and passes with it. The decisions are
