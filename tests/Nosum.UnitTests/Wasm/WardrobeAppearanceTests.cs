@@ -26,7 +26,8 @@ namespace Nosum.UnitTests.Wasm;
 
 /// <summary>
 /// The wardrobe sends a whole appearance (skin, hair style, dye) with each request, so the requests must go one at a time and each must carry the newest
-/// choice. Two quick choices must not revert each other.
+/// choice. Two quick choices must not revert each other. Every look change (appearance, wear, take-off) goes out one at a time, in the order chosen, and
+/// the wardrobe shows each one while it waits (docs/adr/ADR-120).
 /// </summary>
 [SuppressMessage("Reliability", "CA2000", Justification = "Short-lived test fixtures over a fake socket that dies with the test.")]
 public sealed class WardrobeAppearanceTests
@@ -49,10 +50,10 @@ public sealed class WardrobeAppearanceTests
         await Until(() => sent.Count == 2);
 
         sent.Should().Equal(new[] { (2, 1, 1), (2, 3, 1) });
-        looks.TryGetPendingAppearance(out _, out _, out _).Should().BeTrue("the second choice is still waiting for its answer");
+        looks.Pending.Should().ContainSingle("the second choice is still waiting for its answer");
 
         socket.ReleaseOldestHeld().Should().BeTrue();
-        await Until(() => !looks.TryGetPendingAppearance(out _, out _, out _));
+        await Until(() => looks.Pending.Count == 0);
 
         socket.ReleaseOldestHeld().Should().BeFalse("no third request was sent");
         sent.Should().HaveCount(2);
@@ -118,6 +119,65 @@ public sealed class WardrobeAppearanceTests
 
         host.Wardrobe.Look.SkinId.Should().Be(1, "the server refused the change, so the look it sent stays");
     }
+
+    [Fact]
+    public async Task Unequip_AfterAnEquip_IsSentOnlyAfterTheEquipIsAnswered()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => new LookResult { Status = LookStatus.Ok });
+        socket.HoldReplies<LookResult>();
+        using LookChannel looks = new(socket, () => 7);
+
+        looks.Equip(5, 1001, 1);
+        looks.Unequip(1);
+
+        Kinds(socket).Should().Equal(new[] { typeof(EquipItem) }, "the take-off must not overtake the wear it follows");
+
+        socket.ReleaseOldestHeld().Should().BeTrue();
+        await Until(() => Kinds(socket).Count == 2);
+
+        Kinds(socket).Should().Equal(new[] { typeof(EquipItem), typeof(UnequipItem) }, "the answer to the wear released the take-off");
+    }
+
+    [Fact]
+    public async Task SetAppearance_AfterAWearWhileWaiting_IsSentAfterIt_AndNewerChoicesReplaceIt()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => new LookResult { Status = LookStatus.Ok });
+        socket.HoldReplies<LookResult>();
+        using LookChannel looks = new(socket, () => 7);
+        List<(int Skin, int Hair, int Dye)> sent = Record(socket);
+
+        looks.SetAppearance(2, 1, 1);
+        looks.Equip(5, 1001, 1);
+        looks.SetAppearance(3, 1, 1);
+        looks.SetAppearance(4, 1, 1);
+
+        looks.Pending.Should().HaveCount(3, "the skin in flight, the wear, and the newest skin choice");
+
+        socket.ReleaseOldestHeld();
+        await Until(() => Kinds(socket).Count == 2);
+        socket.ReleaseOldestHeld();
+        await Until(() => Kinds(socket).Count == 3);
+        socket.ReleaseOldestHeld();
+        await Until(() => looks.Pending.Count == 0);
+
+        Kinds(socket).Should().Equal(new[] { typeof(SetAppearance), typeof(EquipItem), typeof(SetAppearance) });
+        sent.Should().Equal(new[] { (2, 1, 1), (4, 1, 1) }, "the skin that waited behind the wear is the newest one");
+    }
+
+    [Fact]
+    public void Apply_WearThenTakeOff_ShowsEachChoiceInTurn()
+    {
+        LookInfo worn = new PendingWear(5, 1, 1001).Apply(LookInfo.Default);
+        LookInfo bare = new PendingTakeOff(1).Apply(worn);
+
+        worn.ShirtItemId.Should().Be(1001, "the shirt shows at once, before the server answers");
+        bare.ShirtItemId.Should().Be(0);
+    }
+
+    // The types of the requests in the order they were sent.
+    private static List<Type> Kinds(FakeGameSocket socket) => socket.Requests.Select(request => request.GetType()).ToList();
 
     // The appearance of every request as it was sent (read while the pooled packet is alive).
     private static List<(int Skin, int Hair, int Dye)> Record(FakeGameSocket socket)

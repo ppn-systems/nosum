@@ -42,12 +42,11 @@ public sealed class LookChannel : IDisposable
     private readonly Lock _gate = new();
     private readonly Dictionary<uint, LookInfo> _looks = [];
 
-    // An appearance request sets all three parts, so two in flight at once could revert each other (the server may apply them in either order).
-    // The requests therefore go one at a time: the next one is sent when the last is answered, and it carries the newest wish. The wish stays
-    // readable until the last answer, so the wardrobe shows the choice at once.
-    private (int Skin, int Hair, int Dye)? _appearanceWish;
-    private bool _appearanceDirty;
-    private bool _appearanceBusy;
+    // Every look change the player chose, in the order chosen, until the server answers it. The first one is in flight; the rest wait. Look writes go
+    // one at a time: the server applies each under a lock per player, but not necessarily in the order they were sent, so a take-off sent after a wear
+    // could run first and find nothing worn (docs/adr/ADR-120).
+    private readonly List<PendingLook> _queue = [];
+    private bool _sending;
 
     /// <summary>Initializes the channel and starts listening for pushed looks.</summary>
     /// <param name="socket">The game connection.</param>
@@ -62,11 +61,26 @@ public sealed class LookChannel : IDisposable
         _subscriptions = [socket.Subscribe<LookChanged>(p => this.Store(p.Look)), socket.Subscribe<PlayerLeft>(this.OnPlayerLeft)];
     }
 
-    /// <summary>Raised when any look changed. May run on any thread.</summary>
+    /// <summary>Raised when any look changed, or a look change was queued or answered. May run on any thread.</summary>
     public event Action? Changed;
 
     /// <summary>Raised with the server's answer to a wardrobe request. May run on any thread.</summary>
     public event Action<LookStatus>? Completed;
+
+    /// <summary>
+    /// Gets the look changes the player chose that the server has not answered for yet, oldest first. The first one is in flight. The wardrobe shows them
+    /// over the server's look, so a choice shows at once and a refused one disappears when its answer arrives.
+    /// </summary>
+    public IReadOnlyList<PendingLook> Pending
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _queue.ToArray();
+            }
+        }
+    }
 
     /// <summary>Looks up a player's look.</summary>
     /// <param name="playerId">The player's id on the map.</param>
@@ -127,61 +141,23 @@ public sealed class LookChannel : IDisposable
     public void Load() => _ = this.LoadAsync();
 
     /// <summary>
-    /// Looks up the appearance the player has chosen and the server has not answered for yet (the newest choice, while requests are in flight).
+    /// Chooses avatar parts. The choice joins the queue; while an earlier change waits for its answer, only the newest of the appearance choices that
+    /// wait is sent (an appearance request carries all three parts, so older ones would only be overwritten).
     /// </summary>
-    /// <param name="skinId">The skin tone id.</param>
-    /// <param name="hairStyleId">The hair style id.</param>
-    /// <param name="hairDyeId">The hair dye id.</param>
-    /// <returns><see langword="true"/> when a choice is pending; otherwise the server's look is the one to show.</returns>
-    public bool TryGetPendingAppearance(out int skinId, out int hairStyleId, out int hairDyeId)
-    {
-        lock (_gate)
-        {
-            if (_appearanceWish is { } wish)
-            {
-                skinId = wish.Skin;
-                hairStyleId = wish.Hair;
-                hairDyeId = wish.Dye;
-                return true;
-            }
-        }
-
-        skinId = 0;
-        hairStyleId = 0;
-        hairDyeId = 0;
-        return false;
-    }
-
-    /// <summary>Chooses avatar parts. While an answer is pending, a new choice waits for it; of the choices that wait, only the newest is sent, after that answer.</summary>
     /// <param name="skinId">Skin tone id.</param>
     /// <param name="hairStyleId">Hair style id.</param>
     /// <param name="hairDyeId">Hair dye id.</param>
-    public void SetAppearance(int skinId, int hairStyleId, int hairDyeId)
-    {
-        bool start;
-        lock (_gate)
-        {
-            _appearanceWish = (skinId, hairStyleId, hairDyeId);
-            _appearanceDirty = true;
-            start = !_appearanceBusy;
-            _appearanceBusy = true;
-        }
+    public void SetAppearance(int skinId, int hairStyleId, int hairDyeId) => this.Enqueue(new PendingAppearance(skinId, hairStyleId, hairDyeId));
 
-        this.Changed?.Invoke();
-        if (start)
-        {
-            _ = this.SendAppearanceAsync();
-        }
-    }
-
-    /// <summary>Wears the clothing item in an inventory slot.</summary>
+    /// <summary>Wears the clothing item in an inventory slot. Queued behind the earlier look changes.</summary>
     /// <param name="slot">Inventory slot.</param>
     /// <param name="itemId">The item expected in the slot.</param>
-    public void Equip(int slot, int itemId) => _ = this.EquipAsync(slot, itemId);
+    /// <param name="wearSlot">The wear slot the item goes to (1 shirt, 2 trousers, 3 hat, 4 boots).</param>
+    public void Equip(int slot, int itemId, int wearSlot) => this.Enqueue(new PendingWear(slot, wearSlot, itemId));
 
-    /// <summary>Takes the item worn in a slot off.</summary>
-    /// <param name="wearSlot">1 shirt, 2 trousers, 3 hat.</param>
-    public void Unequip(int wearSlot) => _ = this.UnequipAsync(wearSlot);
+    /// <summary>Takes the item worn in a slot off. Queued behind the earlier look changes.</summary>
+    /// <param name="wearSlot">1 shirt, 2 trousers, 3 hat, 4 boots.</param>
+    public void Unequip(int wearSlot) => this.Enqueue(new PendingTakeOff(wearSlot));
 
     /// <inheritdoc/>
     public void Dispose()
@@ -253,90 +229,114 @@ public sealed class LookChannel : IDisposable
         }
     }
 
-    // Sends the newest wish, one request at a time, until no newer wish arrived while the last one was in flight. A lost connection drops the
-    // wishes that were not sent; the pending choice then clears and the server's look is shown again.
+    // Queues a change. An appearance choice that waits behind another appearance choice replaces it: the newest one carries everything the older one
+    // would have sent. The change in flight (index 0) is never replaced.
+    private void Enqueue(PendingLook change)
+    {
+        bool start;
+        lock (_gate)
+        {
+            if (change is PendingAppearance && _queue.Count > 1 && _queue[^1] is PendingAppearance)
+            {
+                _queue[^1] = change;
+            }
+            else
+            {
+                _queue.Add(change);
+            }
+
+            start = !_sending;
+            _sending = true;
+        }
+
+        this.Changed?.Invoke();
+        if (start)
+        {
+            _ = this.SendQueueAsync();
+        }
+    }
+
+    // Sends the queue one change at a time, oldest first, until it is empty. A lost connection drops the changes not yet sent; the pending changes
+    // then clear and the server's look is shown again.
     [SuppressMessage("Design", "CA1031", Justification = "A lost request changes nothing; the player tries again.")]
-    private async Task SendAppearanceAsync()
+    private async Task SendQueueAsync()
     {
         while (true)
         {
-            bool idle;
-            (int Skin, int Hair, int Dye) wish = default;
+            PendingLook head;
             lock (_gate)
             {
-                idle = !_appearanceDirty;
-                if (idle)
+                if (_queue.Count == 0)
                 {
-                    _appearanceWish = null;
-                    _appearanceBusy = false;
+                    _sending = false;
+                    break;
                 }
-                else
-                {
-                    _appearanceDirty = false;
-                    wish = _appearanceWish!.Value;
-                }
+
+                head = _queue[0];
             }
 
-            if (idle)
-            {
-                this.Changed?.Invoke();
-                return;
-            }
-
+            LookStatus status;
             try
             {
-                using PacketScope<SetAppearance> request = PacketFactory<SetAppearance>.Acquire();
-                request.Value.SkinId = (byte)wish.Skin;
-                request.Value.HairStyleId = (byte)wish.Hair;
-                request.Value.HairDyeId = (byte)wish.Dye;
-                LookResult reply = await _socket.RequestAsync<LookResult>(request.Value).ConfigureAwait(false);
-                this.Completed?.Invoke(reply.Status);
+                status = await this.SendAsync(head).ConfigureAwait(false);
             }
             catch (Exception)
             {
                 lock (_gate)
                 {
-                    _appearanceWish = null;
-                    _appearanceDirty = false;
-                    _appearanceBusy = false;
+                    _queue.Clear();
+                    _sending = false;
                 }
 
                 this.Changed?.Invoke();
                 return;
             }
+
+            lock (_gate)
+            {
+                _queue.RemoveAt(0);
+            }
+
+            this.Changed?.Invoke();
+            this.Completed?.Invoke(status);
         }
+
+        this.Changed?.Invoke();
     }
 
-    [SuppressMessage("Design", "CA1031", Justification = "A lost request changes nothing; the player tries again.")]
-    private async Task EquipAsync(int slot, int itemId)
+    private async Task<LookStatus> SendAsync(PendingLook change)
     {
-        try
+        switch (change)
         {
-            using PacketScope<EquipItem> request = PacketFactory<EquipItem>.Acquire();
-            request.Value.Slot = (byte)slot;
-            request.Value.ItemId = itemId;
-            LookResult reply = await _socket.RequestAsync<LookResult>(request.Value).ConfigureAwait(false);
-            this.Completed?.Invoke(reply.Status);
-        }
-        catch (Exception)
-        {
-            // Connection dropped.
-        }
-    }
+            case PendingAppearance appearance:
+            {
+                using PacketScope<SetAppearance> request = PacketFactory<SetAppearance>.Acquire();
+                request.Value.SkinId = (byte)appearance.SkinId;
+                request.Value.HairStyleId = (byte)appearance.HairStyleId;
+                request.Value.HairDyeId = (byte)appearance.HairDyeId;
+                LookResult reply = await _socket.RequestAsync<LookResult>(request.Value).ConfigureAwait(false);
+                return reply.Status;
+            }
 
-    [SuppressMessage("Design", "CA1031", Justification = "A lost request changes nothing; the player tries again.")]
-    private async Task UnequipAsync(int wearSlot)
-    {
-        try
-        {
-            using PacketScope<UnequipItem> request = PacketFactory<UnequipItem>.Acquire();
-            request.Value.WearSlot = (byte)wearSlot;
-            LookResult reply = await _socket.RequestAsync<LookResult>(request.Value).ConfigureAwait(false);
-            this.Completed?.Invoke(reply.Status);
-        }
-        catch (Exception)
-        {
-            // Connection dropped.
+            case PendingWear wear:
+            {
+                using PacketScope<EquipItem> request = PacketFactory<EquipItem>.Acquire();
+                request.Value.Slot = (byte)wear.InventorySlot;
+                request.Value.ItemId = wear.ItemId;
+                LookResult reply = await _socket.RequestAsync<LookResult>(request.Value).ConfigureAwait(false);
+                return reply.Status;
+            }
+
+            case PendingTakeOff takeOff:
+            {
+                using PacketScope<UnequipItem> request = PacketFactory<UnequipItem>.Acquire();
+                request.Value.WearSlot = (byte)takeOff.WearSlot;
+                LookResult reply = await _socket.RequestAsync<LookResult>(request.Value).ConfigureAwait(false);
+                return reply.Status;
+            }
+
+            default:
+                throw new InvalidOperationException("Unknown look change: " + change.GetType().Name);
         }
     }
 }

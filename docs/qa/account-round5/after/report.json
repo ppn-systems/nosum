@@ -1,0 +1,326 @@
+[
+  {
+    "tag": "1280x720-vi",
+    "step": "gift-claimed",
+    "bag": "405x1,518x1"
+  },
+  {
+    "tag": "1280x720-vi",
+    "step": "wear-shows-at-once",
+    "clicked": true,
+    "before": {
+      "wear": 2,
+      "takeOff": 0
+    },
+    "atOnce": {
+      "wear": 1,
+      "takeOff": 1
+    },
+    "after150ms": {
+      "wear": 1,
+      "takeOff": 1
+    },
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-vi",
+    "step": "wear-server-state",
+    "worn": "shirt",
+    "shirt": 405,
+    "hat": 0,
+    "bag": "518x1",
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-vi",
+    "step": "takeoff-then-wear-same-tick",
+    "shirt": 0,
+    "hat": 518,
+    "bag": "405x1",
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-vi",
+    "step": "skin-wear-skin-same-tick",
+    "skin": 3,
+    "shirt": 405,
+    "hat": 518,
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-vi",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "gift-claimed",
+    "bag": "405x1,518x1"
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "wear-shows-at-once",
+    "clicked": true,
+    "before": {
+      "wear": 2,
+      "takeOff": 0
+    },
+    "atOnce": {
+      "wear": 1,
+      "takeOff": 1
+    },
+    "after150ms": {
+      "wear": 1,
+      "takeOff": 1
+    },
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "wear-server-state",
+    "worn": "shirt",
+    "shirt": 405,
+    "hat": 0,
+    "bag": "518x1",
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "takeoff-then-wear-same-tick",
+    "shirt": 0,
+    "hat": 518,
+    "bag": "405x1",
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "skin-wear-skin-same-tick",
+    "skin": 3,
+    "shirt": 405,
+    "hat": 518,
+    "result": "yes"
+  },
+  {
+    "tag": "1280x720-en",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "1920x1080-vi",
+    "step": "gift-claimed",
+    "bag": "405x1,518x1"
+  },
+  {
+    "tag": "1920x1080-vi",
+    "step": "wear-shows-at-once",
+    "clicked": true,
+    "before": {
+      "wear": 2,
+      "takeOff": 0
+    },
+    "atOnce": {
+      "wear": 1,
+      "takeOff": 1
+    },
+    "after150ms": {
+      "wear": 1,
+      "takeOff": 1
+    },
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-vi",
+    "step": "wear-server-state",
+    "worn": "shirt",
+    "shirt": 405,
+    "hat": 0,
+    "bag": "518x1",
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-vi",
+    "step": "takeoff-then-wear-same-tick",
+    "shirt": 0,
+    "hat": 518,
+    "bag": "405x1",
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-vi",
+    "step": "skin-wear-skin-same-tick",
+    "skin": 3,
+    "shirt": 405,
+    "hat": 518,
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-vi",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "1920x1080-en",
+    "step": "gift-claimed",
+    "bag": "405x1,518x1"
+  },
+  {
+    "tag": "1920x1080-en",
+    "step": "wear-shows-at-once",
+    "clicked": true,
+    "before": {
+      "wear": 2,
+      "takeOff": 0
+    },
+    "atOnce": {
+      "wear": 1,
+      "takeOff": 1
+    },
+    "after150ms": {
+      "wear": 1,
+      "takeOff": 1
+    },
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-en",
+    "step": "wear-server-state",
+    "worn": "shirt",
+    "shirt": 405,
+    "hat": 0,
+    "bag": "518x1",
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-en",
+    "step": "takeoff-then-wear-same-tick",
+    "shirt": 0,
+    "hat": 518,
+    "bag": "405x1",
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-en",
+    "step": "skin-wear-skin-same-tick",
+    "skin": 3,
+    "shirt": 405,
+    "hat": 518,
+    "result": "yes"
+  },
+  {
+    "tag": "1920x1080-en",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "gift-claimed",
+    "bag": "405x1,518x1"
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "wear-shows-at-once",
+    "clicked": true,
+    "before": {
+      "wear": 2,
+      "takeOff": 0
+    },
+    "atOnce": {
+      "wear": 1,
+      "takeOff": 1
+    },
+    "after150ms": {
+      "wear": 1,
+      "takeOff": 1
+    },
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "wear-server-state",
+    "worn": "shirt",
+    "shirt": 405,
+    "hat": 0,
+    "bag": "518x1",
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "takeoff-then-wear-same-tick",
+    "shirt": 0,
+    "hat": 518,
+    "bag": "405x1",
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "skin-wear-skin-same-tick",
+    "skin": 3,
+    "shirt": 405,
+    "hat": 518,
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-vi",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  },
+  {
+    "tag": "390x844-en",
+    "step": "gift-claimed",
+    "bag": "405x1,518x1"
+  },
+  {
+    "tag": "390x844-en",
+    "step": "wear-shows-at-once",
+    "clicked": true,
+    "before": {
+      "wear": 2,
+      "takeOff": 0
+    },
+    "atOnce": {
+      "wear": 1,
+      "takeOff": 1
+    },
+    "after150ms": {
+      "wear": 1,
+      "takeOff": 1
+    },
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-en",
+    "step": "wear-server-state",
+    "worn": "shirt",
+    "shirt": 405,
+    "hat": 0,
+    "bag": "518x1",
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-en",
+    "step": "takeoff-then-wear-same-tick",
+    "shirt": 0,
+    "hat": 518,
+    "bag": "405x1",
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-en",
+    "step": "skin-wear-skin-same-tick",
+    "skin": 3,
+    "shirt": 405,
+    "hat": 518,
+    "result": "yes"
+  },
+  {
+    "tag": "390x844-en",
+    "step": "page-errors",
+    "count": 0,
+    "first": []
+  }
+]

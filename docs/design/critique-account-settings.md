@@ -121,8 +121,11 @@ Buttons (section 8): claim-all is `primary` (the one main action of the mail pag
 
 ## 8. Still open
 
-Round 4 (the list below is the state after it):
+Round 5 (the list below is the state after it):
 
+- **Closed in round 5:** the wardrobe's equip and unequip were not sequenced with the appearance requests (ADR-109, consequences), and a
+  wear showed only when the server answered. Every look change now goes out one at a time, in the order chosen, and shows at once
+  ([ADR-120](../adr/ADR-120-wardrobe-look-changes-in-order.md), section 10).
 - **Closed since round 1, with the record in the ADR:** hair-style names and the wardrobe caption ([ADR-102](../adr/ADR-102-guest-progress-and-sign-out-question.md));
   the sign-out question for a guest and what a guest loses ([ADR-102](../adr/ADR-102-guest-progress-and-sign-out-question.md)); the
   confirmation before deleting a mail (`MailDeleteOverlay`, round 2); the Sound label that wrapped (round 2).
@@ -138,8 +141,6 @@ Round 4 (the list below is the state after it):
     not recorded, so the cause is still unknown.
   - Google and Microsoft sign-in, and the remembered-session card (ADR-082). They need client ids, which this container does not have
     and which are never committed.
-  - The wardrobe's equip and unequip are not sequenced with the appearance requests (ADR-109, consequences). They set only the worn
-    slots, so no revert was seen, but a quick equip beside a quick skin change was not played.
 
 ## 9. Round 4: what was checked and changed
 
@@ -150,3 +151,26 @@ Round 4 (the list below is the state after it):
   answers (`WardrobeAppearanceTests`), and the browser check reproduced the bug before the change.
 - Checked, no change: settings reload persistence (six of six), the wardrobe preview size (measured, section 3).
 - Frames: `docs/qa/account-round4/before/` (master) and `after/` (this change); see the README there.
+
+## 10. Round 5: what was checked and changed
+
+- Self-critique of the account, settings and wardrobe on `master` at `707138e7`, against the open items in section 8. Picked the one
+  open item that was code-fixable without a new feature: the wardrobe's equip and unequip.
+- **Changed ([ADR-120](../adr/ADR-120-wardrobe-look-changes-in-order.md), amends [ADR-109](../adr/ADR-109-wardrobe-appearance-requests-in-order.md)).**
+  Every look change (skin, hair, wear, take-off) now goes out one at a time, in the order the player chose. A wear or take-off shows on the
+  wardrobe at once; a refused change drops out when its answer arrives. Client only: no wire change, no server change, protocol 34.
+  Code: `LookChannel` (one queue), `PendingLook` (the three kinds and how each shows), `WardrobeViewModel` (the look, the bag and take-off).
+- **Measured, not asserted** (`docs/qa/account-round5/`, `tests/browser/account-round5/capture.js`): on master the wear showed on the
+  wardrobe at once in 2 of 6 configurations and was absent at once in the rest; on this branch it shows at once in 6 of 6.
+- **Not reproduced:** the take-off and wear sent in one tick. Master passed it in 6 of 6, so the server applied them in the order sent in
+  practice. The change removes an ordering guarantee the client did not have; it does not fix a bug seen in the run.
+- **Played:** 6 configurations (1280×720, 1920×1080, 390×844, vi and en) on the Development server. A guest claimed a mail gift
+  with a shirt and a hat in the game (the starter kit has no clothing, so the gift was seeded in the database). 24 of 24 checks passed
+  on this branch, with no page error. The round-4 quick-choice and settings-reload checks still pass on the new queue (six of six).
+- **Tests:** `WardrobeAppearanceTests` (take-off waits for its wear; an appearance choice after a wear is sent after it and newer
+  choices replace it; each change applies to the look in turn). Full unit suite: 3,779 passed. Browser module tests: 40 passed.
+  `wasm/Nosum.Wasm.slnx` builds with `-warnaserror`.
+- **Checked, no change:** the Sound label (`Settings_SoundFx` is "Hiệu ứng" since round 2) was not re-graded in round 5.
+- **Still open (not changed here):** the in-world effect of each setting (section 8); the mail collect-all run that left one gift
+  collectable (section 4); Google and Microsoft sign-in and the remembered-session card (section 8); a refused equip and the bag count
+  after a refused change, which are not played.

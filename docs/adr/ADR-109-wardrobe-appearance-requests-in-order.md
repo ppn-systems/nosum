@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted. Amended by [ADR-120](ADR-120-wardrobe-look-changes-in-order.md): equip and unequip are now queued in order with the appearance requests.
 
 No wire change: `SetAppearance` keeps its fields and opcode, and `NosumProtocol.Version` does not move. The server is unchanged. This
 is client-side sequencing of the requests the wardrobe already sends. Builds on [ADR-006](ADR-006-layered-character-customization.md)
@@ -37,7 +37,7 @@ section 3); it was not seen in the captures because a local round trip is faster
 - A choice shows at once, so the wardrobe no longer lags a round trip behind the click.
 - The requests of one player are serial. A player who changes the look many times in a second sends them one after another, each answered
   before the next; this is already the pace of the server's answers.
-- Equip and unequip still send at once; they set only the worn slots, so they do not revert an appearance and are not sequenced here.
+- Equip and unequip still send at once; they set only the worn slots, so they do not revert an appearance and are not sequenced here. (Superseded by [ADR-120](ADR-120-wardrobe-look-changes-in-order.md): a take-off could overtake the wear before it.)
 
 ## References
 

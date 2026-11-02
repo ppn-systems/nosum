@@ -72,17 +72,20 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
     }
 
     /// <summary>
-    /// Gets the look to show: the server's look (the default until it has been sent), with the appearance the player chose and the server has not
-    /// answered for yet. A refused choice drops out when the answer comes; the server stays the one who decides.
+    /// Gets the look to show: the server's look (the default until it has been sent), with the changes the player chose and the server has not
+    /// answered for yet, applied in the order chosen (docs/adr/ADR-120). A refused change drops out when the answer comes; the server stays the one who decides.
     /// </summary>
     public LookInfo Look
     {
         get
         {
             LookInfo look = _looks.TryGetLocal(out LookInfo sent) ? sent : LookInfo.Default;
-            return _looks.TryGetPendingAppearance(out int skin, out int hair, out int dye)
-                ? look with { SkinId = skin, HairStyleId = hair, HairDyeId = dye }
-                : look;
+            foreach (PendingLook change in _looks.Pending)
+            {
+                look = change.Apply(look);
+            }
+
+            return look;
         }
     }
 
@@ -192,10 +195,12 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
     {
         get
         {
+            // An item whose wearing is queued leaves the bag at once; the inventory push confirms it later.
+            IReadOnlyList<PendingLook> pending = _looks.Pending;
             List<SlotDisplay> clothes = [];
             foreach (SlotDisplay slot in _inventory.Slots)
             {
-                if (!slot.IsEmpty && ItemCatalog.TryGet(slot.ItemId, out ItemDefinition? item) && item.Kind == ItemKind.Clothing)
+                if (!slot.IsEmpty && ItemCatalog.TryGet(slot.ItemId, out ItemDefinition? item) && item.Kind == ItemKind.Clothing && !IsQueuedToWear(pending, slot.Index))
                 {
                     clothes.Add(slot);
                 }
@@ -250,19 +255,19 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
     {
         foreach (SlotDisplay slot in this.Wardrobe)
         {
-            if (slot.Index == inventorySlot)
+            if (slot.Index == inventorySlot && ItemCatalog.TryGet(slot.ItemId, out ItemDefinition? item))
             {
-                _looks.Equip(inventorySlot, slot.ItemId);
+                _looks.Equip(inventorySlot, slot.ItemId, (int)item.Wear);
                 return;
             }
         }
     }
 
-    /// <summary>Takes the item worn in a slot off.</summary>
+    /// <summary>Takes the item worn in a slot off. Nothing is sent when the look already shows that slot empty, including a take-off still waiting.</summary>
     /// <param name="wearSlot">1 shirt, 2 trousers, 3 hat, 4 feet.</param>
     public void TakeOff(int wearSlot)
     {
-        if (wearSlot is < (int)WearSlot.Shirt or > (int)WearSlot.Feet)
+        if (wearSlot is < (int)WearSlot.Shirt or > (int)WearSlot.Feet || WornIn(this.Look, (WearSlot)wearSlot) == 0)
         {
             return;
         }
@@ -277,6 +282,28 @@ public sealed class WardrobeViewModel : PanelViewModel, IDisposable
         _looks.Completed -= this.OnCompleted;
         _inventory.Changed -= this.Raise;
     }
+
+    private static bool IsQueuedToWear(IReadOnlyList<PendingLook> pending, int inventorySlot)
+    {
+        foreach (PendingLook change in pending)
+        {
+            if (change is PendingWear wear && wear.InventorySlot == inventorySlot)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static int WornIn(LookInfo look, WearSlot slot) => slot switch
+    {
+        WearSlot.Shirt => look.ShirtItemId,
+        WearSlot.Pants => look.PantsItemId,
+        WearSlot.Hat => look.HatItemId,
+        WearSlot.Feet => look.FeetItemId,
+        _ => 0,
+    };
 
     // White multiplies to nothing: no layer needed.
     private static string? Tint(int tint) => tint == -1 ? null : LookPalette.Css(tint);
