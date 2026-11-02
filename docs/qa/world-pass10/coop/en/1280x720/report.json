@@ -1,0 +1,102 @@
+{
+  "flow": "coop",
+  "locale": "en",
+  "viewport": "1280x720",
+  "steps": [
+    {
+      "name": "coop-board-open",
+      "ok": true,
+      "value": {
+        "window": "Co-op Found a co-op Found Invitations You have no invitations."
+      },
+      "file": "01-coop-board-open.png"
+    },
+    {
+      "name": "coop-found",
+      "ok": true,
+      "value": {
+        "window": "Co-op Members Stock Upgrades Goals Log Members You Founder Online Counts cover the recent log (0 entries). No other play"
+      },
+      "file": "02-coop-found.png"
+    },
+    {
+      "name": "coop-members",
+      "ok": true,
+      "value": {
+        "overflow": 0,
+        "clientH": 212
+      },
+      "file": "03-coop-members.png"
+    },
+    {
+      "name": "coop-upgrades",
+      "ok": true,
+      "value": {
+        "overflow": 0,
+        "buy": 2
+      },
+      "file": "04-coop-upgrades.png"
+    },
+    {
+      "name": "coop-objectives",
+      "ok": true,
+      "value": {
+        "overflow": 0
+      },
+      "file": "05-coop-objectives.png"
+    },
+    {
+      "name": "coop-deposit-seeds",
+      "ok": true,
+      "value": {
+        "window": "Co-op Members Stock Upgrades Goals Log Shared warehouse 6 Radish seeds You may take: 6 Withdraw Deposit Pick a warehouse item to take, or a bag slot to deposit.",
+        "overflow": 0
+      },
+      "file": "06-coop-deposit-seeds.png"
+    },
+    {
+      "name": "coop-withdraw",
+      "ok": true,
+      "value": {
+        "window": "Co-op Members Stock Upgrades Goals Log Shared warehouse The warehouse is empty. Withdraw Deposit Pick a warehouse item to take, or a bag slot to deposit. Your b",
+        "overflow": 0
+      },
+      "file": "07-coop-withdraw.png"
+    },
+    {
+      "name": "coop-log-full",
+      "ok": true,
+      "value": {
+        "first": {
+          "lines": 10,
+          "overflow": 0
+        },
+        "second": {
+          "lines": 10,
+          "position": "Page 2 of 2",
+          "overflow": 0
+        }
+      },
+      "file": "08-coop-log-full.png"
+    },
+    {
+      "name": "coop-log",
+      "ok": true,
+      "value": {
+        "log": "Co-op Members Stock Upgrades Goals Log Warehouse log 12:30 AM - Guest 9944 withdrew 6 Radish seeds 12:30 AM - Guest 9944 deposited 6 Radish seeds 12:30 AM - Guest 9944 withdrew 6 Radish seeds 12:30 AM",
+        "overflow": 0
+      },
+      "file": "09-coop-log.png"
+    },
+    {
+      "name": "coop-reopen-remembers",
+      "ok": true,
+      "value": {
+        "active": "Log",
+        "overflow": 0
+      },
+      "file": "10-coop-reopen-remembers.png"
+    }
+  ],
+  "errors": []
+}
