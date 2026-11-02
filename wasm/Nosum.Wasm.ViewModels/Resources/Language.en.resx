@@ -28,8 +28,6 @@
   <data name="Account_Continue_As" xml:space="preserve"><value>Continue as {0}</value></data>
   <data name="Account_Continue_Forget" xml:space="preserve"><value>Sign out / use another account</value></data>
   <data name="Account_SignedInAs" xml:space="preserve"><value>Signed in as {0}</value></data>
-  <data name="Account_Upgrade_Prompt" xml:space="preserve"><value>Want to keep your progress? Link a Google or Microsoft account.</value></data>
-  <data name="Account_Upgrade_Action" xml:space="preserve"><value>Link account</value></data>
   <data name="Account_SignOut" xml:space="preserve"><value>Sign out</value></data>
   <data name="Account_SaveProgress_Heading" xml:space="preserve"><value>Keep your progress</value></data>
   <data name="Account_SaveProgress_Body" xml:space="preserve"><value>You are playing as a guest. Link a Google or Microsoft account to keep your farm, coins and belongings: it is the same player, with one more way to sign in. Then choose a nickname.</value></data>
