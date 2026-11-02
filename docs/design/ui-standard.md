@@ -45,6 +45,9 @@ coordinates outside its region, and nothing floats over the world except the wor
 - No element of one region may overlap another region at 1280×720, 1920×1080 or 390×844. Regions shrink by hiding content, not by
   overlapping.
 - The minimap is one fixed-size card (same frame as the calendar bar). It never sits in the bottom row.
+- Bottom centre, bottom to top: the hotbar and its gauges, the toast line directly on the hotbar's frame (toasts and the first-run hint), then
+  the badge strip (combo and level-up, 14 u, always reserved so the line does not jump). With a window open the hotbar is hidden, except under
+  the co-op window from 1600 px, where it is display-only (docs/adr/ADR-116-window-layout-rules-from-world-pass-10.md).
 
 ### 2.1 Who opens what (decision table)
 

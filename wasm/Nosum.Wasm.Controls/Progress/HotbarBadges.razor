@@ -1,0 +1,16 @@
+@using Nosum.Wasm.ViewModels.Progress
+@inherits ObservingComponent<ProgressViewModel>
+
+@* The combo chip and the level-up badge. The strip stands above the toast line, which sits right above the hotbar's frame
+   (docs/design/ui-standard.md section 2), so a toast or a hint never floats over the world with a gap under it. The strip is always
+   there, so the toast line does not jump when a badge shows. *@
+<div class="hotbar-badges">
+    @if (Vm is not null && Vm.CurrentCombo > 1)
+    {
+        <GameBadge Kind="warn" Text="@Vm.ComboBadgeText" />
+    }
+    @if (Vm is not null && Vm.IsLevelUpActive)
+    {
+        <GameBadge Kind="ok" Text="@Vm.LevelUpBadgeText" />
+    }
+</div>

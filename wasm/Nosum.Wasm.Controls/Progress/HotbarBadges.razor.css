@@ -1,0 +1,10 @@
+/* The badge strip is 14 u, the height of a badge (about 13 u with its frame), so a badge never reaches the toast line below it. It has a fixed
+   height, so a badge that comes and goes never moves the toast line or the hotbar. */
+.hotbar-badges {
+    height: calc(var(--u) * 14);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--u);
+    pointer-events: none;
+}

@@ -68,18 +68,6 @@
     flex-direction: column;
 }
 
-/* The badge strip sits over the hotbar's right edge, in its own row: the toast line stands above the strip (GameHud.razor.css). The strip is 14 u, the
-   height of a badge (about 13 u with its frame), so the badge never reaches the toast line. The strip has a fixed height, so a badge that comes and
-   goes never moves the toast line or the hotbar. */
-.hotbar-badges {
-    height: calc(var(--u) * 14);
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--u);
-    pointer-events: none;
-}
-
 /* Narrow screens (a phone held upright, docs/adr/ADR-033 D2): all nine slots stay in one row, each 14 u (the touch minimum, docs/design/ui-standard.md
    section 6) with a 1 u gap, so the hotbar and the gauge fit 390 px. The picture is scaled to three quarters, so it sits whole inside the slot's 12 u.
    The skill keys (Z, X, V) stack under the slots, not beside them. */

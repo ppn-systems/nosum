@@ -109,7 +109,8 @@
             <TradePanel Vm="Trade" />
             break;
         case PanelKind.Coop:
-            <CoopPanel Vm="Coop" />
+            @* A wrapper for the HUD's rule: the co-op is the one window short enough to leave the hotbar drawn beside it (GameHud.razor.css). *@
+            <div class="coop-dock"><CoopPanel Vm="Coop" /></div>
             break;
         case PanelKind.Profile:
             <ProfilePanel Vm="Profile" Account="Form" />
@@ -172,7 +173,7 @@
     private static PanelSize SizeOf(PanelKind panel) => panel switch
     {
         PanelKind.Inventory or PanelKind.Shop or PanelKind.Market or PanelKind.Wardrobe or PanelKind.WorldMap or PanelKind.Journal
-            or PanelKind.Crafting or PanelKind.Skills or PanelKind.Settings or PanelKind.Friends => PanelSize.L,
+            or PanelKind.Crafting or PanelKind.Skills or PanelKind.Settings or PanelKind.Friends or PanelKind.Profile => PanelSize.L,
         // Two grids side by side (the offers and the bag, the warehouse and the bag), as the chest: XL, stacked on a phone (ui-standard section 3).
         PanelKind.Chest or PanelKind.Trade or PanelKind.Coop => PanelSize.XL,
         PanelKind.Pet or PanelKind.Menu => PanelSize.S,
