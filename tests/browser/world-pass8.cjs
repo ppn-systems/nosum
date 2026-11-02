@@ -427,14 +427,33 @@ function keysToward(fx, fy, goal) {
 // key, and after three blocked steps in a row it swings the sword at what is in front (hotbar slot 9, granted by the flow). A swing in recovery ignores
 // the walk keys, so every swing is followed by a pause. A key that failed is not tried again for eight actions (a monster moves). False when the actions
 // run out.
+// True when the farmer is no longer on a mine floor: a walk onto a floor's edge leaves the mine for the surface, as in the game (QA pass 10, issue 11).
+// The surface reads as an empty map id (the node mirror is empty there), so anything but a mine floor counts as left.
+async function leftMine() {
+  // Two reads a second apart: a floor change passes through an empty map id for a moment, and the surface reads as empty too.
+  for (let read = 0; read < 2; read++) {
+    const { map } = await mirror();
+    if (map === 'mine1' || map === 'mine2') return false;
+    await wait(1000);
+  }
+  return true;
+}
 async function tunnel(goal, until, maxActions, pick) {
   const failed = new Map();
   let blocked = 0;
   for (let action = 0; action < maxActions; action++) {
     if (await until()) return true;
+    if (await leftMine()) return false;
     const [fx, fy] = await farmerTile();
     const { nodes } = await mirror();
-    const key = keysToward(fx, fy, goal).find(k => !(failed.has(fx + ',' + fy + ',' + k) && action - failed.get(fx + ',' + fy + ',' + k) < 8));
+    // A step onto the floor's edge (x or y of 3 or less) walks out of the mine, so the walk keeps off it unless the goal is there or a node is.
+    const edgeOk = k => {
+      const [dx, dy] = KEYS[k];
+      const nx = fx + dx, ny = fy + dy;
+      if (nodes.some(n => n.x === nx && n.y === ny)) return true;
+      return (nx > 3 || goal.x <= 3) && (ny > 3 || goal.y <= 3);
+    };
+    const key = keysToward(fx, fy, goal).find(k => edgeOk(k) && !(failed.has(fx + ',' + fy + ',' + k) && action - failed.get(fx + ',' + fy + ',' + k) < 8));
     if (!key) { failed.clear(); continue; }
     const [dx, dy] = KEYS[key];
     const ahead = nodes.find(n => n.x === fx + dx && n.y === fy + dy);
@@ -446,6 +465,7 @@ async function tunnel(goal, until, maxActions, pick) {
       continue;
     }
     await hold(key, 160);
+    if (await leftMine()) return false;
     const [nx, ny] = await farmerTile();
     if (nx !== fx || ny !== fy) { blocked = 0; continue; }
     failed.set(fx + ',' + fy + ',' + key, action);
@@ -509,8 +529,17 @@ async function mineFlow(lk) {
     const [sx, sy] = await farmerTile();
     const tried = new Set();
     let candidates = 0;
+    let left = 0;
     for (let round = 0; round < 24; round++) {
       if ((await mirror()).map === 'mine2') break;
+      // The farmer walked out of the mine (the floor's edge): back to floor 1 by the entrance's teleport, and the search goes on (at most three times).
+      if (await leftMine()) {
+        left += 1;
+        if (left > 3) throw new Error(`the farmer walked out of the mine ${left} times (${candidates} far stones tried)`);
+        await goto('mine1', 8, 8, 2500);
+        await pressKey('Digit' + pick);
+        continue;
+      }
       const [fx, fy] = await farmerTile();
       const stones = (await mirror()).nodes.filter(n => n.kind === KIND.Stone);
       stones.sort((a, b) => Math.hypot(b.x - sx, b.y - sy) - Math.hypot(a.x - sx, a.y - sy));
@@ -538,6 +567,17 @@ async function mineFlow(lk) {
     return { map: 'mine2', candidates };
   });
 
+  // Combat, straight after the descent and before the ore: the tunnel on floor 2 is where the monsters hit the farmer, and a knock-out carries the farmer
+  // home (the step then fails, and says so). A monster of floor 2 is beside the farmer (the server places the farmer; ADR-079 D9). The sword is in hand.
+  await step('fight-monster', async () => {
+    if (!(await onMap('mine2'))) throw new Error('not on floor 2: ' + (await mirror()).map);
+    await qa('teleportToMonster', ['mine2']); await wait(2000);
+    await pressKey('Digit9');
+    for (let i = 0; i < 6; i++) { await pressKey('KeyE'); await wait(700); }
+    // The step passes only if the farmer is still on floor 2 after the swings: a knock-out carries the farmer home (QA pass 10, issue 11).
+    if (!(await onMap('mine2'))) throw new Error('the farmer left floor 2 during the fight (knocked out and carried home?): ' + (await mirror()).map);
+    return { swings: 6 };
+  });
   // Ore: a copper ore of floor 2 (the planner places it on floors 1 to 39). Nothing on the floor is broken before it, so a teleport beside the ore
   // loses nothing (a floor is rebuilt from its seed; the ore stays) and spares the walk through the monsters. The farmer stands on a free side of the
   // ore, turns to it, and reads back the tile the action key works: the press is made only when that is the ore's tile.
@@ -574,16 +614,6 @@ async function mineFlow(lk) {
     return { ore: [ore.x, ore.y], bag: [before, after] };
   });
 
-  // Combat, last (a knock-out carries the farmer home, which would end the descent): a monster of floor 2 is beside the farmer (the server places the
-  // farmer; ADR-079 D9). The sword is in hand; the action key swings it.
-  await step('fight-monster', async () => {
-    if (!(await onMap('mine2'))) throw new Error('not on floor 2: ' + (await mirror()).map);
-    await qa('teleportToMonster', ['mine2']); await wait(2000);
-    await pressKey('Digit9');
-    const hits = [];
-    for (let i = 0; i < 6; i++) { await pressKey('KeyE'); await wait(700); }
-    return { swings: 6, hits };
-  });
   await closeWindow(lk);
 }
 

@@ -289,6 +289,7 @@
   <data name="Coop_Leave" xml:space="preserve"><value>Rời hợp tác xã</value></data>
   <data name="Coop_Warehouse_Heading" xml:space="preserve"><value>Kho chung</value></data>
   <data name="Coop_WarehouseEmpty" xml:space="preserve"><value>Kho đang trống.</value></data>
+  <data name="Coop_YourBag" xml:space="preserve"><value>Túi đồ</value></data>
   <data name="Coop_Available" xml:space="preserve"><value>Bạn lấy được: {0}</value></data>
   <data name="Coop_Quantity" xml:space="preserve"><value>Số lượng</value></data>
   <data name="Coop_Withdraw" xml:space="preserve"><value>Lấy ra</value></data>
@@ -643,6 +644,7 @@
   <data name="Friends_Visit_On" xml:space="preserve"><value>Bạn bè được ghé thăm nông trại của tôi: BẬT</value></data>
   <data name="Friends_Visit_Off" xml:space="preserve"><value>Bạn bè được ghé thăm nông trại của tôi: TẮT</value></data>
   <data name="Friends_Visit_Hint" xml:space="preserve"><value>Khi bật, mọi người bạn đều vào được nông trại và nhà của bạn mà không cần mời riêng.</value></data>
+  <data name="Friends_Visit_Heading" xml:space="preserve"><value>Ghé thăm</value></data>
   <data name="Friends_Blocked_Heading" xml:space="preserve"><value>Danh sách chặn</value></data>
   <data name="Friends_BlockedEmpty" xml:space="preserve"><value>Bạn chưa chặn ai.</value></data>
   <data name="Friends_BlockPlaceholder" xml:space="preserve"><value>Biệt danh cần chặn</value></data>

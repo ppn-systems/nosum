@@ -78,7 +78,7 @@ Every panel is a `GamePanel` opened in the center region:
 
 - One frame (`assets/ui/menu.png` 9-slice), one title bar with the title at `--nosum-fs-title` on the left and the close button on the
   right. No panel draws its own frame, title or close button.
-- Width is one of four sizes: **S** = 100 `--u`, **M** = 160 `--u`, **L** = 220 `--u`, and **XL** = 340 `--u` (clamped to the viewport minus the edge margin). XL is only for a panel with two grids side by side (the chest with the bag); such a panel stacks its two grids on a phone (640 px wide and under).
+- Width is one of four sizes: **S** = 100 `--u`, **M** = 160 `--u`, **L** = 220 `--u`, and **XL** = 340 `--u` (clamped to the viewport minus the edge margin). XL is only for a panel with two grids side by side (the chest with the bag, the trade's offers with the bag, the co-op's stock with the bag); such a panel stacks its two grids on a phone (640 px wide and under).
   Height fits the content; the panel body scrolls only when the viewport is shorter than the content (phones), never on desktop sizes
   for the content the panel normally shows (a full bag, a recipe list of one page).
 - Inner layout uses `GameStack`/`GameRow`/`GameSection` with `--nosum-gap` / `--nosum-gap-group`. A detail strip (selected item, recipe
@@ -87,6 +87,7 @@ Every panel is a `GamePanel` opened in the center region:
   window at 1280×720, 1920×1080 and 390×844 with no inner scroll. The view model keeps the last tab opened for the page session. A part
   that can grow (a log) pages with the shared `Pager`, not a scroll.
 - Only one panel is open at a time; opening another closes the first. Esc and the close button close it.
+- While a window is open in the centre, the chat line and the quest card step aside (section 2), so no card runs under the window.
 - Item icons always use the shared icon control, whole sprite, centered, scaled down to fit the slot, never cropped.
 - **Exception (ADR-101):** a dense list (the market listings) may use the compact slot, 12 UI pixels with an 8 px picture, `ItemSlotButton Compact="true"`. The picture rule is the same. No other list uses it.
 

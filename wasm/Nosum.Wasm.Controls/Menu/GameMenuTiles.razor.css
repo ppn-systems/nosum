@@ -6,6 +6,7 @@
 }
 
 .game-menu-tile {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -40,11 +41,22 @@
     image-rendering: pixelated;
 }
 
+/* The name is one line: it never wraps, so a short word is never left alone on a line (QA pass 10, issue 23). */
 .game-menu-tile-name {
+    max-width: 100%;
+    overflow-wrap: normal;
+    white-space: nowrap;
     text-align: center;
 }
 
+/* The hotkey is a small badge in the tile's top-right corner (the hotbar's key style), not a line of its own under the name. */
 .game-menu-tile-key {
+    position: absolute;
+    top: var(--u);
+    right: var(--u);
+    padding: 0 var(--u);
     font-size: var(--nosum-fs-small);
+    line-height: var(--nosum-lh);
     color: var(--nosum-ink-soft);
+    background: var(--nosum-parchment-light, var(--nosum-parchment));
 }

@@ -7,26 +7,31 @@
     <GameStack>
         @if (Vm.Phase == TradePhase.Open)
         {
-            @* Both offers side by side; under them the player's coins and bag. Confirm and cancel stay pinned under the scrolling part (Footer). *@
-            <div class="trade-sides">
-                <GameSection Title="@Vm.Text("Trade_Yours")">
-                    <ItemGrid Slots="Vm.MyItems" Columns="4" OnSlotClick="@(i => Vm.Withdraw(i))" />
-                    <p class="trade-coins">@Vm.Text("Trade_Coins", Vm.MyCoins)</p>
-                    <p class="trade-state">@(Vm.MyConfirmed ? Vm.Text("Trade_Confirmed") : Vm.Text("Trade_NotConfirmed"))</p>
-                </GameSection>
-                <GameSection Title="@Vm.OtherLabel">
-                    <ItemGrid Slots="Vm.OtherItems" Columns="4" />
-                    <p class="trade-coins">@Vm.Text("Trade_Coins", Vm.OtherCoins)</p>
-                    <p class="trade-state">@(Vm.OtherConfirmed ? Vm.Text("Trade_Confirmed") : Vm.Text("Trade_NotConfirmed"))</p>
-                </GameSection>
+            @* Two grids side by side in the XL panel (ui-standard section 3): both offers on the left, the player's coins and bag on the right. A phone
+               stacks them. Confirm and cancel stay pinned under the scrolling part (Footer). *@
+            <div class="trade-split">
+                <div class="trade-sides">
+                    <GameSection Title="@Vm.Text("Trade_Yours")">
+                        <ItemGrid Slots="Vm.MyItems" Columns="4" OnSlotClick="@(i => Vm.Withdraw(i))" />
+                        <p class="trade-coins">@Vm.Text("Trade_Coins", Vm.MyCoins)</p>
+                        <p class="trade-state">@(Vm.MyConfirmed ? Vm.Text("Trade_Confirmed") : Vm.Text("Trade_NotConfirmed"))</p>
+                    </GameSection>
+                    <GameSection Title="@Vm.OtherLabel">
+                        <ItemGrid Slots="Vm.OtherItems" Columns="4" />
+                        <p class="trade-coins">@Vm.Text("Trade_Coins", Vm.OtherCoins)</p>
+                        <p class="trade-state">@(Vm.OtherConfirmed ? Vm.Text("Trade_Confirmed") : Vm.Text("Trade_NotConfirmed"))</p>
+                    </GameSection>
+                </div>
+                <div class="trade-pick">
+                    <GameRow>
+                        <span>@Vm.Text("Trade_AddCoins")</span>
+                        <PriceInput Class="narrow" Value="@Vm.CoinsText" ValueChanged="@(v => Vm.CoinsText = v)" OnEnter="@(() => Vm.SetCoins())" Label="@Vm.Text("Trade_AddCoins")" Unit="@Vm.Text("Wallet_Caption")" />
+                        <GameButton Text="@Vm.Text("Trade_SetCoins")" OnClick="@(() => Vm.SetCoins())" />
+                    </GameRow>
+                    <p class="trade-state">@Vm.Text("Trade_PickItems")</p>
+                    <ItemGrid Slots="Vm.InventorySlots" Columns="9" OnSlotClick="@(i => Vm.Offer(i))" />
+                </div>
             </div>
-            <GameRow>
-                <span>@Vm.Text("Trade_AddCoins")</span>
-                <PriceInput Class="narrow" Value="@Vm.CoinsText" ValueChanged="@(v => Vm.CoinsText = v)" OnEnter="@(() => Vm.SetCoins())" Label="@Vm.Text("Trade_AddCoins")" Unit="@Vm.Text("Wallet_Caption")" />
-                <GameButton Text="@Vm.Text("Trade_SetCoins")" OnClick="@(() => Vm.SetCoins())" />
-            </GameRow>
-            <p class="trade-state">@Vm.Text("Trade_PickItems")</p>
-            <ItemGrid Slots="Vm.InventorySlots" Columns="9" OnSlotClick="@(i => Vm.Offer(i))" />
         }
         else if (Vm.Phase == TradePhase.Waiting)
         {

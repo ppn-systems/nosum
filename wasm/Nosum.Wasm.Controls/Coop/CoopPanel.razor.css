@@ -106,10 +106,23 @@
     flex-wrap: wrap;
 }
 
-/* The deposit hint is a visible line on a phone. On a desktop it is the Deposit button's tooltip instead: the warehouse grid is the
-   tallest part, and the hint line would push the Stock part past the window at 1920x1080 (ui-standard section 7, item 7). */
-@media (min-width: 641px) {
-    .coop-hint {
-        display: none;
+/* The warehouse part: the stock list on the left and the bag's grid on the right, both with 16 u slots (the chest's size), so the bag's four rows
+   fit the XL window (340 u) beside the stock at 1280x720 and 1920x1080 with no inner scroll (ui-standard sections 3 and 7). A phone stacks them. */
+.coop-split {
+    --item-grid-slot: calc(var(--u) * 16);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--nosum-gap-group);
+    align-items: start;
+}
+
+.coop-split ::deep .slot {
+    width: calc(var(--u) * 16);
+    height: calc(var(--u) * 16);
+}
+
+@media (max-width: 640px) {
+    .coop-split {
+        grid-template-columns: minmax(0, 1fr);
     }
 }

@@ -228,6 +228,12 @@
     pointer-events: none;
 }
 
+/* A window is open in the centre: the chat line steps aside with the quest card, so no card runs under the window (QA pass 10, issue 22; ui-standard
+   section 2, checklist item 2). The chat comes back when the window closes. */
+.game-hud:has(.hud-center > *) .hud-bottom-left {
+    display: none;
+}
+
 /* Phones: the hotbar is two rows and stands about 53 u high, so the chat line stands above it at 56 u (on a desktop 40 u clears the one-row hotbar).
    The open chat log keeps its own height limit (ChatLine.razor.css). */
 @media (max-width: 640px) {
@@ -324,9 +330,10 @@
     }
 }
 
-/* A tall screen: the menu column (8 cells, 205 u with the minimap) reaches the bottom-right corner, so the emote cell moves to the column's left
-   and the two never share a cell (docs/design/ui-standard.md section 2, checklist item 2). A short screen keeps the corner. */
-@media (min-width: 641px) and (min-height: 880px) {
+/* A desktop screen of any height: the menu column (8 cells, 205 u with the minimap) reaches down into the bottom-right corner, so the emote cell
+   moves to the column's left and the two never share a cell (docs/design/ui-standard.md section 2, checklist item 2). The column is top-anchored and
+   the emote bottom-anchored, so a window of 840 to 880 px high (a 1080p monitor less its browser chrome) overlapped at the corner (QA pass 10, issue 22). */
+@media (min-width: 641px) {
     /* The column's right edge is 8 u from the screen edge (the top-right block sits one gutter inside the top row); the cell is 16 u and the gap 2 u. */
     .hud-bottom-right {
         right: calc(var(--u) * 26);
