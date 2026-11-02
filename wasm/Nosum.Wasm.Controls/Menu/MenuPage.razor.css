@@ -6,6 +6,9 @@
     min-height: 0;
 }
 
+/* A scroll cue (docs/design/ui-standard.md section 6): a shade shows on the top or bottom edge only while content lies beyond it, so a cut row says the
+   page scrolls. CSS only: the parchment covers move with the content (local) and hide the shade where the content starts or ends; the shades stay on
+   the box (scroll). Backgrounds sit under the content, so the covers never hide a row. */
 .menu-page-body {
     display: flex;
     flex: 0 1 auto;
@@ -14,6 +17,11 @@
     min-height: 0;
     overflow-y: auto;
     padding-right: var(--u);
+    background:
+        linear-gradient(var(--nosum-parchment), var(--nosum-parchment)) top / 100% calc(var(--u) * 2) no-repeat local,
+        linear-gradient(var(--nosum-parchment), var(--nosum-parchment)) bottom / 100% calc(var(--u) * 2) no-repeat local,
+        linear-gradient(rgba(60, 40, 20, 0.22), rgba(60, 40, 20, 0)) top / 100% calc(var(--u) * 3) no-repeat scroll,
+        linear-gradient(rgba(60, 40, 20, 0), rgba(60, 40, 20, 0.22)) bottom / 100% calc(var(--u) * 3) no-repeat scroll;
 }
 
 .menu-page-footer {
