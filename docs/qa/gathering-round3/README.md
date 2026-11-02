@@ -1,28 +1,27 @@
 # QA captures: gathering round 3
 
-Browser check of the tree health bar (ADR-089 D2) and the test-suite work of this round. Build: `claude/gathering-round3` from `origin/master`
-(`89d060f`), Release wasm with `NosumDevTools=true`, Development host on a local PostgreSQL, 1280×720, Chromium. Scripts were run from the scratch
-folder and are not committed.
+Browser check for [ADR-114](../../adr/ADR-114-energy-shows-the-day-rollover-and-the-axe-text.md) and the open items of
+[critique-gathering.md](../../design/critique-gathering.md) section 7d. Captured by `tests/browser/energy-rollover-capture.cjs` against a Development server
+and a client published with `-p:NosumDevTools=true` (branch `work/critique-gathering-inventory`).
 
-## Frames
+## What the frames show
 
-| File | What it shows | Verdict |
+The guest is granted a copper hoe and tills four farm tiles (four uses at 3 energy each). The HUD energy then reads **258 / 270** at every size.
+
+| Frame | Vietnamese | English |
 | :-- | :-- | :-- |
-| `tree-hpbar-hit1-en-1280x720.png` | A grown tree after one basic-axe hit (`-3` energy and `+1 XP` on the trunk). The bar is above the canopy, 11 of 12 px green. | Pass: the bar appears on the first hit and is green above half. |
-| `tree-hpbar-hit5-en-1280x720.png` | The same tree after five presses of the use key. The bar is 8 of 12 px green, the rest dark. Four swings landed, so about 6 of 10 hits are left. | Pass: the fill is proportional. The swing count was read from the bar's pixels, not from the server. |
+| 1280×720 | `vi-1280x720-energy-spent.png` (Sức lực 258 / 270) | `en-1280x720-energy-spent.png` (Energy 258 / 270) |
+| 1920×1080 | `vi-1920x1080-energy-spent.png` | `en-1920x1080-energy-spent.png` |
+| 390×844 | `vi-390x844-energy-spent.png` | `en-390x844-energy-spent.png` |
 
-Both frames are in daylight (4 PM). The first attempt was at 4 AM and the scene's night tint made the green and the empty part hard to tell apart; the
-bar itself is correct, so the night frames were replaced and are not kept.
+## Grading against ui-standard.md section 7
 
-## Not captured this round
+- The energy bar and the hotbar keep their places at all three sizes; the phone frame has no overlap with the touch controls (checked on the 390×844 frame).
+- The frames show the spent state, not the rollover. The rollover (G10) changes what the bar shows after the game day changes, which the QA hook cannot reach:
+  it moves the server's clock, while the client reads its clock offset once at sign-in. The rule is pinned by `EnergyShownTests`.
 
-- **Copper ore break.** The mine floor's nodes were not reached in this run, so the copper-ore frame from round 2 is still the only one.
-- **Vietnamese frames.** Only English was captured for the tree bar.
+## Not captured
 
-## Test suite
-
-- `ConnectionPoolTests.ConnectDisconnectCycles_DoNotGrowTheOpenConnections` counted every client backend of its database and was cleared by
-  other test classes' `NpgsqlConnection.ClearAllPools()` calls while it ran. Each fixture now has its own application name and clears only its own pool
-  (`NosumDatabase.WithPoolLimits` gives the pool key). The count is that application name's backends, not the connection that asks.
-- `DbBudgetBaseline`: `PetPet / pet the cat` limit amended to reads 1, writes 2, transactions 1, SaveChanges 2 (ADR-092 D2: the first petting of a day
-  may add a forage item in its own transaction). The probe measured exactly that cost.
+- **The rollover itself.** Needs a QA hook that moves the client's calendar with the server's (ADR-079). Open, listed in ADR-114.
+- **The axe tooltip** with the new text ("about a dozen swings"). Not framed; the text is in both `.resx` files and is tested by the resource build.
+- **Before frames.** The spent-energy frame reads the same on master, because the change is in what the bar shows after midnight.

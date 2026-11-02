@@ -152,7 +152,21 @@ Scope: the open items of section 7b and ADR-089's round-2 amendment.
 - **Stump bar.** The open item of section 7b, see the round-2 captures in [docs/qa/gathering-round2/](../qa/gathering-round2/README.md).
 
 
+### 7d. Round 3 (branch `work/critique-gathering-inventory`, ADR-114)
+
+Scope: the open items of section 7c that change feel without a new feature or a balance change.
+
+- **G10, stale energy after the day changes (fixed).** The HUD and the farmer's exhaustion read the last push. After midnight the bar read 0 until the
+  first charge, the swing was slowed with the sweat bubble, and the run gate refused running, though the server refills on its next read. The shown
+  energy now follows the game day (ADR-114 D1), and the HUD repaints at the boundary (D2). Checked by `EnergyShownTests` and by the code path; a live
+  midnight is not in the frames (the QA hook moves only the server's clock, see the round-three README).
+- **G9, the axe text's swing count (fixed).** "about ten swings" became "about a dozen swings with a basic axe" (12 measured with the stump; vi and en).
+- **Stump bar, open in round 2 (closed).** Round 2 found the 6 of 12 px amber bar correct for the node; the red 3 of 12 px did not reproduce.
+- **G5, G6, G7, G8 (unchanged).** Respawn pacing and the hoe and can energy discount are balance questions for a playtest (ADR-089 D6); the wide-swing
+  key is the input owner's call; the phone gate (G8) is a product decision for the owner, not a gathering rule.
+- **Still unmeasured.** The copper ore break and the tree health bar were not framed again; the round-two README lists them.
+
 ## 8. Captures
 
-Before and after, English and Vietnamese, at 1280×720 and 390×844, are in [docs/qa/rebuild-gathering/](../qa/rebuild-gathering/). Each set is graded
+Before and after, English and Vietnamese, at 1280×720 and 390×844, are in [docs/qa/rebuild-gathering/](../qa/rebuild-gathering/). Round three's HUD captures are in [docs/qa/gathering-round3/](../qa/gathering-round3/README.md). Each set is graded
 against [ui-standard.md](ui-standard.md) section 7 in the folder's README.

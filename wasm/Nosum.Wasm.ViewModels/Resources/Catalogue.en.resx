@@ -117,7 +117,7 @@
   <data name="Item_hat_cap_Name" xml:space="preserve"><value>Cap</value></data>
   <data name="Item_hat_cap_Description" xml:space="preserve"><value>A cap.</value></data>
   <data name="Item_axe_Name" xml:space="preserve"><value>Axe</value></data>
-  <data name="Item_axe_Description" xml:space="preserve"><value>Chops trees, stumps and twigs. A full-grown tree takes about ten swings.</value></data>
+  <data name="Item_axe_Description" xml:space="preserve"><value>Chops trees, stumps and twigs. A full-grown tree takes about a dozen swings with a basic axe.</value></data>
   <data name="Item_pickaxe_Name" xml:space="preserve"><value>Pickaxe</value></data>
   <data name="Item_pickaxe_Description" xml:space="preserve"><value>Breaks stones and copper ore; also clears tilled soil that has no crop.</value></data>
   <data name="Item_scythe_Name" xml:space="preserve"><value>Scythe</value></data>

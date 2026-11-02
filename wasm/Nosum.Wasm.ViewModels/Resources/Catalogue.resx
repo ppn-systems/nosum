@@ -117,7 +117,7 @@
   <data name="Item_hat_cap_Name" xml:space="preserve"><value>Mũ lưỡi trai</value></data>
   <data name="Item_hat_cap_Description" xml:space="preserve"><value>Một chiếc mũ lưỡi trai.</value></data>
   <data name="Item_axe_Name" xml:space="preserve"><value>Rìu</value></data>
-  <data name="Item_axe_Description" xml:space="preserve"><value>Chặt cây, gốc cây và cành khô. Một cây lớn cần khoảng mười nhát.</value></data>
+  <data name="Item_axe_Description" xml:space="preserve"><value>Chặt cây, gốc cây và cành khô. Một cây lớn cần khoảng mười hai nhát với rìu thường.</value></data>
   <data name="Item_pickaxe_Name" xml:space="preserve"><value>Cuốc chim</value></data>
   <data name="Item_pickaxe_Description" xml:space="preserve"><value>Đập đá và quặng đồng; cũng dọn đất đã xới nhưng chưa gieo.</value></data>
   <data name="Item_scythe_Name" xml:space="preserve"><value>Liềm</value></data>
