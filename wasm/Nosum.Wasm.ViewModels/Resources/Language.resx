@@ -366,7 +366,6 @@
   <data name="Map_coopfarm_Name" xml:space="preserve"><value>Đất hợp tác</value></data>
   <data name="WorldMap_Here" xml:space="preserve"><value>Bạn đang ở đây</value></data>
   <data name="WorldMap_Shops" xml:space="preserve"><value>Cửa hàng: {0}</value></data>
-  <data name="WorldMap_HoursUnknown" xml:space="preserve"><value>Giờ mở cửa: chưa có thông tin</value></data>
   <data name="WorldMap_Connections" xml:space="preserve"><value>Nối tới:</value></data>
   <data name="WorldMap_Loading" xml:space="preserve"><value>Đang tải…</value></data>
   <data name="WorldMap_NoConnections" xml:space="preserve"><value>Chưa có lối đi nào</value></data>

@@ -366,7 +366,6 @@
   <data name="Map_coopfarm_Name" xml:space="preserve"><value>Co-op land</value></data>
   <data name="WorldMap_Here" xml:space="preserve"><value>You are here</value></data>
   <data name="WorldMap_Shops" xml:space="preserve"><value>Shops: {0}</value></data>
-  <data name="WorldMap_HoursUnknown" xml:space="preserve"><value>Opening hours: not posted yet</value></data>
   <data name="WorldMap_Connections" xml:space="preserve"><value>Connects to:</value></data>
   <data name="WorldMap_Loading" xml:space="preserve"><value>Loading…</value></data>
   <data name="WorldMap_NoConnections" xml:space="preserve"><value>No exits yet</value></data>
