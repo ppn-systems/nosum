@@ -1,0 +1,102 @@
+{
+  "flow": "farm",
+  "locale": "en",
+  "viewport": "390x844",
+  "steps": [
+    {
+      "name": "farm-start",
+      "ok": true,
+      "file": "01-farm-start.png"
+    },
+    {
+      "name": "grant-coop",
+      "ok": true
+    },
+    {
+      "name": "coop-built",
+      "ok": true,
+      "file": "02-coop-built.png"
+    },
+    {
+      "name": "grant-hay",
+      "ok": true
+    },
+    {
+      "name": "carpenter-open",
+      "ok": true,
+      "file": "03-carpenter-open.png"
+    },
+    {
+      "name": "buy-hen",
+      "ok": true,
+      "file": "04-buy-hen.png"
+    },
+    {
+      "name": "buy-cat",
+      "ok": true,
+      "file": "05-buy-cat.png"
+    },
+    {
+      "name": "carpenter-after-buys",
+      "ok": true,
+      "value": {
+        "coins": [
+          20560,
+          18140
+        ]
+      },
+      "file": "06-carpenter-after-buys.png"
+    },
+    {
+      "name": "feed-trough",
+      "ok": true,
+      "value": {
+        "hay": [
+          30,
+          6
+        ]
+      },
+      "file": "07-feed-trough.png"
+    },
+    {
+      "name": "day-rolls",
+      "ok": true,
+      "file": "08-day-rolls.png"
+    },
+    {
+      "name": "collect-produce",
+      "ok": true,
+      "value": {
+        "got": "You got Egg."
+      },
+      "file": "09-collect-produce.png"
+    },
+    {
+      "name": "pet-open",
+      "ok": true,
+      "file": "10-pet-open.png"
+    },
+    {
+      "name": "pet-pet-today",
+      "ok": true,
+      "value": {
+        "reply": "AM 18,140 Pet Mochi Cat Mood 60 Pet Give back Petted today. Back tomorrow. Done."
+      },
+      "file": "11-pet-pet-today.png"
+    },
+    {
+      "name": "day-rolls-again",
+      "ok": true,
+      "file": "12-day-rolls-again.png"
+    },
+    {
+      "name": "pet-open-next-day",
+      "ok": true,
+      "value": {
+        "reply": "ay 3 8:56 AM 18,140 Pet Mochi Cat Mood 70 Pet Give back Petted today. Back tomorrow. Done."
+      },
+      "file": "13-pet-open-next-day.png"
+    }
+  ],
+  "errors": []
+}

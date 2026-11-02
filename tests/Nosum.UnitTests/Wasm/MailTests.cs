@@ -206,6 +206,31 @@ public sealed class MailTests
     }
 
     [Fact]
+    public void Open_SelectsTheNewestMailWhenTheBoxArrives_AndAClosedMailStaysClosed()
+    {
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => Box(1));
+        List<Guid> read = [];
+        socket.ReplyWith(request =>
+        {
+            read.Add(((ReadMail)request).MailId);
+            return new MailResult { Status = MailStatus.Ok };
+        });
+        using MailChannel channel = new(socket);
+        using MailViewModel vm = Create(socket, channel);
+
+        vm.Open();
+
+        vm.Selected.Should().Be(s_sold, "the newest mail is shown when the page opens");
+        read.Should().Equal(new[] { s_sold }, "showing a mail reads it");
+
+        vm.Toggle(s_sold);
+        socket.Push(new MailUnread { Count = 0 });
+
+        vm.Selected.Should().BeNull("a refresh while the page is open does not reopen the mail the player closed");
+    }
+
+    [Fact]
     public void Toggle_OpeningAnUnreadMail_MarksItReadAndTheUnreadPushLowersTheBadge()
     {
         FakeGameSocket socket = new();

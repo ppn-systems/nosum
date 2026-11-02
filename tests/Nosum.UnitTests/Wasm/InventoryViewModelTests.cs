@@ -363,6 +363,17 @@ public sealed class InventoryViewModelTests
         vm.Hint.Should().Contain("Holding 4");
     }
 
+    [Fact]
+    public void Hint_OnATouchInput_NamesTapsAndNoMouseKeys()
+    {
+        using CultureScope scope = new("en");
+        (InventoryViewModel vm, _, _) = Create();
+        vm.TouchInput = true;
+
+        vm.Hint.Should().Contain("Tap");
+        vm.Hint.Should().NotContain("right-click").And.NotContain("Shift");
+    }
+
     private static (InventoryViewModel Vm, InventoryChannel Channel, FakeGameSocket Socket) CreateWith(params (int Slot, int ItemId, int Quantity)[] stacks)
     {
         FakeGameSocket socket = new();

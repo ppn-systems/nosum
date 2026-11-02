@@ -1,3 +1,4 @@
+@using Nosum.Wasm.ViewModels.Inventory
 @using Nosum.Wasm.Controls.Menu
 @using Nosum.Wasm.ViewModels.Looks
 @inherits ObservingComponent<WardrobeViewModel>
@@ -40,6 +41,37 @@
                         <GameSwatch Colour="@choice.Css" Label="@choice.Label" Current="choice.IsCurrent" OnClick="() => Vm.SetHairDye(id)" />
                     }
                 </GameRow>
+            </GameSection>
+            <GameSection Title="@Vm.WornTitle">
+                @foreach (WornDisplay worn in Vm.Worn)
+                {
+                    int wearSlot = worn.Slot;
+                    <GameRow Class="center">
+                        <ItemSlotButton Slot="@worn.Item" Tip="@worn.SlotLabel" />
+                        <span>@worn.SlotLabel</span>
+                        @if (!worn.Item.IsEmpty)
+                        {
+                            <GameButton Variant="secondary" Text="@Vm.TakeOffText" OnClick="@(() => Vm.TakeOff(wearSlot))" />
+                        }
+                    </GameRow>
+                }
+            </GameSection>
+            <GameSection Title="@Vm.BagTitle">
+                @if (Vm.Wardrobe.Count == 0)
+                {
+                    <p>@Vm.EmptyBagText</p>
+                }
+                else
+                {
+                    @foreach (SlotDisplay clothes in Vm.Wardrobe)
+                    {
+                        int inventorySlot = clothes.Index;
+                        <GameRow Class="center">
+                            <ItemSlotButton Slot="@clothes" />
+                            <GameButton Text="@Vm.WearText" OnClick="@(() => Vm.Wear(inventorySlot))" />
+                        </GameRow>
+                    }
+                }
             </GameSection>
         </div>
     </div>

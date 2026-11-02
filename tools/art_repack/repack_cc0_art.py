@@ -109,9 +109,10 @@ def main():
     for rel, img in sorted(images.items()):
         target = os.path.join(args.repo, 'assets', rel)
         if args.check:
-            current = pngio.read_png(target)
-            if current.px != img.px:
-                stale.append(rel)
+            # Byte for byte: a file whose pixels match but whose encoding differs is stale too (the committed items.png had another encoder).
+            with open(target, 'rb') as f:
+                if f.read() != pngio.encode_png(img):
+                    stale.append(rel)
         else:
             os.makedirs(os.path.dirname(target), exist_ok=True)
             pngio.write_png(target, img)

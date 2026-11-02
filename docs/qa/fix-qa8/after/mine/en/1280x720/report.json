@@ -1,0 +1,37 @@
+{
+  "flow": "mine",
+  "locale": "en",
+  "viewport": "1280x720",
+  "steps": [
+    {
+      "name": "elevator-open",
+      "ok": true,
+      "value": {
+        "floors": ""
+      },
+      "file": "01-elevator-open.png"
+    },
+    {
+      "name": "fight-monster",
+      "ok": true,
+      "value": {
+        "swings": 6,
+        "hits": []
+      },
+      "file": "02-fight-monster.png"
+    },
+    {
+      "name": "descend-floors",
+      "ok": false,
+      "skipped": true,
+      "note": "not driven: no reached floor beyond 0; see the README"
+    },
+    {
+      "name": "ore-mine",
+      "ok": false,
+      "skipped": true,
+      "note": "not driven: no ore node position from the client; see the README"
+    }
+  ],
+  "errors": []
+}

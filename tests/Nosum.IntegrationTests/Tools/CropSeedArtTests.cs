@@ -49,10 +49,32 @@ public sealed class CropSeedArtTests
                 }
             }
 
-            // World pass 8: the outlined sprouts have 26 to 185 opaque pixels (the smallest source pictures, rows 2, 3, 18 and 19, have 13 to 16 and
-            // stay small: an art follow-up). Before the outline the smallest was 13.
-            opaque.Should().BeGreaterThanOrEqualTo(25, $"crop row {row} has a seed picture large enough to read on a 16 px tile");
+            // The outlined sprouts have 26 to 185 opaque pixels; the four redrawn rows (below) have about 100, so every seed is at least 60.
+            opaque.Should().BeGreaterThanOrEqualTo(60, $"crop row {row} has a seed picture large enough to read on a 16 px tile");
             green.Should().Be(opaque, $"every pixel of the seed picture of crop row {row} is green, so it reads on the soil");
+        }
+    }
+
+    [Fact]
+    public void SeedFrame_OfTheRedrawnRows_IsASproutOfAboutAHundredPixels()
+    {
+        // Rows 2, 3, 18 and 19 (cauliflower, potato, yam, bok choy) were the smallest seeds (13 to 16 pixels in the pack): redrawn in the art pipeline.
+        using SKBitmap sheet = SKBitmap.Decode(Path.Combine(FindRoot(), "assets", "sprites", "crops.png"));
+
+        foreach (int row in new[] { 2, 3, 18, 19 })
+        {
+            int x0 = (row % 2) * RowWidth;
+            int y0 = (row / 2) * FrameHeight;
+            int opaque = 0;
+            for (int y = 0; y < FrameHeight; y++)
+            {
+                for (int x = 0; x < FrameWidth; x++)
+                {
+                    opaque += sheet.GetPixel(x0 + x, y0 + y).Alpha == 0 ? 0 : 1;
+                }
+            }
+
+            opaque.Should().BeInRange(90, 110, $"the redrawn seed of crop row {row} is a sprout of about 99 pixels");
         }
     }
 

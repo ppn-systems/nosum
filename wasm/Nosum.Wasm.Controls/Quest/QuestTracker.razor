@@ -14,12 +14,12 @@
     {
         <GamePanel Class="hud quest" Title="">
             <div class="quest-wrap">
-                <GameButton Variant="secondary" Class="quest-head" tabindex="-1" aria-expanded="@(_open ? "true" : "false")" Title="@(Vm.Heading + ": " + Vm.Title + (Vm.Hint.Length > 0 ? "\n" + Vm.Hint : string.Empty))"
-                            OnClick="() => _open = !_open">
-                    <GameIcon Name="quest-scroll" /><span class="quest-title">@Vm.Title</span><span class="quest-fold">@(_open ? "-" : "+")</span>
+                <GameButton Variant="secondary" Class="quest-head" tabindex="-1" aria-expanded="@(Vm.Folded ? "false" : "true")" Title="@(Vm.Heading + ": " + Vm.Title + (Vm.Hint.Length > 0 ? "\n" + Vm.Hint : string.Empty))"
+                            OnClick="() => Vm.ToggleFolded()">
+                    <GameIcon Name="quest-scroll" /><span class="quest-title">@Vm.Title</span><span class="quest-fold">@(Vm.Folded ? "+" : "-")</span>
                 </GameButton>
             </div>
-            @if (_open)
+            @if (!Vm.Folded)
             {
                 @if (Vm.Tip.Length > 0)
                 {
@@ -40,6 +40,4 @@
     }
 }
 
-@code {
-    private bool _open = true;
-}
+

@@ -138,16 +138,42 @@ def _outlined_seed(pic):
     return out
 
 
+# Rows 2, 3, 18 and 19 (cauliflower, potato, yam, bok choy) have the smallest seed pictures of the pack: 13 to 16 opaque pixels, which the outline
+# only brought to 26 to 32 (world pass 8, still faint on the dark soil at night). Their stage-0 picture is redrawn here instead, a sprout of two
+# broad leaves on a stem that covers about 60 pixels, in the same greens as the outline ramp so it stays green on the soil (CropSeedArtTests).
+REDRAWN_SEED_CROPS = ('cauliflower', 'potato', 'yam', 'bok_choy')
+SPROUT_OUTLINE = SEED_RAMP[0]
+SPROUT_STEM = (120, 190, 80)
+SPROUT_LEAF = (99, 199, 77)
+SPROUT_LEAF_DARK = (62, 137, 72)
+SPROUT_LEAF_LIGHT = (170, 235, 120)
+
+
+def sprout_picture():
+    """The 16 x 16 stage-0 sprout of REDRAWN_SEED_CROPS: two leaves and a stem, outlined in the dark green of the seed ramp (Nosum's own drawing)."""
+    c = Canvas(16, 16)
+    c.line(8, 15, 8, 7, SPROUT_STEM)
+    c.ellipse(4.5, 8.0, 3.4, 2.2, SPROUT_LEAF_DARK)
+    c.ellipse(4.5, 7.0, 3.0, 1.7, SPROUT_LEAF)
+    c.ellipse(11.5, 7.0, 3.4, 2.2, SPROUT_LEAF_DARK)
+    c.ellipse(11.5, 6.0, 3.0, 1.7, SPROUT_LEAF)
+    c.dot(3, 6, SPROUT_LEAF_LIGHT)
+    c.dot(11, 5, SPROUT_LEAF_LIGHT)
+    c.outline(SPROUT_OUTLINE)
+    return c
+
+
 def stages(src, crop_name):
     """The seed, three growth stages, ripe and produce pictures of a game crop: Tiny Farm's where it has the crop, else the crops pack's."""
     index, recipe, _ = RECIPES[crop_name]
     pack = cc0_stages(src.sheet('crops'), index, recipe)
+    seed = sprout_picture() if crop_name in REDRAWN_SEED_CROPS else _outlined_seed(_inked_seed(pack['seed']))
     if crop_name not in FARM:
-        pack['seed'] = _outlined_seed(_inked_seed(pack['seed']))
+        pack['seed'] = seed
         return pack
     first, farm_recipe, unripe, _ = FARM[crop_name]
     st = farm_stages(src.sheet('farm'), first, farm_recipe, unripe)
-    st['seed'] = _outlined_seed(_inked_seed(pack['seed']))
+    st['seed'] = seed
     return st
 
 

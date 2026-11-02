@@ -25,6 +25,9 @@ public readonly record struct FurnaceJobInfo(int ObjectId, int OreItemId, DateTi
 /// </summary>
 public sealed class FurnaceChannel : IDisposable
 {
+    // How often a running batch checks its ready time (milliseconds).
+    private const int FinishPollMs = 1000;
+
     private readonly IGameSocket _socket;
     private readonly TimeProvider _time;
     private readonly IDisposable _push;
@@ -34,7 +37,7 @@ public sealed class FurnaceChannel : IDisposable
 
     /// <summary>Initializes the channel and starts listening for pushes.</summary>
     /// <param name="socket">The game connection.</param>
-    /// <param name="time">The client clock the countdown runs on; <see langword="null"/> for the system clock.</param>
+    /// <param name="time">The clock the countdown runs on: the server's clock (<c>ServerClock</c>), so a dev clock jump moves the batch as it moves the server's; <see langword="null"/> for the system clock.</param>
     public FurnaceChannel(IGameSocket socket, TimeProvider? time = null)
     {
         ArgumentNullException.ThrowIfNull(socket);
@@ -187,25 +190,35 @@ public sealed class FurnaceChannel : IDisposable
         }
     }
 
-    // Waits for the batch's ready time on the client's clock, then raises Finished unless the batch was replaced or collected meanwhile.
+    // Waits for the batch's ready time on the client's clock, then raises Finished unless the batch was replaced or collected meanwhile. It wakes once a
+    // second rather than sleeping the whole batch, so a clock jump (the dev clock) brings the finish forward as it does on the server.
     [SuppressMessage("Design", "CA1031", Justification = "A timer that cannot run changes nothing; the bar shows its state on the next read.")]
     private async Task FinishAsync(int objectId, DateTimeOffset readyAt)
     {
         try
         {
-            await Task.Delay(TimeSpan.FromMilliseconds(Math.Max(0, (readyAt - _time.GetUtcNow()).TotalMilliseconds)), _time).ConfigureAwait(false);
+            while (true)
+            {
+                lock (_gate)
+                {
+                    if (!_jobs.TryGetValue(objectId, out FurnaceJobInfo job) || job.ReadyAt != readyAt)
+                    {
+                        return;
+                    }
+                }
+
+                double leftMs = (readyAt - _time.GetUtcNow()).TotalMilliseconds;
+                if (leftMs <= 0)
+                {
+                    break;
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(Math.Min(leftMs, FinishPollMs))).ConfigureAwait(false);
+            }
         }
         catch (Exception)
         {
             return;
-        }
-
-        lock (_gate)
-        {
-            if (!_jobs.TryGetValue(objectId, out FurnaceJobInfo job) || job.ReadyAt != readyAt)
-            {
-                return;
-            }
         }
 
         this.Finished?.Invoke(objectId);

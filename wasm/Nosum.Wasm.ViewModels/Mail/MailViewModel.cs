@@ -43,6 +43,7 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
     private readonly HashSet<Guid> _collecting = [];
     private readonly Queue<Guid> _collectQueue = new();
     private bool _open;
+    private bool _newestSelected;
 
     /// <summary>Initializes the view model.</summary>
     /// <param name="mail">The mail channel.</param>
@@ -100,6 +101,7 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
     public void Open()
     {
         _open = true;
+        _newestSelected = false;
         this.ClearStatus();
         _mail.Load();
     }
@@ -118,16 +120,7 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
             return;
         }
 
-        this.Selected = mailId;
-        foreach (MailInfo mail in _mail.Mails)
-        {
-            if (mail.Id == mailId && !mail.Read)
-            {
-                _mail.MarkRead(mailId);
-                break;
-            }
-        }
-
+        this.Select(mailId);
         this.Raise();
     }
 
@@ -269,7 +262,33 @@ public sealed class MailViewModel : PanelViewModel, IDisposable
     private void OnMailChanged()
     {
         _collecting.Clear();
+        this.SelectNewestOnce();
         this.Raise();
+    }
+
+    // The page opens on its newest mail (the sale a player came for), read and shown; once per opening, so a mail the player closed stays closed.
+    private void SelectNewestOnce()
+    {
+        if (!_open || _newestSelected || _mail.Mails.Count == 0)
+        {
+            return;
+        }
+
+        _newestSelected = true;
+        this.Select(_mail.Mails[0].Id);
+    }
+
+    private void Select(Guid mailId)
+    {
+        this.Selected = mailId;
+        foreach (MailInfo mail in _mail.Mails)
+        {
+            if (mail.Id == mailId && !mail.Read)
+            {
+                _mail.MarkRead(mailId);
+                break;
+            }
+        }
     }
 
     // A mail arrived or changed while the page is open: read the box again so the list is not stale.

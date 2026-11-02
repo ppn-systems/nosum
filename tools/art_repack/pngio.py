@@ -151,7 +151,9 @@ def read_png(path):
     return img
 
 
-def write_png(path, img):
+def encode_png(img):
+    """The PNG file bytes of an image: RGBA 8-bit, transparent pixels stored as (0, 0, 0, 0), zlib level 9. The same pixels always give the same bytes,
+    so --check can compare files byte for byte."""
     raw = bytearray()
     for row in img.px:
         raw.append(0)
@@ -166,5 +168,9 @@ def write_png(path, img):
     out += chunk(b'IHDR', struct.pack('>IIBBBBB', img.width, img.height, 8, 6, 0, 0, 0))
     out += chunk(b'IDAT', zlib.compress(bytes(raw), 9))
     out += chunk(b'IEND', b'')
+    return out
+
+
+def write_png(path, img):
     with open(path, 'wb') as f:
-        f.write(out)
+        f.write(encode_png(img))

@@ -112,7 +112,7 @@ internal static class ClientWiring
         services.AddSingleton<PlaceableChannel>();
         services.AddSingleton<CraftingChannel>();
         services.AddSingleton<ChestChannel>();
-        services.AddSingleton(sp => new FurnaceChannel(sp.GetRequiredService<IGameSocket>()));
+        services.AddSingleton(sp => new FurnaceChannel(sp.GetRequiredService<IGameSocket>(), new ServerClock(sp.GetRequiredService<CalendarChannel>())));
         services.AddSingleton(sp => new BuildingChannel(sp.GetRequiredService<IGameSocket>()));
         services.AddSingleton(sp => new NodeChannel(sp.GetRequiredService<IGameSocket>()));
         services.AddSingleton<GroundItemChannel>();
@@ -399,10 +399,12 @@ internal static class ClientWiring
 
         // A finger gets the tap prompts (docs/adr/ADR-097); the keyboard and mouse prompts stay the default.
         services.GetRequiredService<FishingViewModel>().TouchInput = device.IsTouchInput;
+        services.GetRequiredService<InventoryViewModel>().TouchInput = device.IsTouchInput;
 
         // A phone or touch screen collapses the HUD menu column; the game menu then lists the column panels as tiles (docs/design/ui-standard.md section 6).
         ToolbarViewModel toolbar = services.GetRequiredService<ToolbarViewModel>();
         toolbar.ColumnCollapsed = BrowserDevice.MenuColumnCollapsed();
+        services.GetRequiredService<QuestTrackerViewModel>().StartFolded(toolbar.ColumnCollapsed);
         BrowserDevice.WatchMenuColumn(collapsed => toolbar.ColumnCollapsed = collapsed);
 
         // Closing or reloading the tab asks first while the player is in the game (page-guard.js).
