@@ -60,9 +60,14 @@ const median = a => { const s = [...a].sort((x, y) => x - y); return s[Math.floo
     // Every response the page fetches before it is playable: encoded (on the wire) bytes and request count, from the CDP Network domain.
     const cdp = await context.newCDPSession(page);
     await cdp.send('Network.enable');
-    const net = { requests: 0, bytes: 0, wasm: 0, audio: 0 };
-    cdp.on('Network.responseReceived', e => { net.requests++; if (/\.wasm$/.test(e.response.url)) net.wasmSeen = (net.wasmSeen || 0) + 1; });
-    cdp.on('Network.loadingFinished', e => { net.bytes += e.encodedDataLength; });
+    const net = { requests: 0, bytes: 0, wasm: 0, audio: 0, urls: new Map(), perFile: new Map() };
+    cdp.on('Network.responseReceived', e => { net.requests++; net.urls.set(e.requestId, e.response.url); if (/\.wasm$/.test(e.response.url)) net.wasmSeen = (net.wasmSeen || 0) + 1; });
+    cdp.on('Network.loadingFinished', e => {
+      net.bytes += e.encodedDataLength;
+      const url = net.urls.get(e.requestId) || '?';
+      const name = decodeURIComponent(new URL(url).pathname.replace(/^\//, ''));
+      net.perFile.set(name, (net.perFile.get(name) || 0) + e.encodedDataLength);
+    });
     const errors = [];
     page.on('pageerror', e => errors.push(e.message.slice(0, 120)));
     const t0 = Date.now();
@@ -77,7 +82,7 @@ const median = a => { const s = [...a].sort((x, y) => x - y); return s[Math.floo
     await guest.click();
     await page.waitForSelector('[role=meter][aria-label^="Sức lực"]', { timeout: 120000 });
     const tPlayable = Date.now() - t0;
-    timings.push({ fcp, tGuest, tPlayable, errors: errors.length, requests: net.requests, bytes: net.bytes });
+    timings.push({ fcp, tGuest, tPlayable, errors: errors.length, requests: net.requests, bytes: net.bytes, perFile: [...net.perFile].sort((a, b) => b[1] - a[1]) });
     console.log(`run ${i + 1}: first-contentful-paint ${fcp && fcp.toFixed(0)} ms, guest button ${tGuest} ms, playable ${tPlayable} ms, ${net.requests} requests, ${(net.bytes / 1048576).toFixed(2)} MiB on the wire, page errors ${errors.length}`);
     await context.close();
   }
@@ -93,6 +98,8 @@ const median = a => { const s = [...a].sort((x, y) => x - y); return s[Math.floo
     medianRequests: median(timings.map(t => t.requests)),
     medianWireBytes: median(timings.map(t => t.bytes)),
     pageErrors: timings.reduce((a, t) => a + t.errors, 0),
+    // The files of the last run by encoded bytes (the largest first): what the first load spends its bytes on.
+    wireByFile: timings.length ? timings[timings.length - 1].perFile.map(([name, bytes]) => ({ name, bytes })) : [],
   };
   console.log(JSON.stringify(result, null, 2));
   if (jsonOut) fs.writeFileSync(jsonOut, JSON.stringify(result, null, 2));

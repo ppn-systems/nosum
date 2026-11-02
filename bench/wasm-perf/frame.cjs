@@ -16,6 +16,11 @@ const seconds = Number(opt('--seconds') || 8);
 const jsonOut = opt('--json');
 const STEP_MS = Number(opt('--step') || 260);
 const MAX_IDLE_BODY = Number(opt('--max-idle-body') ?? 0);
+// The scene: farm (the block of plots, the default), or a busy map without the farm work (town, mine, coop). Each is a teleport to a walkable tile
+// of that map (docs/adr/ADR-013 tester hook); the walk is the same in every scene.
+const SCENES = { town: ['town', 4, 54], mine: ['mine1', 10, 11], coop: ['coopfarm', 46, 22] };
+const scene = opt('--scene') || 'farm';
+if (scene !== 'farm' && !SCENES[scene]) { console.error('unknown --scene ' + scene + ' (farm, town, mine, coop)'); process.exit(2); }
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 const pct = (arr, p) => { if (!arr.length) return null; const s = [...arr].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
@@ -76,17 +81,28 @@ async function phase(page, name, secs, act) {
 
 (async () => {
   const browser = await chromium.launch({ args: ['--no-sandbox'] });
-  const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, locale: 'vi-VN', serviceWorkers: 'block' });
+  // The canvas size of the run (default 1280 x 720; the busy-scene numbers in docs/perf are at 1920 x 1080).
+  const [vw, vh] = (opt('--viewport') || '1280x720').split('x').map(Number);
+  const context = await browser.newContext({ viewport: { width: vw, height: vh }, locale: 'vi-VN', serviceWorkers: 'block' });
   await context.addInitScript(initScript);
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', e => { errors.push(e.message.slice(0, 300)); console.log('pageerror:', e.message.slice(0, 300)); });
+  // Lines the tester build prints for attribution (a temporary probe, FrameProbe) are forwarded as they come.
+  page.on('console', m => { if (m.text().startsWith('[probe]')) console.log(m.text()); });
   await page.goto(base, { waitUntil: 'load' });
   await wait(2500);
   await page.getByRole('button', { name: /khách|guest/i }).first().click();
   await page.waitForSelector('[role=meter][aria-label^="Sức lực"]', { timeout: 120000 });
   await wait(1500);
 
+  if (scene !== 'farm') {
+    const [mapId, tx, ty] = SCENES[scene];
+    await page.evaluate(([m, x, y]) => window.nosumQa.teleport(m, x, y), [mapId, tx, ty]);
+    // The map's first frames build its decorators and sprites once (a one-off of tens of KB, docs/perf/wasm-perf.md round 5). The settle is long
+    // enough that those are over before the idle phase: the gate measures the steady state.
+    await wait(Number(opt('--settle') || 9000));
+  } else {
   // The farm, with the tools and seeds a block of tiles needs.
   await page.evaluate(() => window.nosumQa.teleport('farm', 64, 16));
   await wait(2500);
@@ -124,6 +140,7 @@ async function phase(page, name, secs, act) {
   await walkRows('Digit3', 6, 10);
   console.log('seeds after sow:', await page.evaluate(() => document.querySelectorAll('.hotbar-items button, [class*=hotbar] button')[2]?.textContent));
   await wait(3000);
+  }
 
   // Park the farmer on the block so the camera and the walk stay on the plots.
   const results = [];
@@ -146,7 +163,7 @@ async function phase(page, name, secs, act) {
   const gate = { maxIdleBodyBytesPerFrame: MAX_IDLE_BODY, idleBodyBytesPerFrame: idle ? idle.frameBodyBytesPerFrame : null };
   gate.pass = gate.idleBodyBytesPerFrame !== null && gate.idleBodyBytesPerFrame <= MAX_IDLE_BODY;
   if (!gate.pass) process.exitCode = 1;
-  const report = { build: base, seconds, errors: errors.length, canvas: onScreenCrops, gate, phases: results };
+  const report = { build: base, scene, viewport: `${vw}x${vh}`, seconds, errors: errors.length, canvas: onScreenCrops, gate, phases: results };
   console.log(JSON.stringify(report, null, 2));
   if (jsonOut) fs.writeFileSync(jsonOut, JSON.stringify(report, null, 2));
   await browser.close();
