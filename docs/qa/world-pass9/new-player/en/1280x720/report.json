@@ -1,13 +1,168 @@
 {
-  "steps": [
-    {
-      "step": "z-menu-open",
-      "sec_since_prev": 8.5,
-      "t_total": 8.5,
-      "frame": "01-z-menu-open.png",
-      "obs": "buttons: [\"Mail\",\"Settings\",\"Close\",\"Visitors\",\"Pet\",\"Profile\",\"Emotes [B]\"] | tiles: [\"Visitors\",\"Pet\",\"Profile\"]"
-    }
-  ],
-  "observations": [],
-  "total_real_seconds": 8.5
+ "run": "new-player first day, en, 1280x720, one persistent guest account (Guest 4397); vi 390x844 NOT run",
+ "tool_time_note": "Sum of automated run durations is about 9 min; not one continuous session. Frame numbering restarts per script run; file names carry the step.",
+ "steps": [
+  {
+   "step": "sign-in",
+   "real_sec": 8.0,
+   "frame": "01-a-in-game.png",
+   "observed": "Only choice: 'Play now as a guest' (Google/Microsoft off on this server, stated on screen; 01-first-screen.png). In game after ~8 s; quest tracker top-left 'Till the soil' with hint 'Walk with W A S D'."
+  },
+  {
+   "step": "till",
+   "real_sec": 2.5,
+   "frame": "02-b-till.png",
+   "observed": "Hoe (slot 1) + use key: toast 'Soil tilled.', tracker advanced to 'Water the soil', coins 500->510 (reward). Worked at once."
+  },
+  {
+   "step": "water tilled tile",
+   "real_sec": 1.7,
+   "frame": "03-c-water.png",
+   "observed": "Watering can (slot 2) + use key: toast 'Watered.', can 40->39. Tracker stayed 'Water a patch of soil 0/1' at +0 s, +3 s and +60 s (clock check). Quest did not complete."
+  },
+  {
+   "step": "water planted tile",
+   "real_sec": 1.8,
+   "frame": "02-g-water-planted.png",
+   "observed": "Watering the sown parsnip gave 'The crop withered from lack of water or the end of its season.' No explanation of why (the day had jumped; see caveat)."
+  },
+  {
+   "step": "sow",
+   "real_sec": 1.7,
+   "frame": "05-d-sow.png",
+   "observed": "Parsnip seeds (slot 3, count 8->7): toast 'Seeds planted.' Visible at once. Tracker unchanged."
+  },
+  {
+   "step": "inventory",
+   "real_sec": 1.0,
+   "frame": "06-e-inventory.png",
+   "observed": "Inventory shows 'In hand: Parsnip seeds, Quantity 7, Plant on tilled soil to grow parsnips.' Helpful. Starting inventory has no harvestable crop."
+  },
+  {
+   "step": "journal",
+   "real_sec": 1.0,
+   "frame": "03-h-journal.png",
+   "observed": "'Discovered 8 of 212 items', pages 1 of 6. Undiscovered entries show '???'."
+  },
+  {
+   "step": "shipping bin, empty hands",
+   "real_sec": 1.3,
+   "frame": "02-k-bin-press-empty-hands.png",
+   "observed": "Bin is an unlabelled brown box east of the farmhouse. Press with watering can in hand gave 'Till the soil first.' (not about the bin). Selling needs a crop; none in inventory. Step 4 not completed."
+  },
+  {
+   "step": "world map (Tab)",
+   "real_sec": 8.4,
+   "frame": "01-o-world-map.png",
+   "observed": "Lists Farm (You are here), connects to Bus stop, Forest, Backwoods, Farmhouse; Town shows 7 shops, connects to Bus stop. Connection entries are not clickable (click on 'Bus stop' timed out, 01-p-click-bus-stop-on-map.png). Map gives no way to travel."
+  },
+  {
+   "step": "Menu",
+   "real_sec": 8.5,
+   "frame": "01-z-menu-open.png",
+   "observed": "Menu has only Visitors, Pet, Profile. No travel or town option."
+  },
+  {
+   "step": "reach bus stop / town",
+   "real_sec": "~4 min of attempts",
+   "frame": "01-q-bus-stop-press-empty-hand.png, 02-w-after-walk-up.png, 02-y-press-use-at-sign.png",
+   "observed": "Sign '-> Bus Stop' sits by the farmhouse's bottom-right corner. Use with empty hands: 'That does nothing here.' Walking into it hid the avatar behind the house corner (only the name tag stayed). Approach from the right also gave 'That does nothing here.' Town and merchants (Mai seed shop, carpenter, blacksmith, board, market) NOT reached."
+  },
+  {
+   "step": "clock check",
+   "real_sec": 60,
+   "frame": "03-clock-check-after-60s.png",
+   "observed": "In-game clock 12:12 AM -> 12:14 AM in 60 real s (about 2 game min per real min, so a day is about 12 real hours). Quest still 0/1."
+  }
+ ],
+ "caveats": [
+  "Day counter jumped Day 19 -> 21 -> 23 -> 25, then reset to Day 3 during my session; another QA harness shares the world clock. Crop withering and rain timing are affected by this.",
+  "Rain at times: watering reported 'The soil is already wet today.' on one tile (frame not retained)."
+ ],
+ "findings": [
+  {
+   "rank": 1,
+   "sev": "high",
+   "what": "Quest 'Water a patch of soil' does not complete after a successful watering ('Watered.' toast, can 40->39). Tracker stays 0/1 for over an hour.",
+   "evidence": [
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/03-c-water.png",
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/04-c2-water-after-3s.png",
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/03-clock-check-after-60s.png"
+   ]
+  },
+  {
+   "rank": 2,
+   "sev": "high",
+   "what": "A new player cannot reach town or any merchant. The bus stop is a 'Bus Stop' sign beside the farmhouse; the use key says 'That does nothing here.'; walking onto it hides the avatar. The world map and Menu offer no travel.",
+   "evidence": [
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/01-q-bus-stop-press-empty-hand.png",
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/02-w-after-walk-up.png",
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/02-y-press-use-at-sign.png",
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/01-o-world-map.png",
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/01-z-menu-open.png"
+   ]
+  },
+  {
+   "rank": 3,
+   "sev": "high",
+   "what": "First-day sale is impossible: the starting inventory has no crop, crops take game days, and the clock runs about 12 real hours per game day. The 'Sell at the bin' step has no path in one sitting. The bin is unlabelled.",
+   "evidence": [
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/06-e-inventory.png",
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/01-j-walk-to-bin.png",
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/03-clock-check-after-60s.png"
+   ]
+  },
+  {
+   "rank": 4,
+   "sev": "medium",
+   "what": "The use key with a tool in hand, aimed at a non-farm object (bin, bus stop), answers 'Till the soil first.' The message is about the tile in front, not the object the player meant.",
+   "evidence": [
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/02-n-bus-press.png",
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/03-k2-second-press.png"
+   ]
+  },
+  {
+   "rank": 5,
+   "sev": "medium",
+   "what": "World map lists connections ('Bus stop', 'Forest', 'Backwoods') that look like buttons but are not clickable.",
+   "evidence": [
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/01-o-world-map.png",
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/01-p-click-bus-stop-on-map.png"
+   ]
+  },
+  {
+   "rank": 6,
+   "sev": "medium",
+   "what": "Watering a planted seed shows 'The crop withered...' with no hint why. Blame may lie with the clock jump (caveat), but the new player gets no cue to replant or what caused it.",
+   "evidence": [
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/02-g-water-planted.png"
+   ]
+  },
+  {
+   "rank": 7,
+   "sev": "low",
+   "what": "Rain waters the soil silently; watering then reports 'already wet today' with no mention of rain. No frame retained for this run.",
+   "evidence": []
+  },
+  {
+   "rank": 8,
+   "sev": "low",
+   "what": "Hotbar shows tool icons only (no names); the hint and inventory name the item in hand. Adequate once the hint is read.",
+   "evidence": [
+    "/home/user/nosum/docs/qa/world-pass9/new-player/en/1280x720/02-b-till.png"
+   ]
+  }
+ ],
+ "worked_well": [
+  "One sign-in choice, with the reason stated for the missing Google/Microsoft buttons.",
+  "Tracker at top-left with one action, its reward, and a bottom hint naming the tool.",
+  "Action results appear at once as toasts: 'Soil tilled.', 'Seeds planted.', 'Watered.', with counts updating in the hotbar.",
+  "Inventory 'In hand' panel explains the item in hand.",
+  "Escape closes panels; Tab opens the world map quickly."
+ ],
+ "not_done": [
+  "Step 4 (sale at bin): no crop available.",
+  "Step 5 (merchants): town unreachable.",
+  "390x844 Vietnamese run."
+ ]
 }
