@@ -23,6 +23,61 @@ namespace Nosum.UnitTests.Wasm;
 [Collection(SharedUiCulture.Name)]
 public sealed class QuestTrackerViewModelTests
 {
+    [Fact]
+    public void PushedCompletion_OfAMidChainQuest_ShowsItsBannerWithTheReward()
+    {
+        // The chain's next quest is already active when the till completes: the banner must still name the quest that finished (critique item 11).
+        using CultureScope scope = new("vi");
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => Rows(
+            new QuestRow { QuestId = QuestCatalog.TillSoil, State = QuestState.Active, Progress = [0] },
+            new QuestRow { QuestId = QuestCatalog.WaterCrop, State = QuestState.Active, Progress = [0] }));
+        using QuestChannel channel = new(socket);
+        using QuestTrackerViewModel vm = new(channel, Localizer<Catalogue>(), Localizer<Language>());
+        channel.Load();
+
+        using QuestUpdate update = CompletionOf(QuestCatalog.TillSoil, 1);
+        socket.Push(update);
+
+        vm.IsCompleted.Should().BeTrue();
+        vm.IsVisible.Should().BeTrue();
+        vm.CompletedText.Should().StartWith("Hoàn thành nhiệm vụ: ").And.EndWith("Bạn nhận được 10 xu.");
+    }
+
+    [Fact]
+    public void Login_WithAFinishedQuest_ShowsNoBanner()
+    {
+        // Only a completion that happens while the player watches gets a banner; the list at login does not replay old ones.
+        using CultureScope scope = new("en");
+        FakeGameSocket socket = new();
+        socket.ReplyWith(_ => Rows(
+            new QuestRow { QuestId = QuestCatalog.TillSoil, State = QuestState.Completed, Progress = [1] },
+            new QuestRow { QuestId = QuestCatalog.WaterCrop, State = QuestState.Active, Progress = [0] }));
+        using QuestChannel channel = new(socket);
+        using QuestTrackerViewModel vm = new(channel, Localizer<Catalogue>(), Localizer<Language>());
+
+        channel.Load();
+
+        vm.IsCompleted.Should().BeFalse();
+        vm.CompletedText.Should().BeEmpty();
+    }
+
+    private static QuestLog Rows(params QuestRow[] rows)
+    {
+        QuestLog log = new();
+        log.Quests.AddRange(rows);
+        return log;
+    }
+
+    private static QuestUpdate CompletionOf(int questId, params int[] progress)
+    {
+        QuestUpdate update = new();
+        update.Quest.QuestId = questId;
+        update.Quest.State = QuestState.Completed;
+        update.Quest.Progress = [.. progress];
+        return update;
+    }
+
     private static QuestLog Log(QuestState state, params int[] progress)
     {
         QuestLog log = new();
@@ -126,7 +181,7 @@ public sealed class QuestTrackerViewModelTests
         socket.Push(update);
 
         vm.IsCompleted.Should().BeTrue();
-        vm.CompletedText.Should().Be("Hoàn thành nhiệm vụ: Vụ thu hoạch đầu tiên");
+        vm.CompletedText.Should().Be("Hoàn thành nhiệm vụ: Vụ thu hoạch đầu tiên. Bạn nhận được 40 xu.");
         vm.Hint.Should().BeEmpty();
         changes.Should().Be(1);
         update.Dispose();
