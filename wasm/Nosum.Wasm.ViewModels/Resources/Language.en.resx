@@ -285,6 +285,7 @@
   <data name="Coop_Offline" xml:space="preserve"><value>Offline</value></data>
   <data name="Coop_Kick" xml:space="preserve"><value>Remove</value></data>
   <data name="Coop_Invite" xml:space="preserve"><value>Invite</value></data>
+  <data name="Coop_Invited" xml:space="preserve"><value>Invited</value></data>
   <data name="Coop_NobodyNear" xml:space="preserve"><value>No other players here to invite.</value></data>
   <data name="Coop_Leave" xml:space="preserve"><value>Leave co-op</value></data>
   <data name="Coop_Warehouse_Heading" xml:space="preserve"><value>Shared warehouse</value></data>

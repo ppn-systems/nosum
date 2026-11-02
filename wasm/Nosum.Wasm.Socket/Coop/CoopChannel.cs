@@ -84,6 +84,9 @@ public sealed class CoopChannel : IDisposable
     /// <summary>Raised with the server's answer to a request. May run on any thread.</summary>
     public event Action<CoopStatus>? Completed;
 
+    /// <summary>Raised with the map id of a player the server accepted an invitation for (critique-social finding 7). May run on any thread.</summary>
+    public event Action<uint>? InviteSent;
+
     /// <summary>Gets the player's co-op.</summary>
     public CoopInfo Current { get; private set; } = CoopInfo.None;
 
@@ -100,7 +103,7 @@ public sealed class CoopChannel : IDisposable
 
     /// <summary>Invites a player on the map.</summary>
     /// <param name="playerId">The other player's id on the map.</param>
-    public void Invite(uint playerId) => _ = this.SendAsync<InvitePlayer>(r => r.TargetPlayerId = playerId);
+    public void Invite(uint playerId) => _ = this.SendAsync<InvitePlayer>(r => r.TargetPlayerId = playerId, playerId);
 
     /// <summary>Answers an invitation.</summary>
     /// <param name="inviteId">The invitation.</param>
@@ -233,7 +236,7 @@ public sealed class CoopChannel : IDisposable
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "A lost request changes nothing; the player tries again.")]
-    private async Task SendAsync<TRequest>(Action<TRequest> fill)
+    private async Task SendAsync<TRequest>(Action<TRequest> fill, uint? invitedPlayerId = null)
         where TRequest : Nalix.Codec.DataFrames.PacketBase<TRequest>, Nalix.Abstractions.Networking.Packets.IPacketStaticOpcode, new()
     {
         try
@@ -247,6 +250,10 @@ public sealed class CoopChannel : IDisposable
             }
 
             this.Completed?.Invoke(reply.Status);
+            if (invitedPlayerId is uint invited && reply.Status == CoopStatus.Ok)
+            {
+                this.InviteSent?.Invoke(invited);
+            }
         }
         catch (Exception)
         {

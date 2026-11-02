@@ -10,7 +10,7 @@ else
         @foreach (PlayerChoice player in Players)
         {
             uint id = player.Id;
-            <GameButton Variant="secondary" Text="@(player.Label + " - " + ActionText)" OnClick="() => OnPick.InvokeAsync(id)" />
+            <GameButton Variant="secondary" Disabled="@player.Invited" Text="@(player.Label + " - " + (player.Invited ? PendingText : ActionText))" OnClick="() => OnPick.InvokeAsync(id)" />
         }
     </GameRow>
 }
@@ -21,6 +21,9 @@ else
 
     /// <summary>What choosing does, shown on each button (already localized).</summary>
     [Parameter, EditorRequired] public string ActionText { get; set; } = string.Empty;
+
+    /// <summary>What a player with an invitation already sent shows instead of the action (already localized); used only for those players.</summary>
+    [Parameter] public string PendingText { get; set; } = string.Empty;
 
     /// <summary>What to show when nobody is there (already localized).</summary>
     [Parameter, EditorRequired] public string EmptyText { get; set; } = string.Empty;

@@ -73,6 +73,10 @@ public sealed record ObjectiveDisplay(string Title, int Contributed, int Target,
 public sealed class CoopViewModel : PanelViewModel, IDisposable
 {
     private readonly CoopChannel _coop;
+
+    // Map ids of the players the server accepted an invitation for while this page is open (critique-social finding 7). Guarded by its lock:
+    // the event may run on the socket's thread.
+    private readonly HashSet<uint> _invited = [];
     private readonly NearbyPlayers _nearby;
     private readonly InventoryViewModel _inventory;
     private readonly ItemDescriber _describer;
@@ -103,6 +107,7 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
         _names = names;
         coop.Changed += this.Raise;
         coop.Completed += this.OnCompleted;
+        coop.InviteSent += this.OnInviteSent;
         nearby.Changed += this.Raise;
         inventory.Changed += this.Raise;
     }
@@ -188,7 +193,7 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
             List<PlayerChoice> players = [];
             foreach ((uint id, string label) in CoopInvitePicks.Candidates(nearby, memberLabels))
             {
-                players.Add(new PlayerChoice(id, label));
+                players.Add(new PlayerChoice(id, label, this.IsInvited(id)));
             }
 
             return players;
@@ -426,11 +431,30 @@ public sealed class CoopViewModel : PanelViewModel, IDisposable
         this.SetStatus(this.Text("Coop_Status_InvalidQuantity"));
     }
 
+    private void OnInviteSent(uint playerId)
+    {
+        lock (_invited)
+        {
+            _ = _invited.Add(playerId);
+        }
+
+        this.Raise();
+    }
+
+    private bool IsInvited(uint playerId)
+    {
+        lock (_invited)
+        {
+            return _invited.Contains(playerId);
+        }
+    }
+
     /// <inheritdoc/>
     public void Dispose()
     {
         _coop.Changed -= this.Raise;
         _coop.Completed -= this.OnCompleted;
+        _coop.InviteSent -= this.OnInviteSent;
         _nearby.Changed -= this.Raise;
         _inventory.Changed -= this.Raise;
     }

@@ -1,0 +1,42 @@
+ok   vi-1280x720-board
+ok   vi-1280x720-found
+ok   vi-1280x720-invite
+     invited button disabled: true
+ok   vi-1280x720-coop-invited
+ok   vi-1280x720-coop-stock
+ok   vi-1280x720 session
+ok   vi-1920x1080-board
+ok   vi-1920x1080-found
+ok   vi-1920x1080-invite
+     invited button disabled: true
+ok   vi-1920x1080-coop-invited
+ok   vi-1920x1080-coop-stock
+ok   vi-1920x1080 session
+ok   vi-390x844-board
+ok   vi-390x844-found
+ok   vi-390x844-invite
+     invited button disabled: true
+ok   vi-390x844-coop-invited
+ok   vi-390x844-coop-stock
+ok   vi-390x844 session
+ok   en-1280x720-board
+ok   en-1280x720-found
+ok   en-1280x720-invite
+     invited button disabled: true
+ok   en-1280x720-coop-invited
+ok   en-1280x720-coop-stock
+ok   en-1280x720 session
+ok   en-1920x1080-board
+ok   en-1920x1080-found
+ok   en-1920x1080-invite
+     invited button disabled: true
+ok   en-1920x1080-coop-invited
+ok   en-1920x1080-coop-stock
+ok   en-1920x1080 session
+ok   en-390x844-board
+ok   en-390x844-found
+ok   en-390x844-invite
+     invited button disabled: true
+ok   en-390x844-coop-invited
+ok   en-390x844-coop-stock
+ok   en-390x844 session

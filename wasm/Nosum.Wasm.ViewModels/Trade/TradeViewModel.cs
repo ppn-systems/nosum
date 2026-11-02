@@ -16,7 +16,8 @@ namespace Nosum.Wasm.ViewModels.Trade;
 /// <summary>A player the local player may invite: their id on the map and the text to show.</summary>
 /// <param name="Id">The id on the map.</param>
 /// <param name="Label">The localized label.</param>
-public sealed record PlayerChoice(uint Id, string Label);
+/// <param name="Invited">Whether an invitation to this player is already sent and waiting (the co-op picker shows it as sent).</param>
+public sealed record PlayerChoice(uint Id, string Label, bool Invited = false);
 
 /// <summary>What the trade window shows.</summary>
 public enum TradePhase
