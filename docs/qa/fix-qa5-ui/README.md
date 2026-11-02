@@ -24,7 +24,7 @@ combination (`<locale>-<viewport>.json`). Capture script: `tests/browser/fix-qa5
 
 - **Issue 8 (hint toast over the joystick):** the DOM shows the hint at y 630–684 and the stick at y ~732–828 on a 390×844 screen, so they do not
   overlap in this build. The QA screenshot may have shown a different state. Not changed; needs a screenshot with the hint on the joystick.
-- **Issue 9 (opaque band over the bottom of the screen when a window is open):** not reproduced in the captures and not changed.
+- **Issue 9 (opaque band over the bottom of the screen when a window is open):** observed in the baseline capture (`before/vi/390x844/13`): with a window open on a phone, the hotbar and touch controls are not drawn. Not changed in this pass.
 - **Low: co-op G opens the wrong panel:** G opens the Co-op window in both builds (title "Co-op" / "Hợp tác xã"). The wrong-panel frame of the QA
   pass was not reproduced; not changed.
 - **Low: tooltip overlaps** (the combo chip at 1920): not changed.
