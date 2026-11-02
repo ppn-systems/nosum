@@ -39,6 +39,9 @@ public sealed class EconomyBalanceTests
     /// <summary>Highest share of an animal's price its everyday product pays back in one season.</summary>
     private const double MaxAnimalSeasonShare = 0.60;
 
+    /// <summary>Longest time, in seasons, a fed animal takes to earn back its price (docs/adr/ADR-107 D3).</summary>
+    private const double MaxFedPaybackSeasons = 5.0;
+
     /// <summary>Energy a player spends tending one plot for a day: watering it by hand.</summary>
     private static int WaterCost => EnergyRules.BaseCost(ToolKind.WateringCan);
 
@@ -139,6 +142,31 @@ public sealed class EconomyBalanceTests
 
         ItemSellPrice(ItemCatalog.Egg).Should().BeGreaterThan(hay);
     }
+
+    [Fact]
+    public void Animal_FedPaybackOverASeason_IsWithinFiveSeasons()
+    {
+        // Payback is the price over the season's net: the everyday product less one hay ration a night (docs/adr/ADR-107 D3). The chicken was
+        // 9.5 seasons at egg 15 and a 800 price; it is now about 4.2 (egg 20, price 950). Every other animal is inside the same limit.
+        ShopCatalog.TryGet(ShopCatalog.CarpenterShop, out ShopDefinition? carpenter);
+        carpenter!.TryGetPrice(ItemCatalog.Hay, out int hay).Should().BeTrue();
+
+        foreach (AnimalDefinition animal in AnimalCatalog.All)
+        {
+            long seasonNet = (ProductDays(animal) * ItemSellPrice(animal.Product)) - ((long)hay * GameCalendar.DaysPerSeason);
+
+            seasonNet.Should().BeGreaterThan(0, animal.Key);
+            ((double)animal.Coins / seasonNet).Should().BeLessThanOrEqualTo(MaxFedPaybackSeasons, animal.Key);
+        }
+    }
+
+    /// <summary>Days in a season on which an animal's everyday product is collected.</summary>
+    private static long ProductDays(AnimalDefinition animal) => animal.Schedule switch
+    {
+        ProduceSchedule.EveryThirdDay => GameCalendar.DaysPerSeason / 3,
+        ProduceSchedule.SunnyDays => GameCalendar.DaysPerSeason / 2,
+        _ => GameCalendar.DaysPerSeason,
+    };
 
     /// <summary>Profit of one plot over one season and the watered days it takes, replanting single-harvest crops and regrowing harvested ones.</summary>
     private static (long Profit, int WaterDays) Season(CropDefinition crop)

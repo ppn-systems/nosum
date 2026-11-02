@@ -1,0 +1,21 @@
+const { chromium } = require('playwright');
+(async () => {
+  const b = await chromium.launch({ args: ['--no-sandbox'] });
+  const c = await b.newContext({ viewport: { width: 1280, height: 720 }, locale: 'en-US', serviceWorkers: 'block' });
+  const p = await c.newPage();
+  await p.goto('http://localhost:5080/?qa=1', { waitUntil: 'load' });
+  await p.waitForSelector('button', { timeout: 90000 }); await p.waitForTimeout(1000);
+  await p.getByRole('button', { name: /khách|guest/i }).click();
+  await p.waitForSelector('.game-hud .hud-top-right .game-icon-button', { timeout: 90000 }); await p.waitForTimeout(3000);
+  const label = () => p.$eval('.calendar-season', e => e.textContent.trim()).catch(() => 'none');
+  console.log('before reset:', await label());
+  await p.evaluate(() => window.nosumQa.springReset()); await p.waitForTimeout(2500);
+  console.log('after reset:', await label());
+  await p.evaluate(() => window.nosumQa.teleport('farm', 46, 18)); await p.waitForTimeout(2500);
+  console.log('after teleport:', await label());
+  await p.evaluate(() => { window.nosumQa.grant(100, 10, 1000); }); await p.waitForTimeout(1200);
+  await p.keyboard.press('Digit2'); await p.keyboard.press('KeyD'); await p.waitForTimeout(150);
+  await p.keyboard.press('KeyE'); await p.waitForTimeout(700);
+  console.log('notices:', await p.evaluate(() => [...document.querySelectorAll('.game-notice,.hud-bottom-center')].map(e => e.innerText.trim()).join(' | ')));
+  await b.close();
+})().catch(e => { console.error(e.message); process.exit(1); });

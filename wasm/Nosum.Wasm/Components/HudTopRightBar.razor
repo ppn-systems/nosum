@@ -28,6 +28,8 @@
         </div>
     }
     <div class="hud-menu-item hud-menu-button">
+        @* The Menu button is icon-only: its name shows beside it on a phone, where the column is this one button (docs/design/ui-standard.md section 6). *@
+        <span class="hud-menu-label" aria-hidden="true">@Toolbar.MenuLabel</span>
         <GameIconButton Icon="tab-menu" Active="@(ActivePanel == PanelKind.Menu)" Tip="@Toolbar.MenuLabel" OnClick="@(() => OnTogglePanel.InvokeAsync(PanelKind.Menu))" />
     </div>
 </div>

@@ -22,3 +22,10 @@
     display: flex;
     justify-content: flex-end;
 }
+
+/* A phone has one Menu button in the column and no map button: the world map is a tile of the Menu window (docs/design/ui-standard.md section 6). */
+@media (max-width: 640px), (pointer: coarse) {
+    .hud-minimap-button {
+        display: none;
+    }
+}

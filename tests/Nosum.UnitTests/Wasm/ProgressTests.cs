@@ -316,7 +316,7 @@ public sealed class ProgressTests
         celebrated.Should().Be(2);
         vm.IsLevelUpActive.Should().BeTrue();
         vm.ActiveLevelUpValue.Should().Be(2);
-        vm.LevelUpBadgeText.Should().Be("Level 2!");
+        vm.LevelUpBadgeText.Should().Be("LEVEL UP!", "the badge names no level: the banner does (world pass 7)");
         combat.TryGetActiveLevelUp(Environment.TickCount64, out float prog, out int lvlOut, out int px, out int py).Should().BeTrue();
         lvlOut.Should().Be(2);
         (px, py).Should().Be((10, 9));

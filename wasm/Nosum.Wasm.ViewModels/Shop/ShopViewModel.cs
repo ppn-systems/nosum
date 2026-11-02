@@ -214,7 +214,8 @@ public sealed class ShopViewModel : PanelViewModel, IDisposable
                 if (calendar is not null && !ShopRules.IsInSeason(_shopId, offer.ItemId, calendar, nowMs))
                 {
                     string reason = this.SeasonNoteOf(offer.ItemId);
-                    rows.Add(new ShopOfferDisplay(offer.ItemId, _describer.Describe(0, offer.ItemId, 1), reason, false, true, reason, reason));
+                    // The price cell says only that the row is out of season; the seasons it grows in are in the row's tip (ShopPanel).
+                    rows.Add(new ShopOfferDisplay(offer.ItemId, _describer.Describe(0, offer.ItemId, 1), this.Text("Shop_Row_OffSeason"), false, true, reason, reason));
                     continue;
                 }
 

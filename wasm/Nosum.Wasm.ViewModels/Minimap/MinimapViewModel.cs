@@ -73,6 +73,12 @@ public sealed class MinimapViewModel : PanelViewModel
     /// <summary>Gets whether the frame and the map are drawn now: shown by the player's choice, not hidden in settings, and not covered by a panel.</summary>
     public bool Drawn => _shown && !_hidden && !_covered;
 
+    /// <summary>
+    /// Gets whether the frame shows its one map button instead of the card: only when the player hid the map (Settings, or a phone by default).
+    /// An M-key hide shows neither, so the corner is empty until M shows the map again (docs/design/ui-standard.md section 6).
+    /// </summary>
+    public bool ShowsButton => !this.Drawn && _hidden;
+
     /// <summary>Gets the localized tooltip of the frame: what a click does.</summary>
     public string Tip => this.Text("Minimap_Tip");
 }

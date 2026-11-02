@@ -2,11 +2,11 @@
 @inherits ObservingComponent<NpcDialogViewModel>
 
 @* The merchant's dialog box (docs/adr/ADR-043 D3), at the bottom of the screen: the portrait, the name and what the merchant does, a line of talk and one button per
-   thing the merchant offers, then Leave. Buy, Sell and the others open a dialog of their own over the game; nothing here talks to the server. *@
+   thing the merchant offers, then Leave; the close cross in the title bar leaves too (ui-standard section 3). Buy, Sell and the others open a dialog of their own over the game; nothing here talks to the server. *@
 @if (Vm.IsSpeaking && Vm.Npc is not null)
 {
     <div class="npc-box-wrap">
-        <GamePanel Title="@Vm.Name" Class="npc-box" Role="dialog">
+        <GamePanel Title="@Vm.Name" Class="npc-box" Role="dialog" CloseText="@Vm.CloseLabel" OnClose="@(() => Vm.Leave())">
             <div class="npc-box-body">
                 <img class="npc-portrait @(Vm.PortraitTalking ? "npc-portrait-talking" : null)" src="@Vm.PortraitUrl" alt="" />
                 <div class="npc-box-text">

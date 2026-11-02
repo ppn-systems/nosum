@@ -47,7 +47,9 @@ public sealed class ShopSeasonRowsTests
         row.Dimmed.Should().BeTrue("the row is greyed");
         row.CanBuy.Should().BeFalse("it cannot be bought out of season");
         row.SeasonNote.Should().StartWith("Plants in ").And.NotBeEmpty();
-        row.PriceText.Should().Be(row.SeasonNote, "the price cell says why");
+        row.PriceText.Should().NotBeEmpty("the price cell says why, in a short word");
+        row.PriceText.Should().NotBe(row.SeasonNote, "the season list is in the tip, not in the price cell that clips it");
+        row.PriceText.Should().NotContain(",", "a list of seasons would clip in the price cell");
 
         vm.Buy(itemId);
         sent.Should().BeEmpty("the server is not asked for an item that is out of season");

@@ -1,0 +1,31 @@
+{
+  "captured": [
+    "carpenter-buildings",
+    "carpenter-animals",
+    "carpenter-animals-after"
+  ],
+  "failed": [],
+  "scroll": {
+    "bodyScrollHeight": 753,
+    "bodyClientHeight": 753,
+    "bodyOverflowY": "visible",
+    "panelBottom": 1060,
+    "viewport": 1080,
+    "buttonsCut": [
+      "Buy Sheep · 1,600 coins",
+      "Buy Pig · 2,000 coins"
+    ],
+    "buttons": [
+      "Buy blueprint",
+      "Buy blueprint",
+      "Buy Cow · 1,500 coins",
+      "Buy Goat · 1,800 coins",
+      "Buy Sheep · 1,600 coins",
+      "Buy Pig · 2,000 coins"
+    ]
+  },
+  "placedAt": [
+    30,
+    48
+  ]
+}

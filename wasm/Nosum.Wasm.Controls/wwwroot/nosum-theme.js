@@ -315,8 +315,10 @@ function installTooltip() {
         tip.style.top = `${Math.round(y)}px`;
     };
 
+    // A touch screen has no hover: the emulated mouse-over of a tap would leave the tip on screen until the next tap (the Settings tip of a phone).
+    const canHover = () => window.matchMedia("(hover: hover)").matches;
     document.addEventListener("mouseover", (e) => {
-        const element = e.target instanceof Element ? e.target.closest("[data-tip]") : null;
+        const element = e.target instanceof Element && canHover() ? e.target.closest("[data-tip]") : null;
         if (!element) { hide(); return; }
         const text = element.getAttribute("data-tip") || "";
         if (!text) { hide(); return; }

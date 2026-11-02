@@ -1,0 +1,248 @@
+{
+  "locale": "vi",
+  "viewport": "390x844",
+  "steps": [
+    {
+      "name": "farm",
+      "file": "01-farm.png",
+      "note": "hud on the farm"
+    },
+    {
+      "name": "menu",
+      "tiles": [
+        "Túi đồ",
+        "Chế tạo",
+        "Giao dịch",
+        "Khách",
+        "Bạn bè",
+        "Kỹ năng",
+        "Thú cưng",
+        "Hồ sơ",
+        "Bản đồ thế giới",
+        "Sổ sưu tập"
+      ],
+      "file": "02-menu.png"
+    },
+    {
+      "name": "Túi đồ",
+      "file": "03-T-i-.png",
+      "audit": {
+        "window": true,
+        "title": "Túi đồ",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "Chế tạo",
+      "file": "04-Ch-t-o.png",
+      "audit": {
+        "window": true,
+        "title": "Chế tạo",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "Giao dịch",
+      "file": "05-Giao-d-ch.png",
+      "audit": {
+        "window": true,
+        "title": "Giao dịch",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "Khách",
+      "file": "06-Kh-ch.png",
+      "audit": {
+        "window": true,
+        "title": "Khách",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "Bạn bè",
+      "file": "07-B-n-b-.png",
+      "audit": {
+        "window": true,
+        "title": "Bạn bè",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "Kỹ năng",
+      "file": "08-K-n-ng.png",
+      "audit": {
+        "window": true,
+        "title": "Kỹ năng",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "Thú cưng",
+      "file": "09-Th-c-ng.png",
+      "audit": {
+        "window": true,
+        "title": "Thú cưng",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "Hồ sơ",
+      "file": "10-H-s-.png",
+      "audit": {
+        "window": true,
+        "title": "Hồ sơ",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "Bản đồ thế giới",
+      "file": "11-B-n-th-gi-i.png",
+      "audit": {
+        "window": true,
+        "title": "Bản đồ thế giới",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "Sổ sưu tập",
+      "file": "12-S-s-u-t-p.png",
+      "audit": {
+        "window": true,
+        "title": "Sổ sưu tập",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "col-Thư",
+      "file": "13-col-Th-.png",
+      "audit": {
+        "window": true,
+        "title": "Thư",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "col-Cài đặt",
+      "file": "14-col-C-i-t.png",
+      "audit": {
+        "window": true,
+        "title": "Cài đặt",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "col-Bản đồ nhỏ: bấm để mở bản đồ thế giới",
+      "file": "15-col-B-n-nh-b-m-m-b-n-th-gi-i.png",
+      "audit": {
+        "window": true,
+        "title": "Bản đồ thế giới",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "col-Túi đồ [I]",
+      "file": "16-col-T-i-I-.png",
+      "audit": {
+        "window": true,
+        "title": "Túi đồ",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "col-Chế tạo",
+      "file": "17-col-Ch-t-o.png",
+      "audit": {
+        "window": true,
+        "title": "Chế tạo",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "col-Giao dịch [T]",
+      "file": "18-col-Giao-d-ch-T-.png",
+      "audit": {
+        "window": true,
+        "title": "Giao dịch",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "col-Bạn bè",
+      "file": "19-col-B-n-b-.png",
+      "audit": {
+        "window": true,
+        "title": "Bạn bè",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "col-Kỹ năng",
+      "file": "20-col-K-n-ng.png",
+      "audit": {
+        "window": true,
+        "title": "Kỹ năng",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "col-Bản đồ thế giới [Tab]",
+      "file": "21-col-B-n-th-gi-i-Tab-.png",
+      "audit": {
+        "window": true,
+        "title": "Bản đồ thế giới",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "col-Sổ sưu tập [J]",
+      "file": "22-col-S-s-u-t-p-J-.png",
+      "audit": {
+        "window": true,
+        "title": "Sổ sưu tập",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "col-Menu",
+      "file": "23-col-Menu.png",
+      "audit": {
+        "window": true,
+        "title": "Menu",
+        "off": false,
+        "issues": []
+      }
+    },
+    {
+      "name": "key-g",
+      "file": "24-key-g.png",
+      "audit": {
+        "window": true,
+        "title": "Hợp tác xã",
+        "off": false,
+        "issues": []
+      }
+    }
+  ],
+  "errors": []
+}

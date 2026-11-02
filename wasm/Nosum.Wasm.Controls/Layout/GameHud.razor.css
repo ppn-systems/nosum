@@ -245,6 +245,45 @@
     .hud-top-right ::deep .hud-menu-item:not(.hud-menu-button) {
         display: none;
     }
+
+    /* The minimap's map button is not on a phone: the world map is a tile of the Menu window. Set here, where the column's rules are, so it wins. */
+    .hud-top-right ::deep .hud-minimap-button {
+        display: none;
+    }
+
+    /* One Menu button, a touch target (docs/design/ui-standard.md section 6): 42 px square, with its name beside it, since it has no words of its own. */
+    .hud-top-right ::deep .hud-menu-button {
+        position: relative;
+        width: var(--nosum-touch);
+        height: var(--nosum-touch);
+    }
+
+    .hud-top-right ::deep .hud-menu-button .game-icon-button {
+        width: var(--nosum-touch);
+        height: var(--nosum-touch);
+    }
+
+    .hud-top-right ::deep .hud-menu-label {
+        display: block;
+        position: absolute;
+        top: 50%;
+        right: calc(100% + var(--u) * 2);
+        transform: translateY(-50%);
+        font-size: var(--nosum-fs-small);
+        line-height: var(--nosum-lh);
+        white-space: nowrap;
+        color: var(--nosum-ink-on-dark);
+        text-shadow: var(--tp) var(--tp) 0 var(--nosum-button-shadow);
+        pointer-events: none;
+    }
+}
+
+/* Phones: a window's icon buttons (the close control, the pager, the sprite buttons) are touch targets too. The HUD row keeps its own size. */
+@media (max-width: 640px) {
+    .hud-center ::deep .game-icon-button {
+        width: var(--nosum-touch);
+        height: var(--nosum-touch);
+    }
 }
 
 /* A touch screen lifts the emote cell above the action button, and on a phone above the gauges' column too (the hotbar takes two rows). */
@@ -292,5 +331,13 @@
     .game-hud:has(.hud-top-left .furniture-dock) .hud-top-left {
         top: calc(var(--nosum-gutter) + var(--u) * 22);
         right: var(--nosum-gutter);
+    }
+}
+
+/* A desktop with the furniture panel in the top-left corner: the banners centre in the space to its right, so a level-up never covers the dock
+   (docs/design/ui-standard.md section 2, checklist item 2). The panel is 120 u wide and starts one gutter in. */
+@media (min-width: 641px) {
+    .game-hud:has(.hud-top-left .furniture-dock) .hud-top-center {
+        margin-left: calc(var(--u) * 128);
     }
 }

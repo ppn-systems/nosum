@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Nosum.Gameplay.Energy;
 using Nosum.Gameplay.Skills;
-using Nosum.Wasm.Socket.Combat;
 using Nosum.Wasm.Socket.Player;
 using Nosum.Wasm.ViewModels.Resources;
 
@@ -14,7 +13,8 @@ namespace Nosum.Wasm.ViewModels.Progress;
 
 /// <summary>
 /// The fanfare banner across the top of the screen that names the skill and the level reached (docs/adr/ADR-062).
-/// It follows the same two sources as the message line: gathering skills from <see cref="ProgressChannel"/>, and Combat from <see cref="CombatChannel"/>.
+/// Every level-up, Combat included, arrives as the server's <c>LevelUp</c> packet on <see cref="ProgressChannel"/>, the one source the banner follows.
+/// The combat channel's own level-up event is not followed: it fires for the same level after the vitals update, and would show it twice.
 /// </summary>
 public sealed class LevelUpBannerViewModel : IObservableViewModel, IDisposable
 {
@@ -22,25 +22,20 @@ public sealed class LevelUpBannerViewModel : IObservableViewModel, IDisposable
     public static readonly TimeSpan BannerDuration = TimeSpan.FromSeconds(3.8);
 
     private readonly ProgressChannel _progress;
-    private readonly CombatChannel _combat;
     private readonly IStringLocalizer<Language> _text;
     private int _version;
 
     /// <summary>Initializes the view model and starts following the level-up sources.</summary>
     /// <param name="progress">The energy and skills channel (gathering skills).</param>
-    /// <param name="combat">The combat channel (Combat XP and the level-up celebration).</param>
     /// <param name="text">UI text.</param>
-    public LevelUpBannerViewModel(ProgressChannel progress, CombatChannel combat, IStringLocalizer<Language> text)
+    public LevelUpBannerViewModel(ProgressChannel progress, IStringLocalizer<Language> text)
     {
         ArgumentNullException.ThrowIfNull(progress);
-        ArgumentNullException.ThrowIfNull(combat);
         ArgumentNullException.ThrowIfNull(text);
 
         _progress = progress;
-        _combat = combat;
         _text = text;
         progress.LevelledUp += this.OnGatheringLevelUp;
-        combat.LevelledUp += this.OnCombatLevelUp;
     }
 
     /// <summary>Raised when <see cref="Title"/> or <see cref="Message"/> changed. May run on any thread.</summary>
@@ -62,21 +57,9 @@ public sealed class LevelUpBannerViewModel : IObservableViewModel, IDisposable
     public void Dispose()
     {
         _progress.LevelledUp -= this.OnGatheringLevelUp;
-        _combat.LevelledUp -= this.OnCombatLevelUp;
     }
 
     private void OnGatheringLevelUp(byte skill, int level) => this.Show(skill, level);
-
-    private void OnCombatLevelUp(int level)
-    {
-        // The combat channel also raises this for gathering level-ups, which the progress channel already reported.
-        if (!_combat.IsCombatSkillLevelUp)
-        {
-            return;
-        }
-
-        this.Show((byte)SkillKind.Combat, level);
-    }
 
     private void Show(byte skill, int level)
     {

@@ -92,15 +92,38 @@ def _early_stage(pic):
     return out
 
 
+# The seed picture (frame 0 of every crop) is the pack's red sprout. Its colours sit on the same browns as the tilled soil (contrast 1.0 to 1.3 on
+# the dark soil), so a planted tile showed no sprout at stage 0 (world pass 7). Every opaque pixel is re-inked as a green by its brightness: the
+# darkest pixels become a dark green outline, the brightest a pale highlight. Every other picture is left as it was.
+SEED_RAMP = [(24, 70, 36), (74, 142, 62), (116, 184, 84), (172, 228, 124)]
+SEED_LUMA_EDGES = (55, 80, 120)  # the original brightness (0 to 255) at which the ramp steps up
+
+
+def _inked_seed(pic):
+    out = Image(pic.width, pic.height)
+    for y in range(pic.height):
+        for x in range(pic.width):
+            p = pic.px[y][x]
+            if p[3] == 0:
+                out.px[y][x] = list(p)
+                continue
+            luma = 0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2]
+            step = sum(1 for edge in SEED_LUMA_EDGES if luma >= edge)
+            ink = SEED_RAMP[step]
+            out.px[y][x] = [ink[0], ink[1], ink[2], p[3]]
+    return out
+
+
 def stages(src, crop_name):
     """The seed, three growth stages, ripe and produce pictures of a game crop: Tiny Farm's where it has the crop, else the crops pack's."""
     index, recipe, _ = RECIPES[crop_name]
     pack = cc0_stages(src.sheet('crops'), index, recipe)
     if crop_name not in FARM:
+        pack['seed'] = _inked_seed(pack['seed'])
         return pack
     first, farm_recipe, unripe, _ = FARM[crop_name]
     st = farm_stages(src.sheet('farm'), first, farm_recipe, unripe)
-    st['seed'] = pack['seed']
+    st['seed'] = _inked_seed(pack['seed'])
     return st
 
 

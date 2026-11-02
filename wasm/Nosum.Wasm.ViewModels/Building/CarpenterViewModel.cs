@@ -51,6 +51,9 @@ public enum CarpenterTab : byte
 
     /// <summary>The cat or the dog to buy.</summary>
     Pets = 2,
+
+    /// <summary>The animals for the finished buildings, one group per building (Build page only; docs/adr/ADR-107 D2).</summary>
+    Animals = 3,
 }
 
 /// <summary>Where the pet purchase is: nothing open, the name being typed, or the question to confirm. Nothing is sent before the confirm step.</summary>

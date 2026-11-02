@@ -81,7 +81,7 @@ public sealed class EconomyReportTests
         sb.AppendLine(string.Create(CultureInfo.InvariantCulture, $"reference farm: {spare} spare energy a game day (after watering {ReferencePlots} plots) fishes {spare / FishingRules.CastEnergy} casts, {(spare / FishingRules.CastEnergy) * perCast:F1} coins a game day"));
 
         sb.AppendLine("== ANIMALS (one of each; feed is one ration a night)");
-        sb.AppendLine("animal\tprice\tproduct\tseason_product_value\tpayback_seasons\tfed_with_hay_net_per_season");
+        sb.AppendLine("animal\tprice\tproduct\tseason_product_value\tpayback_seasons\tfed_with_hay_net_per_season\tfed_payback_seasons");
         long hay = ShopPriceOf(ShopCatalog.CarpenterShop, ItemCatalog.Hay);
         long herdPrice = 0;
         double herdPerDay = 0;
@@ -96,7 +96,7 @@ public sealed class EconomyReportTests
             long season = (long)(perDay * days) * Sell(animal.Product);
             herdPrice += animal.Coins;
             herdPerDay += perDay * Sell(animal.Product);
-            sb.AppendLine(string.Create(CultureInfo.InvariantCulture, $"{animal.Key}\t{animal.Coins}\t{Sell(animal.Product)}\t{season}\t{(double)animal.Coins / season:F2}\t{season - (hay * days)}"));
+            sb.AppendLine(string.Create(CultureInfo.InvariantCulture, $"{animal.Key}\t{animal.Coins}\t{Sell(animal.Product)}\t{season}\t{(double)animal.Coins / season:F2}\t{season - (hay * days)}\t{(double)animal.Coins / (season - (hay * days)):F2}"));
         }
 
         sb.AppendLine(string.Create(CultureInfo.InvariantCulture, $"herd: {herdPrice} coins of animals, {herdPerDay:F1} coins a game day, payback {herdPrice / herdPerDay:F0} game days; no energy"));

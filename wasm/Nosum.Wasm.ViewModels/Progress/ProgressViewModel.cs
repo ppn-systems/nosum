@@ -437,8 +437,11 @@ public sealed class ProgressViewModel : PanelViewModel, IDisposable
     /// <summary>Gets the localized combo streak badge text.</summary>
     public string ComboBadgeText => this.Text("Combat_Combo_Badge", Number(this.CurrentCombo), Number(this.ComboBonusPercent));
 
-    /// <summary>Gets the localized level-up badge text.</summary>
-    public string LevelUpBadgeText => this.Text("Combat_LevelUp_Badge", Number(this.ActiveLevelUpValue));
+    /// <summary>
+    /// Gets the level-up badge text: the title only. The level is named once, in the banner (world pass 7: the badge repeated the level the banner
+    /// had just shown, and it read a gathering level as a combat one).
+    /// </summary>
+    public string LevelUpBadgeText => this.Text("Combat_Label_LevelUp");
 
     /// <summary>Casts a combat skill (1 = Whirlwind, 2 = Fireball, 3 = DivineHeal) (docs/adr/ADR-056).</summary>
     /// <param name="skillId">Skill kind.</param>

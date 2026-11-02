@@ -118,7 +118,7 @@ public static class AnimalCatalog
 {
     private static readonly AnimalDefinition[] s_all =
     [
-        new(AnimalKind.Chicken, "chicken", 800, ItemCatalog.Egg, ItemCatalog.LargeEgg, ItemCatalog.GoldenEgg, false, ProduceSchedule.Daily, "chicken", 16, 16, 22),
+        new(AnimalKind.Chicken, "chicken", 950, ItemCatalog.Egg, ItemCatalog.LargeEgg, ItemCatalog.GoldenEgg, false, ProduceSchedule.Daily, "chicken", 16, 16, 22),
         new(AnimalKind.Cow, "cow", 1_500, ItemCatalog.Milk, ItemCatalog.LargeMilk, ItemCatalog.CreamMilk, true, ProduceSchedule.Daily, "cow", 32, 32, 14),
         new(AnimalKind.Duck, "duck", 1_100, ItemCatalog.DuckEgg, ItemCatalog.LargeDuckEgg, ItemCatalog.GoldenDuckEgg, false, ProduceSchedule.Daily, "duck", 16, 16, 24),
         new(AnimalKind.Goat, "goat", 1_800, ItemCatalog.GoatMilk, ItemCatalog.LargeGoatMilk, ItemCatalog.CreamGoatMilk, true, ProduceSchedule.Daily, "goat", 16, 16, 18),

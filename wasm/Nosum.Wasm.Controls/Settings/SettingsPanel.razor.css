@@ -18,6 +18,27 @@
     padding: 0 calc(var(--u) * 2) calc(var(--u) * 1);
 }
 
+/* The general tab: two columns of sections on a desktop, one on a phone. Each column is a stack with the page gap. */
+.set-cols {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: var(--nosum-gap-group);
+}
+
+.set-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nosum-gap-group);
+    min-width: 0;
+}
+
+@media (max-width: 640px) {
+    .set-cols {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 .set-who {
     margin: 0;
 }

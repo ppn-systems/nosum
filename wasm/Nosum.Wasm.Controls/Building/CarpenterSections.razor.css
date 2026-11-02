@@ -15,3 +15,21 @@
     justify-content: space-between;
     gap: calc(var(--u) * 3);
 }
+
+.carpenter-what {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.carpenter-home {
+    display: flex;
+    flex-direction: column;
+    gap: var(--u);
+}
+
+.carpenter-buy {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--u) * 2);
+}

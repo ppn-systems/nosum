@@ -67,7 +67,7 @@ multi-yield ones, and a crop out of season earns nothing.
 
 | Animal | Price | Everyday product (before → after) | Season value (before → after) | Share of price (before → after) |
 |:--|--:|:--|--:|--:|
-| Chicken | 800 | egg 50 → 15 (daily) | 1,400 → 420 | 1.75× → 0.53× |
+| Chicken | 950 | egg 50 → 20 (daily) | 1,400 → 560 | 1.75× → 0.59× |
 | Duck | 1,100 | duck egg 70 → 20 (daily) | 1,960 → 560 | 1.78× → 0.51× |
 | Cow | 1,500 | milk 125 → 27 (daily) | 3,500 → 756 | 2.33× → 0.50× |
 | Goat | 1,800 | goat milk 150 → 32 (daily) | 4,200 → 896 | 2.33× → 0.50× |
@@ -80,6 +80,8 @@ figures use the everyday product, so they are a floor. Sheep were underpaid befo
 
 Feeding is one ration a night (hay, or fiber from the scythe, which is free). Hay costs 12 coins at the carpenter (was 30, then 10; docs/adr/ADR-081
 amendment 2026-11-01 and its round-2 amendment): a fed animal costs at most 336 coins a season in hay, and every animal's season product covers it. Fiber makes feed free.
+
+Net of feed, a fed chicken paid back its price in 9.5 seasons (egg 15, price 800). Round 4 (docs/adr/ADR-081 round-4 amendment, D12 to D14) sets the egg to 20 and the price to 950, so it pays back in 4.2 seasons, within the five-season limit every animal now meets (duck 4.9, cow 3.6, goat 3.2, sheep 4.2, pig 3.1). Fiber makes feed free.
 
 ## Fishing: expected coins per cast
 

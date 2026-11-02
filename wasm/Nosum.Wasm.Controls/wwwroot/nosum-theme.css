@@ -210,6 +210,11 @@ h1[tabindex="-1"]:focus {
         --nosum-fs-body: 14px;
         --nosum-fs-small: 12.5px;
         --nosum-lh: 17px;
+
+        /* Touch targets on a phone are at least 42 px square (docs/design/ui-standard.md section 6): the text buttons take the height, and the
+           icon buttons of a window take the size (GameHud.razor.css). */
+        --nosum-touch: 42px;
+        --nosum-button-h: var(--nosum-touch);
     }
 }
 

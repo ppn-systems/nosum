@@ -68,6 +68,10 @@
                 </GameSection>
                 break;
             default:
+                @* The general tab is two columns on a desktop (language and interface size beside the panel size and the tutorial), so the window holds
+                   every section at 1920x1080 without an inner scrollbar (docs/design/ui-standard.md section 7, item 7). A phone stacks them. *@
+                <div class="set-cols">
+                <div class="set-col">
                 <GameSection Title="@Settings.Text("Settings_Language")">
                     <div class="set-body">
                         <div class="set-lang" role="group" aria-label="@Settings.Text("Settings_Language")">
@@ -92,6 +96,8 @@
                         <p class="set-note">@Settings.Text("Settings_ScaleHint")</p>
                     </div>
                 </GameSection>
+                </div>
+                <div class="set-col">
                 <GameSection Title="@Settings.Text("Settings_PanelScale")">
                     <div class="set-body">
                         <GameSlider Label="@Settings.Text("Settings_PanelScaleLabel")" Value="Settings.Current.PanelScale" ValueChanged="Settings.SetPanelScale"
@@ -106,6 +112,8 @@
                         </GameRow>
                     </div>
                 </GameSection>
+                </div>
+                </div>
                 break;
         }
     </div>

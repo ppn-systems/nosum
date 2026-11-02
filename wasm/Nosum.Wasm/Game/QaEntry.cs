@@ -27,6 +27,9 @@ internal static partial class QaEntry
             const dev = exports.Nosum.Wasm.Game.DevTools;
             globalThis.nosumQa = Object.freeze({
               grant: (itemId, quantity, coins) => dev.Grant(itemId, quantity, coins),
+              // Explicit units (a game day is 12 real hours; a season is 28 game days, docs/adr/ADR-018). advanceClock is the days call, kept for old scripts.
+              advanceDays: days => dev.AdvanceClock(days),
+              advanceSeasons: seasons => dev.Season(seasons),
               advanceClock: days => dev.AdvanceClock(days),
               teleport: (mapId, tileX, tileY) => dev.Teleport(mapId, tileX, tileY),
               season: seasons => dev.Season(seasons),
