@@ -142,7 +142,8 @@ internal static partial class Program
         InstanceManager.Instance.Register<IMapCatalog>(maps);
 
         // Chunks (docs/adr/ADR-022): the index from chunk to interested players, and the one door a world event goes through.
-        ChunkPublisher publisher = new(presence, presence);
+        IMapPresence sends = seams?.WrapPresence?.Invoke(presence) ?? presence;
+        ChunkPublisher publisher = new(sends, presence);
         InstanceManager.Instance.Register<IChunkMap>(presence);
         InstanceManager.Instance.Register<IChunkPublisher>(publisher);
         SessionRegistry sessions = new(presence);
@@ -284,7 +285,6 @@ internal static partial class Program
         InstanceManager.Instance.Register<IPetService>(pets);
         LookService looks = new(unitOfWork, inventory, presence, nicknames, presence, publisher, clock, pets);
         InstanceManager.Instance.Register<ILookService>(looks);
-        IMapPresence sends = seams?.WrapPresence?.Invoke(presence) ?? presence;
         ChunkStreamer streamer = new(sends, publisher, looks, [placeables, farm, nodes, groundItems]);
         // Running spends energy in the background (docs/adr/ADR-085 D2).
         RunEnergyService runEnergy = new(inventory, progress);

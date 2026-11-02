@@ -14,6 +14,7 @@ using Nosum.Abstractions.Chat;
 using Nosum.Abstractions.Data;
 using Nosum.Abstractions.Friends;
 using Nosum.Abstractions.Presence;
+using Nosum.Infrastructure.Presence;
 using Nosum.Contracts.Friends;
 using Nosum.Contracts.Friends.S2C;
 using Nosum.Domain.Accounts;
@@ -39,6 +40,7 @@ public sealed class FriendService : IFriendService, IDisposable
 
     private readonly IUnitOfWorkFactory _unitOfWork;
     private readonly IMapPresence _presence;
+    private readonly ViewerFanout _fanout;
     private readonly ISessionRegistry _sessions;
     private readonly IPlayerNotifier _notifier;
     private readonly INicknameDirectory _nicknames;
@@ -71,6 +73,7 @@ public sealed class FriendService : IFriendService, IDisposable
 
         _unitOfWork = unitOfWork;
         _presence = presence;
+        _fanout = new ViewerFanout(presence);
         _sessions = sessions;
         _notifier = notifier;
         _nicknames = nicknames;
@@ -528,14 +531,22 @@ public sealed class FriendService : IFriendService, IDisposable
 
         IReadOnlyList<Guid> friends = await _friends.GetFriendsAsync(playerId, CancellationToken.None).ConfigureAwait(false);
 
+        // One status to every online friend, under the push deadline: one stuck friend cannot hold the others (docs/adr/ADR-087, amendment 2026-11-02).
+        List<IConnection> connections = [];
         foreach (Guid friend in friends)
         {
-            using PacketScope<FriendStatusChanged> lease = PacketFactory<FriendStatusChanged>.Acquire();
-            lease.Value.PlayerId = playerId;
-            lease.Value.Online = now.Online;
-            lease.Value.MapId = now.MapId;
-            _ = await _notifier.TrySendAsync(friend, lease.Value, CancellationToken.None).ConfigureAwait(false);
+            IConnection? connection = _sessions.GetActive(friend);
+            if (connection is not null)
+            {
+                connections.Add(connection);
+            }
         }
+
+        using PacketScope<FriendStatusChanged> status = PacketFactory<FriendStatusChanged>.Acquire();
+        status.Value.PlayerId = playerId;
+        status.Value.Online = now.Online;
+        status.Value.MapId = now.MapId;
+        await _fanout.SendAsync(connections, status.Value, null, CancellationToken.None).ConfigureAwait(false);
     }
 
     private async Task PushSnapshotAsync(Guid playerId, CancellationToken cancellationToken)

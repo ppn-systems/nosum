@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
@@ -15,13 +14,16 @@ namespace Nosum.Infrastructure.Presence;
 
 /// <summary>
 /// <see cref="IChunkPublisher"/> over the chunk index and the presence: a chunk publish goes to the players whose interest set contains the chunk,
-/// an instance publish to the instance's Nalix group (docs/adr/ADR-022 D4).
+/// an instance publish to the instance's Nalix group (docs/adr/ADR-022 D4). Both sends go through <see cref="ViewerFanout"/>, so one stuck player
+/// cannot hold a publish to the others (docs/adr/ADR-087, amendment 2026-11-02).
 /// </summary>
 public sealed class ChunkPublisher : IChunkPublisher
 {
     private readonly IMapPresence _presence;
     private readonly IChunkMap _chunks;
+    private readonly ViewerFanout _fanout;
     private readonly ConcurrentBag<List<PlayerPresence>> _lists = [];
+    private readonly ConcurrentBag<List<IConnection>> _connections = [];
 
     /// <summary>Initializes the publisher.</summary>
     /// <param name="presence">Sends to one connection and to an instance's group.</param>
@@ -33,10 +35,10 @@ public sealed class ChunkPublisher : IChunkPublisher
 
         _presence = presence;
         _chunks = chunks;
+        _fanout = new ViewerFanout(presence);
     }
 
     /// <inheritdoc/>
-    [SuppressMessage("Design", "CA1031", Justification = "Best-effort fan-out: one dead connection must not cost the rest of the chunk its update.")]
     public async ValueTask PublishAsync(MapInstance instance, ChunkCoord chunk, IPacket packet, IConnection? except = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(packet);
@@ -46,31 +48,27 @@ public sealed class ChunkPublisher : IChunkPublisher
             subscribers = [];
         }
 
+        if (!_connections.TryTake(out List<IConnection>? recipients))
+        {
+            recipients = [];
+        }
+
         try
         {
             _chunks.CopySubscribers(instance, chunk, subscribers);
             for (int i = 0; i < subscribers.Count; i++)
             {
-                IConnection connection = subscribers[i].Connection;
-                if (ReferenceEquals(connection, except) || connection.IsDisposed)
-                {
-                    continue;
-                }
-
-                try
-                {
-                    await _presence.SendAsync(connection, packet, cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception)
-                {
-                    // A closing connection is cleaned up by its close event.
-                }
+                recipients.Add(subscribers[i].Connection);
             }
+
+            await _fanout.SendAsync(recipients, packet, except, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
             subscribers.Clear();
             _lists.Add(subscribers);
+            recipients.Clear();
+            _connections.Add(recipients);
         }
     }
 

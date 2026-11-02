@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Nalix.Abstractions.Networking;
+using Nalix.Abstractions.Networking.Packets;
 using Nalix.Codec.Pooling;
 using Nosum.Abstractions.Coop;
 using Nosum.Abstractions.Data;
@@ -23,6 +24,7 @@ using Nosum.Gameplay.Inventory;
 using Nosum.Gameplay.Items;
 using Nosum.Gameplay.Maps;
 using Nosum.Gameplay.Placeables;
+using Nosum.Infrastructure.Presence;
 
 namespace Nosum.Infrastructure.Placeables;
 
@@ -38,6 +40,7 @@ public sealed class ChestService : IChestService, IPlacedBehaviour
     private const string WithdrawReason = "chest.withdraw";
 
     private readonly IMapPresence _presence;
+    private readonly ViewerFanout _fanout;
     private readonly IMapCatalog _maps;
     private readonly IPlaceableService _placeables;
     private readonly IInventoryService _inventory;
@@ -62,6 +65,7 @@ public sealed class ChestService : IChestService, IPlacedBehaviour
         ArgumentNullException.ThrowIfNull(time);
 
         _presence = presence;
+        _fanout = new ViewerFanout(presence);
         _maps = maps;
         _placeables = placeables;
         _inventory = inventory;
@@ -208,15 +212,24 @@ public sealed class ChestService : IChestService, IPlacedBehaviour
 
         using PacketScope<ChestClosed> lease = PacketFactory<ChestClosed>.Acquire();
         lease.Value.ObjectId = item.Id;
+        await this.SendToWatchersAsync(instance, watchers, lease.Value, cancellationToken).ConfigureAwait(false);
+    }
+
+    // A chest's change goes to the players who watch it, under the push deadline: one stuck watcher cannot hold the others (docs/adr/ADR-087, amendment 2026-11-02).
+    private async ValueTask SendToWatchersAsync(MapInstance instance, HashSet<Guid> watchers, IPacket packet, CancellationToken cancellationToken)
+    {
         List<PlayerPresence> here = [];
         _presence.CopyPlayers(instance.Key, here);
+        List<IConnection> connections = [];
         foreach (PlayerPresence other in here)
         {
             if (watchers.Contains(other.AccountId))
             {
-                await _presence.SendAsync(other.Connection, lease.Value, cancellationToken).ConfigureAwait(false);
+                connections.Add(other.Connection);
             }
         }
+
+        await _fanout.SendAsync(connections, packet, null, cancellationToken).ConfigureAwait(false);
     }
 
     // The same checks for every request: the player is somewhere with chests, the chest stands in their instance, they may use it and are within reach.
@@ -420,15 +433,7 @@ public sealed class ChestService : IChestService, IPlacedBehaviour
             }
         }
 
-        List<PlayerPresence> here = [];
-        _presence.CopyPlayers(instance.Key, here);
-        foreach (PlayerPresence other in here)
-        {
-            if (watchers.Contains(other.AccountId))
-            {
-                await _presence.SendAsync(other.Connection, packet, cancellationToken).ConfigureAwait(false);
-            }
-        }
+        await this.SendToWatchersAsync(instance, watchers, packet, cancellationToken).ConfigureAwait(false);
     }
 
     private static InventorySlotRow RowOf(int slot, int itemId, int quantity)
