@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Nalix.Abstractions;
+using Nalix.Abstractions.Exceptions;
 using Nalix.Abstractions.Networking.Packets;
 using Nalix.Framework.Injection;
 using Nalix.Hosting;
@@ -103,6 +104,28 @@ public sealed class SecurityWireTests : IClassFixture<PostgresFixture>
             string current = string.Empty;
             System.Collections.Concurrent.ConcurrentBag<string> repliedTo = [];
             int reconnects = 0;
+
+            // Opens a session and counts the game replies it gets. Every denied packet is one cumulative error, and the server closes a connection
+            // at its error threshold (MaxErrorThreshold), so a pass reconnects a few times.
+            async Task<WebSocketSession> OpenCountingRepliesAsync(WebSocketSession? previous, bool encrypted)
+            {
+                previous?.Dispose();
+                WebSocketSession next = await ConnectAsync();
+                next.OnMessageReceived += (_, lease) =>
+                {
+                    // Opcodes below 0x0100 belong to Nalix itself (it may close a connection that keeps sending denied packets); anything above would be a game reply.
+                    if (lease.Length >= 2 && (lease.Span[0] | (lease.Span[1] << 8)) >= 0x0100)
+                    {
+                        _ = Interlocked.Increment(ref replies);
+                        repliedTo.Add(current + " (" + encrypted + ") " + Convert.ToHexString(lease.Span[..Math.Min(16, lease.Length)]));
+                    }
+
+                    lease.Dispose();
+                };
+                reconnects++;
+                return next;
+            }
+
             foreach (bool encrypted in new[] { true, false })
             {
                 WebSocketSession? session = null;
@@ -112,26 +135,24 @@ public sealed class SecurityWireTests : IClassFixture<PostgresFixture>
                     {
                         if (session is null || !session.IsConnected)
                         {
-                            session?.Dispose();
-                            session = await ConnectAsync();
-                            session.OnMessageReceived += (_, lease) =>
-                            {
-                                // Opcodes below 0x0100 belong to Nalix itself (it may close a connection that keeps sending denied packets); anything above would be a game reply.
-                                if (lease.Length >= 2 && (lease.Span[0] | (lease.Span[1] << 8)) >= 0x0100)
-                                {
-                                    _ = Interlocked.Increment(ref replies);
-                                    repliedTo.Add(current + " (" + encrypted + ") " + Convert.ToHexString(lease.Span[..Math.Min(16, lease.Length)]));
-                                }
-
-                                lease.Dispose();
-                            };
-                            reconnects++;
+                            session = await OpenCountingRepliesAsync(session, encrypted);
                         }
 
                         current = type.Name;
                         object instance = Activator.CreateInstance(type)!;
                         using IDisposable owner = (IDisposable)instance;
-                        await session.SendAsync((IPacket)instance, encrypted, timeout.Token);
+                        try
+                        {
+                            await session.SendAsync((IPacket)instance, encrypted, timeout.Token);
+                        }
+                        catch (NetworkException) when (!timeout.IsCancellationRequested)
+                        {
+                            // The server closed this connection after the check above (its error threshold), so the frame went to a closing socket.
+                            // Connect again and send the same packet once more; a second failure is not the close and fails the test.
+                            session = await OpenCountingRepliesAsync(session, encrypted);
+                            await session.SendAsync((IPacket)instance, encrypted, timeout.Token);
+                        }
+
                         await Task.Delay(15, timeout.Token);
                     }
                 }
