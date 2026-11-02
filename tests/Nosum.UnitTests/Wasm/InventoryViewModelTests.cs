@@ -416,9 +416,9 @@ public sealed class InventoryViewModelTests
         return new StringLocalizer<T>(factory);
     }
 
-    private static HashSet<string> Keys(string file, string project = "Nosum.Wasm.ViewModels", [CallerFilePath] string here = "")
+    private static HashSet<string> Keys(string file, string project = "Nosum.Wasm.ViewModels")
     {
-        string root = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(here)!, "..", "..", ".."));
+        string root = RepositoryPaths.Root;
         string path = Path.Combine(root, "wasm", project, "Resources", file);
         return XDocument.Load(path).Root!.Elements("data").Select(e => (string)e.Attribute("name")!).ToHashSet();
     }

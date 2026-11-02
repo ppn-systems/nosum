@@ -37,5 +37,5 @@ public sealed class FishingBannerPointerTests
         return match.Success ? match.Groups["body"].Value : string.Empty;
     }
 
-    private static string RepositoryRoot([CallerFilePath] string here = "") => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(here)!, "..", "..", ".."));
+    private static string RepositoryRoot() => RepositoryPaths.Root;
 }
