@@ -1187,7 +1187,7 @@
   <data name="Pet_Adopt" xml:space="preserve"><value>Adopt</value></data>
   <data name="Pet_Mood" xml:space="preserve"><value>Mood</value></data>
   <data name="Pet_Pet" xml:space="preserve"><value>Pet</value></data>
-  <data name="Pet_AlreadyPetted" xml:space="preserve"><value>You already petted them today.</value></data>
+  <data name="Pet_PettedToday" xml:space="preserve"><value>Petted today. Back tomorrow.</value></data>
   <data name="Pet_Status_Ok" xml:space="preserve"><value>Done.</value></data>
   <data name="Pet_Status_NoPet" xml:space="preserve"><value>You have no pet yet.</value></data>
   <data name="Pet_Status_AlreadyHasPet" xml:space="preserve"><value>You already have a pet.</value></data>
