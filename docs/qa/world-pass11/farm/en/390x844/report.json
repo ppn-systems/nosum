@@ -65,8 +65,10 @@
     },
     {
       "name": "collect-produce",
-      "ok": false,
-      "value": false,
+      "ok": true,
+      "value": {
+        "got": "You got Egg."
+      },
       "file": "09-collect-produce.png"
     },
     {

@@ -1,0 +1,59 @@
+{
+  "flow": "town",
+  "locale": "en",
+  "viewport": "1920x1080",
+  "steps": [
+    {
+      "name": "tailor-talk",
+      "ok": true,
+      "file": "01-tailor-talk.png"
+    },
+    {
+      "name": "backpack-upgrade",
+      "ok": true,
+      "value": {
+        "size": "Your backpack holds 45 slots.",
+        "bagBefore": 0
+      },
+      "file": "02-backpack-upgrade.png"
+    },
+    {
+      "name": "wardrobe-open",
+      "ok": true,
+      "file": "03-wardrobe-open.png"
+    },
+    {
+      "name": "wardrobe-hair",
+      "ok": true,
+      "value": {
+        "wearing": "Wearing: Bowl cut"
+      },
+      "file": "04-wardrobe-hair.png"
+    },
+    {
+      "name": "wear-hat-from-bag",
+      "ok": true,
+      "value": {
+        "picked": "Straw hat",
+        "slot": "Straw hat",
+        "worn": true
+      },
+      "file": "05-wear-hat-from-bag.png"
+    },
+    {
+      "name": "wardrobe-open-again",
+      "ok": true
+    },
+    {
+      "name": "wardrobe-skin",
+      "ok": true,
+      "file": "06-wardrobe-skin.png"
+    },
+    {
+      "name": "world-map",
+      "ok": true,
+      "file": "07-world-map.png"
+    }
+  ],
+  "errors": []
+}

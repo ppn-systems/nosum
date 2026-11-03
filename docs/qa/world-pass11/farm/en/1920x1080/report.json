@@ -67,7 +67,7 @@
       "name": "collect-produce",
       "ok": true,
       "value": {
-        "got": "You got Egg."
+        "got": "You got Large egg."
       },
       "file": "09-collect-produce.png"
     },
