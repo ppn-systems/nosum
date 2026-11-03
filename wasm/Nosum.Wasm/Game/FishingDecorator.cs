@@ -81,8 +81,10 @@ internal sealed class FishingDecorator : IMapDecorator
         _frame = _fishing.Read();
         if (_frame.Phase != _lastPhase)
         {
-            // The ripple runs when the line lands and again when a fish bites: the two moments a player watches the bobber for.
-            if (_frame.Phase == FishingPhase.Biting || (_frame.Phase == FishingPhase.Waiting && _lastPhase == FishingPhase.Casting))
+            // The ripple runs when the line lands, when a fish bites, and when the line comes in: the moments a player watches the bobber for.
+            if (_frame.Phase == FishingPhase.Biting
+                || (_frame.Phase == FishingPhase.Waiting && _lastPhase == FishingPhase.Casting)
+                || (_frame.Phase == FishingPhase.Result && _lastPhase == FishingPhase.Reeling))
             {
                 _splashMs = _nowMs;
             }
@@ -101,16 +103,16 @@ internal sealed class FishingDecorator : IMapDecorator
     /// <inheritdoc/>
     public void DrawOnGround(RenderCommandBuffer commands, in Camera2D camera, long timeMs)
     {
-        if (!this.HasLine)
-        {
-            return;
-        }
-
         int bobberX = (_frame.CastTileX * _tileSize) + (_tileSize / 2);
         int bobberY = (_frame.CastTileY * _tileSize) + (_tileSize / 2) + this.BobOffset();
-        int left = (int)Math.Round(bobberX - (BobberSize / 2d) - camera.Left);
-        int top = (int)Math.Round(bobberY - (BobberSize / 2d) - camera.Top);
-        commands.Draw(_bobberTexture, 0, 0, BobberSize, BobberSize, left, top);
+        if (this.HasLine)
+        {
+            int left = (int)Math.Round(bobberX - (BobberSize / 2d) - camera.Left);
+            int top = (int)Math.Round(bobberY - (BobberSize / 2d) - camera.Top);
+            commands.Draw(_bobberTexture, 0, 0, BobberSize, BobberSize, left, top);
+        }
+
+        // The ring outlives the line for its short run: when the line comes in, the ring marks the spot the bobber left.
         this.DrawRipple(commands, camera, bobberX, bobberY);
     }
 
@@ -133,6 +135,11 @@ internal sealed class FishingDecorator : IMapDecorator
             int bubbleLeft = (int)Math.Round(_farmerX - (BubbleSize / 2d) - camera.Left);
             int bubbleTop = (int)Math.Round(_farmerY - FarmerSprite.Height - BubbleSize - 2 - camera.Top);
             commands.Draw(_bubbleTexture, 0, 0, BubbleSize, BubbleSize, bubbleLeft, bubbleTop);
+        }
+
+        // The gauge stays through the reel, frozen where the press left it, so the press shows at once; the server's answer then ends it.
+        if (_frame.Phase is FishingPhase.Biting or FishingPhase.Reeling)
+        {
             this.DrawGauge(commands, camera);
         }
     }
