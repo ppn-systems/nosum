@@ -23,16 +23,20 @@ public sealed partial class CombatChannel
     /// <summary>Immediately activates the client-side visual animation for a cast skill.</summary>
     /// <param name="skillId">Skill id (1 = Whirlwind, 2 = Fireball, 3 = DivineHeal).</param>
     /// <param name="targetMonsterId">Optional target monster id for Fireball trajectory.</param>
-    public void TriggerSkillEffect(byte skillId, int targetMonsterId = 0)
+    /// <param name="knownTarget">The target's row as it was before the cast, for a target a killing blow has already removed; the live row wins when there is one.</param>
+    public void TriggerSkillEffect(byte skillId, int targetMonsterId = 0, MonsterClientRow? knownTarget = null)
     {
         Volatile.Write(ref _activeSkillId, skillId);
         Volatile.Write(ref _activeSkillTick, Environment.TickCount64);
 
         if (skillId == 2)
         {
-            if (targetMonsterId != 0 && this.TryGetMonster(targetMonsterId, out MonsterClientRow tm))
+            MonsterClientRow tm = default;
+            bool live = targetMonsterId != 0 && this.TryGetMonster(targetMonsterId, out tm);
+            if (live || knownTarget is not null)
             {
-                this.SpawnProjectile(_playerX, _playerY, tm.X, tm.Y, 2, 320f);
+                MonsterClientRow aim = live ? tm : knownTarget!.Value;
+                this.SpawnProjectile(_playerX, _playerY, aim.X, aim.Y, 2, 320f);
             }
             else if (this.TryFindTarget(_playerX, _playerY, 6, out MonsterClientRow near))
             {

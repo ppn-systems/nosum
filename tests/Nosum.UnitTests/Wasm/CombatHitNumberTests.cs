@@ -94,6 +94,38 @@ public sealed class CombatHitNumberTests
     }
 
     [Fact]
+    public void Attack_KillingBlowPushArrivesBeforeTheReply_StillShowsTheNumberOnTheMonster()
+    {
+        FakeGameSocket socket = new();
+        CombatChannel channel = new(socket);
+        socket.Push(Vitals(100));
+        socket.Push(new MonsterChanged { MonsterId = 7, Kind = 0, X = 10, Y = 12, Hp = 5, MaxHp = 5 });
+        socket.ReplyWith(_ =>
+        {
+            // The zero-HP push is on its way while the attack is in flight: it arrives before the reply.
+            socket.Push(new MonsterChanged { MonsterId = 7, Kind = 0, X = 10, Y = 12, Hp = 0, MaxHp = 5 });
+            return new AttackMonsterResult
+            {
+                Status = CombatStatus.Ok,
+                MonsterId = 7,
+                DamageDealt = 5,
+                MonsterHp = 0,
+                Hp = 100,
+                MaxHp = 100,
+                Mp = 50,
+                MaxMp = 50,
+            };
+        });
+
+        channel.Attack(7, 0);
+
+        List<FloatingTextClientRow> rows = [];
+        channel.CopyFloatingTexts(rows, Environment.TickCount64);
+        rows.Should().ContainSingle(row => row.Amount == 5 && row.WorldX == (10 * 16) + 8 && row.WorldY == (12 * 16) - 6,
+            "the killing blow's number stays on the tile the monster died on, though its row was removed before the reply");
+    }
+
+    [Fact]
     public void Attack_TheSameHitAfterAHeal_ShowsTheNumberAgain()
     {
         FakeGameSocket socket = new();
