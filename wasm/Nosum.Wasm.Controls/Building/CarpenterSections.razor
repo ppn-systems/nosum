@@ -65,6 +65,11 @@
                 <GameField Label="@Vm.Text("Carpenter_Name")" Hint="@Vm.Text("Carpenter_NameHint")">
                     <GameInput Value="@Vm.AnimalName" ValueChanged="@(v => Vm.AnimalName = v)" Label="@Vm.Text("Carpenter_Name")" MaxLength="16" />
                 </GameField>
+                @* A refused name is said under the field that holds it (finding 10): the buy buttons above send the field as it is. *@
+                @if (Vm.AnimalNameError.Length > 0)
+                {
+                    <GameNotice Kind="error" Text="@Vm.AnimalNameError" />
+                }
             }
         </GameSection>
     }

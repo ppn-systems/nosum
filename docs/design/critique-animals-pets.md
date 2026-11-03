@@ -36,8 +36,8 @@ The wire sends the bench's rations (`AnimalsSnapshot.Rations`, `AnimalsChanged.R
 them. An empty bench and a full one look the same (`03` vs `04`). The player cannot tell that the animals will go hungry tonight.
 Animals have no per-animal hunger: the bench is the only input, so the bench state is the state the player needs.
 
-**Status: partly fixed.** The trough now shows an exclamation mark (the emote sheet, drawn by the engine) while the bench is empty
-and the animals live there, and a hay sheaf when it holds feed. The count is not drawn yet (follow-up, below).
+**Status: fixed (round five icon; round six count).** The trough shows an exclamation mark (the emote sheet, drawn by the engine) while
+the bench is empty and the animals live there, a hay sheaf and the ration count when it holds feed (round six, below).
 
 ### 3. Produce waits for a touch, with no cue (medium)
 
@@ -119,13 +119,12 @@ the same line, "Done." (`Pet_Status_Ok`). The energy bar moved, and nothing name
 **Now:** "Petted. Energy +5." (Vietnamese: "Đã vuốt ve. Sức lực +5."; `Pet_Status_Petted`). The number is `PetRules.PettingEnergy`, so the
 line cannot drift from the server. Rehoming and adoption keep their own answers. Frame: `after/1280x720-en/pets/pet-day-1.png`.
 
-### 10. The name is typed before the tap, and its refusal is far from the field (low, open)
+### 10. The name is typed before the tap, and its refusal is far from the field (low, fixed in round six)
 
 Finding 6's order is fixed: the field now sits under the species buttons. The buy click still sends whatever is in the field, so a
-player who taps a species first gets the refusal before any name is typed. `CarpenterViewModel.BuyAnimal` puts that refusal
-(`Building_Status_BadName`) in the status line above the Animals section, not on the field, and the field has no error state.
-*Seen in the code, not in a frame.* A field error needs the `GameInput` error contract in `ui-standard.md`; that is a follow-up,
-not a change made here.
+player who taps a species first gets the refusal before any name is typed. `CarpenterViewModel.BuyAnimal` put that refusal
+(`Building_Status_BadName`) in the status line above the Animals section, not on the field. Round six moves it under the field
+(see Round six below).
 
 ### 11. Settling the night's feeding is right (checked, not a finding)
 
@@ -133,27 +132,54 @@ not a change made here.
 feeds every animal, and several nights away eat one ration each. The seven `Settle_*` tests in `AnimalRulesTests` cover those cases.
 No change.
 
-### Still open after round five
+### Still open after round six
 
-- **Finding 2, the count.** The trough shows an icon for an empty bench and one for a stocked bench, not the ration count. Not attempted this round.
 - **Finding 8, the pet's mood.** Still no effect. The proposal with numbers is in ADR-092 (round-four amendment) and waits for the owner.
 - **The herd cap.** A building holds four animals (`(0/4)` on the Animals tab). Whether that cap rises is an owner decision and is not changed here.
 
 Wire: no change (protocol unchanged). ADR: none needed, because no rule changed; the petting still gives the same energy, and only its text
 and the layout moved.
 
+## Round six: the count and the name refusal
+
+Round six starts from `master` at `531892ee`. It is the same loop as round five (coop placed, two chickens, hay, feed, pet), run in
+English and Vietnamese at 1280 x 720, 1920 x 1080 and 390 x 844. The frames are in [`docs/qa/animals-round6/`](../qa/animals-round6/).
+Two open items were picked: the bench's count (finding 2) and the name refusal (finding 10). Both are client changes; the rules and the
+wire are the same, so no ADR is needed. The mood and the herd cap stay with the owner and are not touched.
+
+### 2. The count (fixed)
+
+The feeding bench now shows its ration count beside the hay sheaf, one pre-interned label per count from 1 to `AnimalRules.MaxRations`
+(24), in `AnimalTendLabels`, so a frame formats nothing. Digits are not translated text. When the bench is empty the exclamation mark
+shows and no count is drawn. Frame: `after/1280x720-en/pets/coop-fed.png` shows "24" under the Feed hint after a full press (30 hay → 6).
+
+### 10. The name refusal sits under the field (fixed)
+
+A purchase with an empty or refused name no longer writes to the status line. The refusal (`Building_Status_BadName`) is shown in a
+notice under the name field, and it clears when the player types, when the sheet is opened again, or when a purchase goes through.
+The section's status line is cleared, so one message shows. Frame: `after/1280x720-en/pets/carpenter-name-refused.png`.
+Tests: `CarpenterViewModelTests` (the refusal is under the field, typing clears it, opening clears it).
+
+### Checks
+
+- `dotnet build wasm/Nosum.Wasm.slnx -warnaserror`: succeeded.
+- `dotnet test tests/Nosum.UnitTests`: 3803 passed.
+- `node --test tests/browser/label-fit/*.mjs tests/browser/modules/*.mjs`: 40 passed.
+- Browser: `tests/browser/animals-pets-capture.cjs` in six runs (three viewports, two languages); the refused-name step is new in this
+  script. The report of each run is beside its frames.
+
 ## Priorities
 
 | # | Finding | Impact | Cost | Done here |
 | :-- | :-- | :-- | :-- | :-- |
 | 1 | One press feeds 4 hay | High | Client, one line | yes (round one) |
-| 2 | Bench state invisible | High | Client, engine icons | yes for the icon; count open |
+| 2 | Bench state invisible | High | Client, engine icons | yes (icon round five, count round six) |
 | 5 | Barn notice for a coop | Medium | i18n string | yes (round one) |
 | 9 | Petting does not name its energy | Medium | i18n string, one line | yes (round five) |
 | 6 | Carpenter animal section layout | Medium | Client layout | yes (round four; name under the species in round five) |
 | 3 | Produce waits for a touch, no cue | Medium | Server | yes (round two) |
 | 4 | Action key has no preview | Medium | Client + ADR amendment | yes (round two) |
-| 10 | Name refusal far from the field | Low | Client, field error state | no |
+| 10 | Name refusal far from the field | Low | Client | yes (round six) |
 | 8 | Pet has no in-world presence or effect | High | Client + rule ADR | mood open (owner) |
 | 7 | Chicken payback | Balance | Economy | yes (round four) |
 | - | Herd cap | Balance | Owner decision | no |

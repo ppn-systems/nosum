@@ -1,0 +1,42 @@
+{
+  "captured": [
+    "coop-built",
+    "carpenter-animals",
+    "carpenter-name-refused",
+    "carpenter-bought",
+    "carpenter-pet-bought",
+    "coop-empty-bench",
+    "coop-fed",
+    "coop-new-day-sparkle",
+    "coop-hint-collect-0",
+    "coop-hint-collect-1",
+    "coop-hint-collect-2",
+    "coop-hint-collect-3",
+    "coop-hint-collect-4",
+    "coop-hint-collect-5",
+    "coop-hint-pet",
+    "pet-day-1",
+    "pet-day-1-world",
+    "bag-full",
+    "pet-day-2-full-bag",
+    "pet-day-2-full-bag-world",
+    "pet-day-3-full-bag",
+    "pet-day-3-full-bag-world",
+    "pet-day-4-full-bag",
+    "pet-day-4-full-bag-world",
+    "pet-day-5-full-bag",
+    "pet-day-5-full-bag-world",
+    "pet-day-6-full-bag",
+    "pet-day-6-full-bag-world",
+    "pet-day-7-full-bag",
+    "pet-day-7-full-bag-world",
+    "pet-day-8-full-bag",
+    "pet-day-8-full-bag-world"
+  ],
+  "failed": [],
+  "feed": {
+    "before": 30,
+    "after": 6,
+    "presses": 1
+  }
+}

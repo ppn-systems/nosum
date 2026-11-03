@@ -81,6 +81,9 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
     private readonly InventoryChannel _inventory;
     private readonly PetViewModel _pet;
     private string _animalName = string.Empty;
+
+    // The refusal of a name the purchase cannot use. It sits under the name field (docs/design/critique-animals-pets.md, finding 10), not in the section's status line.
+    private string _animalError = string.Empty;
     private string _petName = string.Empty;
     private PetKind _chosenKind = PetKind.None;
     private PetPurchaseStep _petStep = PetPurchaseStep.None;
@@ -157,9 +160,13 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
         set
         {
             _animalName = value ?? string.Empty;
+            _animalError = string.Empty;
             this.Raise();
         }
     }
+
+    /// <summary>Gets the message under the name field when the typed name is refused, or an empty string.</summary>
+    public string AnimalNameError => _animalError;
 
     /// <summary>Gets the maximum allowed length for an animal's name.</summary>
     public static int MaxAnimalNameLength => Nosum.Gameplay.Players.NicknameRules.MaxLength;
@@ -216,6 +223,7 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
     {
         this.ClearStatus();
         _animalName = string.Empty;
+        _animalError = string.Empty;
         _petName = string.Empty;
         _chosenKind = PetKind.None;
         _petStep = PetPurchaseStep.None;
@@ -257,11 +265,15 @@ public sealed class CarpenterViewModel : PanelViewModel, IDisposable
     {
         if (!AnimalRules.IsValidName(_animalName))
         {
-            this.SetStatus(this.Text("Building_Status_" + BuildingStatus.BadName));
+            // The refusal is said under the name field, where the player types it, and the section's status line is cleared so one message shows.
+            this.ClearStatus();
+            _animalError = this.Text("Building_Status_" + BuildingStatus.BadName);
+            this.Raise();
             return;
         }
 
         this.ClearStatus();
+        _animalError = string.Empty;
         _buildings.BuyAnimal(buildingId, (byte)kind, NicknameRulesNormalize(_animalName));
     }
 

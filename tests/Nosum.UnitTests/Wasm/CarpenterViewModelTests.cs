@@ -217,7 +217,35 @@ public sealed class CarpenterViewModelTests
         vm.BuyAnimal(s_coop, AnimalKind.Chicken);
 
         socket.Requests.OfType<BuyAnimal>().Should().BeEmpty();
-        vm.Status.Should().Be("That name is not allowed: 3 to 16 characters, no rude words.");
+        // The refusal sits under the name field (docs/design/critique-animals-pets.md, finding 10), not in the section's status line.
+        vm.AnimalNameError.Should().Be("That name is not allowed: 3 to 16 characters, no rude words.");
+        vm.Status.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void BuyAnimal_AfterARefusal_TypingAName_ClearsTheRefusal()
+    {
+        using CultureScope scope = new("en");
+        (CarpenterViewModel vm, _, _) = Create(1_000);
+        vm.BuyAnimal(s_coop, AnimalKind.Chicken);
+
+        vm.AnimalNameError.Should().NotBeEmpty();
+
+        vm.AnimalName = "Bella";
+
+        vm.AnimalNameError.Should().BeEmpty("the player is fixing the name the refusal named");
+    }
+
+    [Fact]
+    public void Open_ClearsAnAnimalNameRefusal()
+    {
+        using CultureScope scope = new("en");
+        (CarpenterViewModel vm, _, _) = Create(1_000);
+        vm.BuyAnimal(s_coop, AnimalKind.Chicken);
+
+        vm.Open();
+
+        vm.AnimalNameError.Should().BeEmpty();
     }
 
     [Fact]

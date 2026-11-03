@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Nosum.Core;
@@ -168,7 +169,7 @@ internal sealed class AnimalsDecorator : IMapDecorator
     }
 
     // The feeding bench over the trough (docs/adr/ADR-028 D3, docs/design/critique-animals-pets.md): a hay sheaf while the bench holds feed, an exclamation mark when it is empty
-    // and the animals will not eat tonight. Only the bench is shown, not its count: the trough is where the player stands to feed.
+    // and the animals will not eat tonight. The count of rations sits beside the hay, so the player sees how much is left before the next night.
     private void AddBench(WorldSpriteBatch world, int rations, int animals)
     {
         if (_building is null || animals == 0)
@@ -187,6 +188,16 @@ internal sealed class AnimalsDecorator : IMapDecorator
         else if (ItemIcons.TryGetGroundCell(ItemCatalog.Hay, out int srcX, out int srcY))
         {
             world.Add(_objectsTexture, srcX, srcY, ProduceIcon, ProduceIcon, troughX - (ProduceIcon / 2), troughY - ProduceIcon - 2, sortY, troughX);
+        }
+
+        // The count beside the hay: how many rations the bench holds (docs/design/critique-animals-pets.md, finding 2). Digits are not text to translate.
+        if (rations > 0 && _tendLabels is not null)
+        {
+            int count = _tendLabels.RationCountId(rations);
+            if (count != 0)
+            {
+                world.AddOverlay(RenderCommandBuffer.LabelTexture, count, 0, 0, 0, troughX + (ProduceIcon / 2) + 2, troughY - ProduceIcon - 2, sortY, troughX);
+            }
         }
 
         // Feed in hand at the trough: the hint says the press fills the bench (docs/adr/ADR-092 D3).
@@ -278,12 +289,14 @@ internal sealed class AnimalsDecoratorProvider : IMapDecoratorProvider
 }
 
 /// <summary>
-/// The three short hints of the action key inside a building (docs/adr/ADR-092 D3): what E will do, interned once from the localized strings so a frame
-/// allocates nothing. The ids are those of <see cref="LabelRegistry"/>; zero means no label.
+/// The three short hints of the action key inside a building (docs/adr/ADR-092 D3), and the ration count of the feeding bench (docs/design/critique-animals-pets.md,
+/// finding 2): interned once from the localized strings so a frame allocates nothing. The ids are those of <see cref="LabelRegistry"/>; zero means no label.
 /// </summary>
 internal sealed class AnimalTendLabels
 {
-    /// <summary>Creates the three hints.</summary>
+    private readonly int[] _rationIds = new int[AnimalRules.MaxRations + 1];
+
+    /// <summary>Creates the three hints and the ration counts.</summary>
     /// <param name="registry">The label registry the world draws from.</param>
     /// <param name="text">The localizer; null shows the keys.</param>
     public AnimalTendLabels(LabelRegistry registry, IStringLocalizer<Language>? text)
@@ -292,6 +305,12 @@ internal sealed class AnimalTendLabels
         this.FeedId = registry.Intern(Lookup(text, "Animal_Tend_Feed"), 0);
         this.CollectId = registry.Intern(Lookup(text, "Animal_Tend_Collect"), 0);
         this.PetId = registry.Intern(Lookup(text, "Animal_Tend_Pet"), 0);
+
+        // One label per count the bench can hold (AnimalRules.MaxRations), so the count is never formatted in the frame.
+        for (int r = 1; r <= AnimalRules.MaxRations; r++)
+        {
+            _rationIds[r] = registry.Intern(r.ToString(CultureInfo.InvariantCulture), 0);
+        }
     }
 
     /// <summary>Gets the label id of "Feed" (the bench).</summary>
@@ -302,6 +321,10 @@ internal sealed class AnimalTendLabels
 
     /// <summary>Gets the label id of "Pet" (an animal in reach with no produce).</summary>
     public int PetId { get; }
+
+    /// <summary>Returns the label id of a ration count, or zero when the count has no label (none, or more than the bench holds).</summary>
+    /// <param name="rations">The rations in the bench.</param>
+    public int RationCountId(int rations) => rations is >= 1 and <= AnimalRules.MaxRations ? _rationIds[rations] : 0;
 
     /// <summary>Returns the label id of an outcome, or zero when the action key does nothing.</summary>
     /// <param name="tend">The outcome.</param>
