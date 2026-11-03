@@ -8,7 +8,7 @@
       "ok": true,
       "value": {
         "prompt": true,
-        "window": "Profile Profile Current nickname: Guest 1882 Guests keep a generated name. After your first quest you can link a Google "
+        "window": "Profile Profile Current nickname: Guest 5964 Guests keep a generated name. After your first quest you can link a Google "
       },
       "file": "01-profile-open.png"
     },
@@ -24,7 +24,7 @@
       "name": "sign-out-question",
       "ok": true,
       "value": {
-        "question": "Profile Profile Current nickname: Guest 1882 Guests keep a generated name. After your first quest you can link a Google or Microsoft account: your progress is k"
+        "question": "Profile Profile Current nickname: Guest 5964 Guests keep a generated name. After your first quest you can link a Google or Microsoft account: your progress is k"
       },
       "file": "03-sign-out-question.png"
     }

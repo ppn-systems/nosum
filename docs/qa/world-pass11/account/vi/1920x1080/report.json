@@ -8,7 +8,7 @@
       "ok": true,
       "value": {
         "prompt": true,
-        "window": "Hồ sơ Hồ sơ Biệt danh hiện tại: Khách 4458 Khách dùng tên tạo sẵn. Sau khi hoàn thành nhiệm vụ đầu tiên, bạn có thể liên"
+        "window": "Hồ sơ Hồ sơ Biệt danh hiện tại: Khách 3700 Khách dùng tên tạo sẵn. Sau khi hoàn thành nhiệm vụ đầu tiên, bạn có thể liên"
       },
       "file": "01-profile-open.png"
     },
@@ -24,7 +24,7 @@
       "name": "sign-out-question",
       "ok": true,
       "value": {
-        "question": "Hồ sơ Hồ sơ Biệt danh hiện tại: Khách 4458 Khách dùng tên tạo sẵn. Sau khi hoàn thành nhiệm vụ đầu tiên, bạn có thể liên kết tài khoản Google hoặc Microsoft: ti"
+        "question": "Hồ sơ Hồ sơ Biệt danh hiện tại: Khách 3700 Khách dùng tên tạo sẵn. Sau khi hoàn thành nhiệm vụ đầu tiên, bạn có thể liên kết tài khoản Google hoặc Microsoft: ti"
       },
       "file": "03-sign-out-question.png"
     }
