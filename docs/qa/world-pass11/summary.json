@@ -1,0 +1,338 @@
+[
+  {
+    "lk": "vi",
+    "size": "1280x720",
+    "steps": [
+      {
+        "name": "01-farm-start",
+        "ok": true,
+        "file": "01-01-farm-start.png"
+      },
+      {
+        "name": "02-hotbar-1",
+        "ok": true,
+        "file": "02-02-hotbar-1.png"
+      },
+      {
+        "name": "02-hotbar-2",
+        "ok": true,
+        "file": "03-02-hotbar-2.png"
+      },
+      {
+        "name": "02-hotbar-3",
+        "ok": true,
+        "file": "04-02-hotbar-3.png"
+      },
+      {
+        "name": "03-menu-open",
+        "ok": true,
+        "file": "05-03-menu-open.png"
+      },
+      {
+        "name": "04-world-map",
+        "ok": true,
+        "file": "06-04-world-map.png"
+      },
+      {
+        "name": "04b-map-closed",
+        "ok": true,
+        "file": "07-04b-map-closed.png"
+      },
+      {
+        "name": "05-at-bus-stop-edge",
+        "ok": true,
+        "file": "08-05-at-bus-stop-edge.png"
+      },
+      {
+        "name": "06-bus-stop-walk-east",
+        "ok": true,
+        "value": {
+          "fromX": 78,
+          "toX": 23
+        },
+        "file": "09-06-bus-stop-walk-east.png"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "lk": "vi",
+    "size": "1920x1080",
+    "steps": [
+      {
+        "name": "01-farm-start",
+        "ok": true,
+        "file": "01-01-farm-start.png"
+      },
+      {
+        "name": "02-hotbar-1",
+        "ok": true,
+        "file": "02-02-hotbar-1.png"
+      },
+      {
+        "name": "02-hotbar-2",
+        "ok": true,
+        "file": "03-02-hotbar-2.png"
+      },
+      {
+        "name": "02-hotbar-3",
+        "ok": true,
+        "file": "04-02-hotbar-3.png"
+      },
+      {
+        "name": "03-menu-open",
+        "ok": true,
+        "file": "05-03-menu-open.png"
+      },
+      {
+        "name": "04-world-map",
+        "ok": true,
+        "file": "06-04-world-map.png"
+      },
+      {
+        "name": "04b-map-closed",
+        "ok": true,
+        "file": "07-04b-map-closed.png"
+      },
+      {
+        "name": "05-at-bus-stop-edge",
+        "ok": true,
+        "file": "08-05-at-bus-stop-edge.png"
+      },
+      {
+        "name": "06-bus-stop-walk-east",
+        "ok": true,
+        "value": {
+          "fromX": 78,
+          "toX": 23
+        },
+        "file": "09-06-bus-stop-walk-east.png"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "lk": "vi",
+    "size": "390x844",
+    "steps": [
+      {
+        "name": "01-farm-start",
+        "ok": true,
+        "file": "01-01-farm-start.png"
+      },
+      {
+        "name": "02-hotbar-1",
+        "ok": true,
+        "file": "02-02-hotbar-1.png"
+      },
+      {
+        "name": "02-hotbar-2",
+        "ok": true,
+        "file": "03-02-hotbar-2.png"
+      },
+      {
+        "name": "02-hotbar-3",
+        "ok": true,
+        "file": "04-02-hotbar-3.png"
+      },
+      {
+        "name": "03-menu-open",
+        "ok": true,
+        "file": "05-03-menu-open.png"
+      },
+      {
+        "name": "04-world-map",
+        "ok": true,
+        "file": "06-04-world-map.png"
+      },
+      {
+        "name": "04b-map-closed",
+        "ok": true,
+        "file": "07-04b-map-closed.png"
+      },
+      {
+        "name": "05-at-bus-stop-edge",
+        "ok": true,
+        "file": "08-05-at-bus-stop-edge.png"
+      },
+      {
+        "name": "06-bus-stop-walk-east",
+        "ok": true,
+        "value": {
+          "fromX": 78,
+          "toX": 23
+        },
+        "file": "09-06-bus-stop-walk-east.png"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "lk": "en",
+    "size": "1280x720",
+    "steps": [
+      {
+        "name": "01-farm-start",
+        "ok": true,
+        "file": "01-01-farm-start.png"
+      },
+      {
+        "name": "02-hotbar-1",
+        "ok": true,
+        "file": "02-02-hotbar-1.png"
+      },
+      {
+        "name": "02-hotbar-2",
+        "ok": true,
+        "file": "03-02-hotbar-2.png"
+      },
+      {
+        "name": "02-hotbar-3",
+        "ok": true,
+        "file": "04-02-hotbar-3.png"
+      },
+      {
+        "name": "03-menu-open",
+        "ok": true,
+        "file": "05-03-menu-open.png"
+      },
+      {
+        "name": "04-world-map",
+        "ok": true,
+        "file": "06-04-world-map.png"
+      },
+      {
+        "name": "04b-map-closed",
+        "ok": true,
+        "file": "07-04b-map-closed.png"
+      },
+      {
+        "name": "05-at-bus-stop-edge",
+        "ok": true,
+        "file": "08-05-at-bus-stop-edge.png"
+      },
+      {
+        "name": "06-bus-stop-walk-east",
+        "ok": true,
+        "value": {
+          "fromX": 78,
+          "toX": 23
+        },
+        "file": "09-06-bus-stop-walk-east.png"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "lk": "en",
+    "size": "1920x1080",
+    "steps": [
+      {
+        "name": "01-farm-start",
+        "ok": true,
+        "file": "01-01-farm-start.png"
+      },
+      {
+        "name": "02-hotbar-1",
+        "ok": true,
+        "file": "02-02-hotbar-1.png"
+      },
+      {
+        "name": "02-hotbar-2",
+        "ok": true,
+        "file": "03-02-hotbar-2.png"
+      },
+      {
+        "name": "02-hotbar-3",
+        "ok": true,
+        "file": "04-02-hotbar-3.png"
+      },
+      {
+        "name": "03-menu-open",
+        "ok": true,
+        "file": "05-03-menu-open.png"
+      },
+      {
+        "name": "04-world-map",
+        "ok": true,
+        "file": "06-04-world-map.png"
+      },
+      {
+        "name": "04b-map-closed",
+        "ok": true,
+        "file": "07-04b-map-closed.png"
+      },
+      {
+        "name": "05-at-bus-stop-edge",
+        "ok": true,
+        "file": "08-05-at-bus-stop-edge.png"
+      },
+      {
+        "name": "06-bus-stop-walk-east",
+        "ok": true,
+        "value": {
+          "fromX": 78,
+          "toX": 23
+        },
+        "file": "09-06-bus-stop-walk-east.png"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "lk": "en",
+    "size": "390x844",
+    "steps": [
+      {
+        "name": "01-farm-start",
+        "ok": true,
+        "file": "01-01-farm-start.png"
+      },
+      {
+        "name": "02-hotbar-1",
+        "ok": true,
+        "file": "02-02-hotbar-1.png"
+      },
+      {
+        "name": "02-hotbar-2",
+        "ok": true,
+        "file": "03-02-hotbar-2.png"
+      },
+      {
+        "name": "02-hotbar-3",
+        "ok": true,
+        "file": "04-02-hotbar-3.png"
+      },
+      {
+        "name": "03-menu-open",
+        "ok": true,
+        "file": "05-03-menu-open.png"
+      },
+      {
+        "name": "04-world-map",
+        "ok": true,
+        "file": "06-04-world-map.png"
+      },
+      {
+        "name": "04b-map-closed",
+        "ok": true,
+        "file": "07-04b-map-closed.png"
+      },
+      {
+        "name": "05-at-bus-stop-edge",
+        "ok": true,
+        "file": "08-05-at-bus-stop-edge.png"
+      },
+      {
+        "name": "06-bus-stop-walk-east",
+        "ok": true,
+        "value": {
+          "fromX": 78,
+          "toX": 23
+        },
+        "file": "09-06-bus-stop-walk-east.png"
+      }
+    ],
+    "errors": []
+  }
+]
