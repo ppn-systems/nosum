@@ -23,6 +23,15 @@ public sealed class FishingBannerPointerTests
     }
 
     [Fact]
+    public void FishingBannerStyles_PanelRule_ReachesTheChildPanelThroughTheWrapper()
+    {
+        // The panel is a child component's element: its own rule sets pointer-events: auto, and a scoped rule on its class never matches it.
+        string css = File.ReadAllText(Path.Combine(RepositoryRoot(), "wasm", "Nosum.Wasm.Controls", "Fishing", "FishingBanner.razor.css"));
+
+        DeclarationsOf(css, ".fishing-status ::deep .game-panel").Should().Contain("pointer-events: none");
+    }
+
+    [Fact]
     public void FishingBannerStyles_CatchCard_StillPassesClicksThrough()
     {
         string css = File.ReadAllText(Path.Combine(RepositoryRoot(), "wasm", "Nosum.Wasm.Controls", "Fishing", "FishingCatchCard.razor.css"));

@@ -4,17 +4,20 @@
 @* The fishing status line in the bottom toast stack (docs/design/ui-standard.md section 5): what the line is doing and the press that reels in. The bite
    window is drawn by the scene, as a gauge beside the farmer (FishingDecorator), so the line keeps only the words. It is shown while a cast is open
    (docs/adr/ADR-078 D9); the catch is in FishingCatchCard. *@
+@* The wrapper carries this component's scope, so its stylesheet can reach the panel: a scoped rule on the panel's own class never matches it. *@
 @if (Vm.Phase != FishingPhase.Idle)
 {
-    <GamePanel Class="hud toast fishing-status" Role="status" Title="">
-        @Vm.Message
-        @if (Vm.Phase == FishingPhase.Biting)
-        {
-            <strong>@Vm.PressPrompt</strong>
-        }
-        @if (!string.IsNullOrEmpty(Vm.Note))
-        {
-            <span>@Vm.Note</span>
-        }
-    </GamePanel>
+    <div class="fishing-status">
+        <GamePanel Class="hud toast" Role="status" Title="">
+            @Vm.Message
+            @if (Vm.Phase == FishingPhase.Biting)
+            {
+                <strong>@Vm.PressPrompt</strong>
+            }
+            @if (!string.IsNullOrEmpty(Vm.Note))
+            {
+                <span>@Vm.Note</span>
+            }
+        </GamePanel>
+    </div>
 }
