@@ -47,8 +47,8 @@
       "name": "B-mail-collect-all",
       "ok": true,
       "value": {
-        "body": "Mail Your listing sold 30 days left Mail is deleted after 30 days. Collect a mail's gift before you delete it.",
-        "collected": "Mail Your listing sold 30 days left Mail is deleted after 30 days. Collect a mail's gift before you delete it."
+        "body": "Mail Your listing sold 31 days left Mail is deleted after 30 days. Collect a mail's gift before you delete it.",
+        "collected": "Mail Your listing sold 31 days left Mail is deleted after 30 days. Collect a mail's gift before you delete it."
       },
       "file": "05-B-mail-collect-all.png"
     },
