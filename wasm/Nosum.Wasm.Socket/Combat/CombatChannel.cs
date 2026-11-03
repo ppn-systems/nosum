@@ -458,6 +458,8 @@ public sealed partial class CombatChannel : IDisposable
     {
         try
         {
+            // A killing blow's zero-HP push removes the monster's row before this reply arrives, so the row is read now, while it is still known.
+            bool knewTarget = this.TryGetMonster(monsterId, out MonsterClientRow target);
             using PacketScope<AttackMonster> req = PacketFactory<AttackMonster>.Acquire();
             req.Value.MonsterId = monsterId;
             req.Value.Slot = (byte)slot;
@@ -483,9 +485,11 @@ public sealed partial class CombatChannel : IDisposable
                 // The damage number's style and the impact feel read the same rule, so a crit-styled number always shakes the screen.
                 byte style = (byte)(reply.DamageDealt >= 18 || reply.ComboCount >= 3 ? 1 : 0);
                 int impact = reply.ComboCount == FinisherComboCount ? ImpactFinisher : style == 1 ? ImpactHeavy : ImpactLight;
-                if (this.TryGetMonster(reply.MonsterId, out MonsterClientRow m))
+                bool live = this.TryGetMonster(reply.MonsterId, out MonsterClientRow m);
+                if (live || knewTarget)
                 {
-                    this.SpawnFloatingText((m.X * 16) + 8, (m.Y * 16) - 6, reply.DamageDealt, style);
+                    MonsterClientRow shown = live ? m : target;
+                    this.SpawnFloatingText((shown.X * 16) + 8, (shown.Y * 16) - 6, reply.DamageDealt, style);
                 }
 
                 this.AnnouncePlayerDamage(reply.Hp, reply.DamageTaken, 2);
@@ -544,6 +548,9 @@ public sealed partial class CombatChannel : IDisposable
     {
         try
         {
+            // As in AttackAsync: a killing blow removes the target's row before this reply, so the row is read first.
+            MonsterClientRow target = default;
+            bool knewTarget = targetMonsterId != 0 && this.TryGetMonster(targetMonsterId, out target);
             using PacketScope<CastSkill> req = PacketFactory<CastSkill>.Acquire();
             req.Value.SkillId = skillId;
             req.Value.TargetMonsterId = targetMonsterId;
@@ -564,17 +571,22 @@ public sealed partial class CombatChannel : IDisposable
 
             if (reply.Status == CombatStatus.Ok)
             {
-                this.TriggerSkillEffect(reply.SkillId, targetMonsterId);
+                this.TriggerSkillEffect(reply.SkillId, targetMonsterId, knewTarget ? target : null);
                 if (reply.SkillId == 3 && reply.HealAmount > 0)
                 {
                     this.SpawnFloatingText((_playerX * 16) + 8, (_playerY * 16) - 6, reply.HealAmount, 3);
                 }
                 else if (reply.SkillId == 2 && reply.DamageDealt > 0)
                 {
-                    if (this.TryGetMonster(targetMonsterId, out MonsterClientRow tm))
+                    bool live = this.TryGetMonster(targetMonsterId, out MonsterClientRow tm);
+                    if (live || knewTarget)
                     {
-                        this.SpawnFloatingText((tm.X * 16) + 8, (tm.Y * 16) - 6, reply.DamageDealt, 1);
+                        MonsterClientRow shown = live ? tm : target;
+                        this.SpawnFloatingText((shown.X * 16) + 8, (shown.Y * 16) - 6, reply.DamageDealt, 1);
                     }
+
+                    // The Fireball's hit feels like a basic hit: the target flashes and the screen gives the same light impact.
+                    this.RecordMonsterHit(targetMonsterId, ImpactLight);
                 }
                 else if (reply.SkillId == 1 && reply.DamageDealt > 0)
                 {

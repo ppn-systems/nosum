@@ -1,0 +1,10 @@
+{
+  "mode": "reel",
+  "size": "390x844",
+  "locale": "vi-VN",
+  "waitLine": "Đang chờ cá cắn câu, thường chỉ mất vài giây...",
+  "bite": true,
+  "bannerAfterPress": "Sẵn sàng thì thả câu lại.",
+  "afterPress": "Sẵn sàng thì thả câu lại.",
+  "errors": []
+}

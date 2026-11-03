@@ -1,0 +1,10 @@
+{
+  "mode": "reel",
+  "size": "1280x720",
+  "locale": "en-US",
+  "waitLine": "Waiting for a bite. It usually takes a few seconds...",
+  "bite": true,
+  "bannerAfterPress": "Cast again when you are ready.",
+  "afterPress": "Cast again when you are ready.",
+  "errors": []
+}

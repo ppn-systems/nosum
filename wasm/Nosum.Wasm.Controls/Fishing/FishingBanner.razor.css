@@ -1,9 +1,14 @@
-/* The fishing status line: one line of text in a toast plaque (GamePanel hud toast). */
+/* The fishing status line: one line of text in a toast plaque (GamePanel hud toast). The wrapper has no box of its own, so the toast stack lays the
+   panel out as before. Takes no clicks, so a click on the water under the line still casts or reels in (docs/adr/ADR-078 D9). */
 .fishing-status {
-    max-width: calc(var(--u) * 180);
-    /* Takes no clicks, so a click on the water under it still casts or reels in (docs/adr/ADR-078 D9). */
+    display: contents;
     pointer-events: none;
-    text-align: center;
+}
+
+/* The panel's own rule sets pointer-events: auto. A scoped rule on the panel's class never matches it, since the panel is a child component's
+   element, so this rule reaches it through the wrapper. */
+.fishing-status ::deep .game-panel {
+    pointer-events: none;
 }
 
 .fishing-status strong {

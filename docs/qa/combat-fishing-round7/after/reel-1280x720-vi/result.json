@@ -1,0 +1,10 @@
+{
+  "mode": "reel",
+  "size": "1280x720",
+  "locale": "vi-VN",
+  "waitLine": "Đang chờ cá cắn câu, thường chỉ mất vài giây...",
+  "bite": true,
+  "bannerAfterPress": "Lưỡi câu chỉ kéo lên được rong rêu.",
+  "afterPress": "Lưỡi câu chỉ kéo lên được rong rêu.",
+  "errors": []
+}

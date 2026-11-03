@@ -140,6 +140,7 @@ public sealed class FishingViewModelTests
 
         rig.Vm.Phase.Should().Be(FishingPhase.Waiting, "the cast stays open after a press that came too early");
         rig.Vm.LineOut.Should().BeTrue();
+        rig.Vm.BarMs.Should().Be(0, "the window is closed again, so the bar does not read the time it had at the press");
         rig.Vm.Note.Should().Be("The fish has not bitten yet. Wait a moment.");
 
         rig.Time.Advance(FishingViewModel.TooEarlyRetry);

@@ -128,7 +128,10 @@ public sealed class FishingViewModel : IObservableViewModel, IDisposable
         }
     }
 
-    /// <summary>Gets how long the bite window bar has left to run, in milliseconds; zero outside the window.</summary>
+    /// <summary>
+    /// Gets how long the bite window bar has left to run, in milliseconds; zero outside the window. Through the reel it holds the time that was left
+    /// at the press, so the gauge can stay where the press landed until the server answers.
+    /// </summary>
     public int BarMs
     {
         get
@@ -387,7 +390,9 @@ public sealed class FishingViewModel : IObservableViewModel, IDisposable
                 this.Finish(this.StatusText(FishingStatus.Nothing));
                 break;
             case FishingStatus.TooEarly:
+                // The window is closed again until it reopens, so the bar reads zero, as it does for every other phase outside the window.
                 _phase = FishingPhase.Waiting;
+                _barMs = 0;
                 _note = this.StatusText(FishingStatus.TooEarly);
                 this.Arm(Step.Bite, (long)TooEarlyRetry.TotalMilliseconds);
                 break;
