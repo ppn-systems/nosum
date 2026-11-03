@@ -81,15 +81,21 @@
     },
     {
       "name": "coop-log",
-      "ok": false,
-      "error": "no warehouse log heading",
-      "buttons": [],
-      "file": null
+      "ok": true,
+      "value": {
+        "log": "Hợp tác xã Thành viên Kho Nâng cấp Mục tiêu Nhật ký Nhật ký kho 12:40 - Khách 0614 đã lấy 6 Hạt củ cải đỏ 12:40 - Khách 0614 đã gửi 6 Hạt củ cải đỏ 12:40 - Khách 0614 đã lấy 6 Hạt củ cải đỏ 12:40 - Kh",
+        "overflow": 0
+      },
+      "file": "09-coop-log.png"
     },
     {
-      "name": "FLOW-ABORTED",
-      "ok": false,
-      "error": "keyboard.press: Target page, context or browser has been closed"
+      "name": "coop-reopen-remembers",
+      "ok": true,
+      "value": {
+        "active": "Nhật ký",
+        "overflow": 0
+      },
+      "file": "10-coop-reopen-remembers.png"
     }
   ],
   "errors": []
