@@ -101,3 +101,38 @@ The tutorial pays a small reward per step (10 to 80 coins, ADR-036). A first cat
 
 Frames: `docs/qa/combat-fishing-round6/` (`capture.cjs` in that folder; `wait` and `knockout` modes; tester build, Development server,
 `?qa=1`). Unit tests, the integration suite, the browser `node --test` and the wasm and server builds were run for this change.
+
+## Round 7: what changed
+
+- **N4. The fishing banner took the click it asked for (fixed).** The line says `Nhấn Space hoặc bấm chuột để kéo cần!` ("press Space or click to reel
+  in") and sits over the water in front of the farmer, where a player clicks. Its rule `pointer-events: none` was scoped to `FishingBanner`, but the
+  rule's element is the child `GamePanel`'s root, which carries the panel's own `pointer-events: auto`, so the click landed on the panel and the press
+  never reached the scene. In the tester build the press at the bite registered only when the click missed the banner: a click on the banner left the
+  line to time out (`Cá đã thoát mất!`). The banner now sits in a wrapper of its own, and the panel is reached through `::deep`. Checked in the
+  browser at 1280x720, 1920x1080 and 390x844, vi and en: the press at the bite changes the line in every run (`docs/qa/combat-fishing-round7/`).
+  Tests: `FishingBannerPointerTests` (the deep rule).
+- **N5. The reel gauge vanished on the press (fixed).** The gauge is drawn through the reel and frozen where the press left it, until the server answers.
+  A too-early press also clears the bar, which had kept its value from the press (`FishingViewModel`, `FishingDecorator`).
+- **N6. A catch made no mark in the world (fixed).** When the line comes in, the bobber's ring plays where the bobber was, so the moment reads in the
+  world as well as in the banner and the catch card. Frame: the 1280x720 vi reel frame shows the catch card and the banner, and the ring is too faint
+  to read in a still; the round trip on localhost is short, so the frozen gauge is not visible in the captures. It matters on a slow link.
+- **Item 1 follow-up: a killing blow lost its damage number (fixed).** A killing blow's zero-HP push removes the monster's row before the attack reply,
+  so the reply found no row: the number was not spawned, and a Fireball that killed its target flew to the nearest other monster. The target's row is
+  now read before the request, and the live row wins when it still exists (`CombatChannel.cs`, `CombatChannel.Vfx.cs`, test
+  `CombatHitNumberTests.Attack_KillingBlowPushArrivesBeforeTheReply_StillShowsTheNumberOnTheMonster`, which fails without the fix).
+- **A Fireball hit gives the monster its hit flash and the light impact (fixed).** Skill hits had no hit feedback, while a basic attack had all of it.
+  The Fireball's target now records a monster hit; the sound of a skill hit is not changed (open).
+
+### Open after round 7
+
+- **Telegraphs end one network latency late.** The server arms a strike's 400 ms wind-up on its own clock before the telegraph is sent, and the client
+  starts its timer at local receipt. The client's window therefore ends at strike time plus the one-way latency: the monster keeps rising and flashing
+  after the hit. The fix needs a clock offset or the server's send time; not done here (ADR-097).
+- **A knock-out's own number reads the HP left, not the hit.** The zero-HP push calls `AnnouncePlayerDamage(0, -diff)`, so a 9-damage hit on 3 HP shows
+  `3`. The honest number needs the damage in the push, which is a wire change (`VitalsState`), so it waits for a protocol bump.
+- **A knock-out is not latched.** A second adjacent monster's strike in the travel window can knock the farmer out again. Needs a per-player flag on the
+  server.
+- **Silent refusals on a basic attack, and no feedback on a monster's strike.** A refused attack (out of range, no MP) shows nothing, unlike a refused
+  skill. A hit on the farmer gives a number and no sound. The fix is client-side and small; not done this round.
+- **Touch skill targeting (item 8) and the skill sound.** Not played; the skill cast plays no swing sound.
+- **Frozen gauge and ring on a slow link.** Judged from the code, not played at a high latency.

@@ -1,0 +1,10 @@
+{
+  "mode": "reel",
+  "size": "390x844",
+  "locale": "en-US",
+  "waitLine": "Waiting for a bite. It usually takes a few seconds...",
+  "bite": true,
+  "bannerAfterPress": "The line came up with nothing but weeds.",
+  "afterPress": "The line came up with nothing but weeds.",
+  "errors": []
+}
