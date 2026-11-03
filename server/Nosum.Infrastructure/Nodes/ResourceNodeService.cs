@@ -285,6 +285,9 @@ public sealed partial class ResourceNodeService : IResourceNodeService, IChunkSt
             case NodeHitOutcome.WrongTool:
                 return Refused(FarmStatus.WrongTool);
 
+            case NodeHitOutcome.TooWeak:
+                return Refused(FarmStatus.WeakTool);
+
             case NodeHitOutcome.Damaged:
                 {
                     ChargeStatus charged = await _progress.TryChargeAsync(player.AccountId, tool, SkillRules.SkillOf(node.Kind), SkillRules.HitXp, tier, cancellationToken).ConfigureAwait(false);

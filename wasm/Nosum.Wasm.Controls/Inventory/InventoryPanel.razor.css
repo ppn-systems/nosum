@@ -82,7 +82,11 @@
     overflow-wrap: anywhere;
 }
 
+/* The stats share the name's line: they take the width the name leaves (basis zero), and wrap inside it. A full basis pushed them under the name,
+   one line lower, which put the description under the window's fade at 1920 x 1080 (critique-inventory-crafting.md, round four). */
 .hand-stats {
+    flex: 1 1 0;
+    min-width: 0;
     color: var(--nosum-ink);
 }
 

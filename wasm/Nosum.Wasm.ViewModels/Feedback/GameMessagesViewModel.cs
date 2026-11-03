@@ -202,12 +202,23 @@ public sealed class GameMessagesViewModel : IObservableViewModel, IDisposable
         {
             FarmStatus.NotMature when daysLeft > 0 => this.TextOfNotMature(daysLeft),
             FarmStatus.OutOfSeason => this.TextOfOutOfSeason(),
+            FarmStatus.WeakTool => this.TextOfWeakTool(),
             _ => this.TextOf(status),
         };
         if (status != FarmStatus.Cooldown && text is not null)
         {
             this.Show(text);
         }
+    }
+
+    // A tool of a lower tier than the node needs names the tool in hand and where to upgrade it (docs/adr/ADR-123 D2). The server decided the
+    // refusal; the name is the tool in the held slot now, which is the one swung unless the farmer changed slots within the swing's short lock.
+    private string TextOfWeakTool()
+    {
+        string? name = _inventory.Held?.Name;
+        return string.IsNullOrEmpty(name)
+            ? _text["Farm_Status_WrongTool"].Value
+            : string.Format(System.Globalization.CultureInfo.CurrentCulture, _text["Farm_Status_WeakTool"].Value, name);
     }
 
     // A seed refused as out of season names the seasons its crop grows in (docs/adr/ADR-121 D1). The seed is the item in the selected slot when the

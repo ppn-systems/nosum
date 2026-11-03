@@ -166,7 +166,27 @@ Scope: the open items of section 7c that change feel without a new feature or a 
   key is the input owner's call; the phone gate (G8) is a product decision for the owner, not a gathering rule.
 - **Still unmeasured.** The copper ore break and the tree health bar were not framed again; the round-two README lists them.
 
+### 7e. Round 4 (ADR-123)
+
+Scope: the open items of section 7d that change feel or correctness without a new feature or a balance change, and the refusal a player reads on a node
+the tool cannot break yet.
+
+- **G11, a tool too weak for a node read as the wrong tool (fixed).** `NodeRules.Hit` returned one outcome, `WrongTool`, for three cases: the wrong
+  kind, a ladder, and a tier below the node's. A copper pickaxe on iron ore, or a basic axe on a large stump, read "This tool does not work on that.",
+  the same as a pickaxe on a tree, so the player could not tell that an upgrade was the fix. Now a tier shortfall is `NodeHitOutcome.TooWeak`, which the
+  server sends as `FarmStatus.WeakTool` (25, protocol 35). The line names the tool in hand and the blacksmith: "Your Axe is too weak for that. Upgrade it
+  at the blacksmith." No energy is spent, and the node and its XP are unchanged, as before. Decision: [ADR-123](../adr/ADR-123-a-tool-too-weak-for-a-node-is-refused-as-its-own-status.md).
+  Tests: `NodeRulesTests`, `OutdoorRulesTests`, `GameMessagesViewModelTests`, `CraftingTextTests`. Browser: [docs/qa/inventory-round4/](../qa/inventory-round4/README.md).
+- **G12, the swing's XP float agrees with the server (checked, no change).** `PlayerActions` shows `SkillRules.GatherXp(kind, broke)` for the kind the tile held
+  before the hit. The server charges `BreakXp(node.Kind)` on the same pre-break kind, and `HitXp` for a hit that leaves the node standing. A stump's break is
+  4 XP on both sides, and a large stump's is 8. No mismatch was found.
+- **Unchanged this round.** G5 (respawn pacing) and G6 (the hoe and can energy discount) are balance questions that wait for a playtest (ADR-089 D6), and
+  so does the level-8 floor of section 4. G7 (the wide-swing key) belongs to the input owner. G8 (the phone gate) is a product decision.
+- **Still unmeasured.** The copper ore break and the tree health bar were not framed this round. Copper ore needs a mine floor with copper ore in reach, and
+  the QA hook does not place one.
+
 ## 8. Captures
 
-Before and after, English and Vietnamese, at 1280×720 and 390×844, are in [docs/qa/rebuild-gathering/](../qa/rebuild-gathering/). Round three's HUD captures are in [docs/qa/gathering-round3/](../qa/gathering-round3/README.md). Each set is graded
+Before and after, English and Vietnamese, at 1280×720 and 390×844, are in [docs/qa/rebuild-gathering/](../qa/rebuild-gathering/). Round three's HUD captures are in [docs/qa/gathering-round3/](../qa/gathering-round3/README.md). Round four's refusal captures (G11) are in
+[docs/qa/inventory-round4/](../qa/inventory-round4/README.md), with the inventory's own round-four frames. Each set is graded
 against [ui-standard.md](ui-standard.md) section 7 in the folder's README.

@@ -36,7 +36,7 @@ public sealed class OutdoorRulesTests
 
         NodeRules.Hit(stump, ToolKind.Axe, 1, ToolTier.Iron).Should().Be(new NodeHit(NodeHitOutcome.Broke, null));
         NodeRules.Hit(stump, ToolKind.Pickaxe).Outcome.Should().Be(NodeHitOutcome.WrongTool);
-        NodeRules.Hit(stump, ToolKind.Axe, 1, ToolTier.Basic).Outcome.Should().Be(NodeHitOutcome.WrongTool, "a starter axe does nothing to a large stump");
+        NodeRules.Hit(stump, ToolKind.Axe, 1, ToolTier.Basic).Outcome.Should().Be(NodeHitOutcome.TooWeak, "a starter axe is too weak for a large stump");
         NodeRules.RollYield(stump, 3).Single().Quantity.Should().BeInRange(8, 12);
         SkillRules.BreakXp(NodeKind.LargeStump).Should().BeGreaterThan(SkillRules.BreakXp(NodeKind.Stump));
     }
